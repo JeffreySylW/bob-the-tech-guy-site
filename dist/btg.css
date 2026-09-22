@@ -1,188 +1,221 @@
 /* 01-tokens.css */
 :root {
-      --btg-bg-0: #0d0f0c;
-      --btg-bg-1: #181c15;
-      --btg-bg-2: #20241f;
-      --btg-green: #54aa47;
-      --btg-green-light: #6ec95f;
-      --btg-green-lighter: #8ad97c;
-      --btg-green-link: #38792f;
-      --btg-text: #1c201b;
-      --btg-text-muted: #4a5046;
-      --btg-card-bg: #f6f8f5;
-      --btg-card-border: #e2e6e0;
-      --btg-font-head: "Roboto Slab", Georgia, serif;
-      --btg-font-body: "PT Sans", Arial, sans-serif;
-      --btg-space-1: 4px;
-      --btg-space-2: 8px;
-      --btg-space-3: 16px;
-      --btg-space-4: 24px;
-      --btg-space-5: 32px;
-      --btg-space-6: 48px;
-      --btg-radius-sm: 6px;
-      --btg-radius-md: 10px;
-      --btg-radius-pill: 999px;
+        /* Dark scale (hero, CTA bands) */
+  --btg-bg-0: #0d0f0c;
+        --btg-bg-1: #181c15;
+        --btg-bg-2: #20241f;
+
+  /* Green scale */
+  --btg-green: #54aa47;          /* brand accent: icons, borders, kickers — not for text-on-bg contrast */
+  --btg-green-light: #6ec95f;    /* eyebrow text on dark bg */
+  --btg-green-lighter: #8ad97c;  /* phone number link on dark bg */
+  --btg-green-link: #38792f;     /* AA-safe: text links + solid button fills, replaces the old #3f8a35 */
+
+  /* Light body scale */
+  --btg-text: #1c201b;
+        --btg-text-muted: #4a5046;
+        --btg-card-bg: #f6f8f5;
+        --btg-card-border: #e2e6e0;
+
+  /* Type */
+  --btg-font-head: "Roboto Slab", Georgia, serif;
+        --btg-font-body: "PT Sans", Arial, sans-serif;
+
+  /* Spacing (4px scale) */
+  --btg-space-1: 4px;
+        --btg-space-2: 8px;
+        --btg-space-3: 16px;
+        --btg-space-4: 24px;
+        --btg-space-5: 32px;
+        --btg-space-6: 48px;
+
+  /* Radius */
+  --btg-radius-sm: 6px;
+        --btg-radius-md: 10px;
+        --btg-radius-pill: 999px;
 }
 
 /* 02-hero.css */
 .btg-hero {
-      background-color: var(--btg-bg-0);
-      background-image: radial-gradient(circle at 50% 0%, var(--btg-bg-1), var(--btg-bg-0) 70%);
-      color: #fff;
-      text-align: center;
-      padding: var(--btg-space-6) var(--btg-space-4) var(--btg-space-5);
-      position: relative;
-      overflow: hidden;
+        background-color: var(--btg-bg-0); /* fallback if gradients aren't supported; also keeps background-color non-transparent for tooling that reads it */
+  background-image: radial-gradient(circle at 50% 0%, var(--btg-bg-1), var(--btg-bg-0) 70%);
+        color: #fff;
+        text-align: center;
+        padding: var(--btg-space-6) var(--btg-space-4) var(--btg-space-5);
+        position: relative;
+        overflow: hidden;
 }
 
 .btg-hero-eyebrow {
-      font-family: var(--btg-font-body);
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--btg-green-light) !important;
-      text-align: center !important;
-      margin: 0 0 var(--btg-space-3);
+        font-family: var(--btg-font-body);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--btg-green-light) !important;
+        text-align: center !important;
+        margin: 0 0 var(--btg-space-3);
 }
 
 .btg-hero-title {
-      font-family: var(--btg-font-head);
-      font-weight: 300;
-      font-size: clamp(28px, 5vw, 42px);
-      line-height: 1.18;
-      margin: 0 0 var(--btg-space-3);
-      color: #fff !important;
-      text-align: center !important;
+        font-family: var(--btg-font-head);
+        font-weight: 300;
+        font-size: clamp(28px, 5vw, 42px);
+        line-height: 1.18;
+        margin: 0 0 var(--btg-space-3);
+        /* !important: the Avada theme ships its own higher-specificity heading
+           color rule (loaded before this bundle) that otherwise wins the
+           cascade and leaves this text dark-on-dark against the hero's
+           near-black background — confirmed live on bobthetechguy.com. Color
+     and alignment are set directly on the element (not just inherited
+     from .btg-hero) so they can't lose to the theme regardless of where
+     this stylesheet's <link> ends up in the DOM. */
+  color: #fff !important;
+        text-align: center !important;
 }
 
 .btg-hero-title strong {
-      font-weight: 700;
-      color: var(--btg-green-lighter) !important;
+        font-weight: 700;
+        color: var(--btg-green-lighter) !important;
 }
 
 .btg-hero-lede {
-      font-family: var(--btg-font-body);
-      font-size: 16px;
-      color: #c3cabf !important;
-      text-align: center !important;
-      max-width: 56ch;
-      margin: 0 auto var(--btg-space-4);
+        font-family: var(--btg-font-body);
+        font-size: 16px;
+        color: #c3cabf !important;
+        text-align: center !important;
+        max-width: 56ch;
+        margin: 0 auto var(--btg-space-4);
+        /* !important on margin-left/right: the Avada theme sets an explicit
+           margin (not just margin-bottom) on every <p> in the content area
+           (`.post-content p { margin: 0px 0px 20px; }`), which overrides this
+     rule's own `margin: 0 auto ...` shorthand. text-align: center alone
+     only centers the text *inside* the paragraph box — with the box's own
+     left/right margins forced to 0 by the theme, the box itself stays
+     pinned to the hero's left edge, so the line as a whole reads as
+     off-center under the centered headline above it. Confirmed live on
+     bobthetechguy.com. */
+  margin-left: auto !important;
+        margin-right: auto !important;
 }
 
 .btg-hero-cta {
-      display: inline-block;
-      background: var(--btg-green-link) !important;
-      color: #fff !important;
-      font-family: var(--btg-font-body);
-      font-weight: 700;
-      font-size: 15px;
-      padding: 13px 28px;
-      border-radius: var(--btg-radius-sm);
-      text-decoration: none;
+        display: inline-block;
+        background: var(--btg-green-link) !important;
+        color: #fff !important;
+        font-family: var(--btg-font-body);
+        font-weight: 700;
+        font-size: 15px;
+        padding: 13px 28px;
+        border-radius: var(--btg-radius-sm);
+        text-decoration: none;
 }
 
 .btg-hero-cta:focus-visible {
-      outline: 3px solid var(--btg-green-lighter);
-      outline-offset: 2px;
+        outline: 3px solid var(--btg-green-lighter);
+        outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-      .btg-hero-cta {
-              transition: transform 0.18s ease, box-shadow 0.18s ease;
-      }
-      .btg-hero-cta:hover,
-      .btg-hero-cta:focus-visible {
-              transform: scale(1.04);
-              box-shadow: 0 0 18px rgba(84, 170, 71, 0.5);
-      }
+        .btg-hero-cta {
+                  transition: transform 0.18s ease, box-shadow 0.18s ease;
+        }
+        .btg-hero-cta:hover,
+        .btg-hero-cta:focus-visible {
+                  transform: scale(1.04);
+                  box-shadow: 0 0 18px rgba(84, 170, 71, 0.5);
+        }
 }
 
 /* 03-accordion.css */
 .btg-faq-item {
-      border: 1px solid var(--btg-card-border);
-      border-radius: var(--btg-radius-md);
-      margin-bottom: var(--btg-space-2);
-      overflow: hidden;
+        border: 1px solid var(--btg-card-border);
+        border-radius: var(--btg-radius-md);
+        margin-bottom: var(--btg-space-2);
+        overflow: hidden;
 }
 
 .btg-faq-question {
-      width: 100%;
-      text-align: left;
-      background: var(--btg-card-bg);
-      border: 0;
-      font-family: var(--btg-font-body);
-      font-weight: 700;
-      font-size: 15px;
-      color: var(--btg-text);
-      padding: var(--btg-space-3) var(--btg-space-4);
-      cursor: pointer;
+        width: 100%;
+        text-align: left;
+        background: var(--btg-card-bg);
+        border: 0;
+        font-family: var(--btg-font-body);
+        font-weight: 700;
+        font-size: 15px;
+        color: var(--btg-text);
+        padding: var(--btg-space-3) var(--btg-space-4);
+        cursor: pointer;
 }
 
 .btg-faq-question:focus-visible {
-      outline: 3px solid var(--btg-green-link);
-      outline-offset: -3px;
+        outline: 3px solid var(--btg-green-link);
+        outline-offset: -3px;
 }
 
 .btg-faq-answer {
-      padding: 0 var(--btg-space-4) var(--btg-space-3);
-      font-family: var(--btg-font-body);
-      font-size: 14px;
-      color: var(--btg-text-muted);
-      line-height: 1.6;
+        padding: 0 var(--btg-space-4) var(--btg-space-3);
+        font-family: var(--btg-font-body);
+        font-size: 14px;
+        color: var(--btg-text-muted);
+        line-height: 1.6;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-      .btg-faq-answer {
-              transition: grid-template-rows 0.2s ease;
-      }
+        .btg-faq-answer {
+                  transition: grid-template-rows 0.2s ease;
+        }
 }
 
 /* 04-sticky-cta.css */
 .btg-sticky-cta {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 9999;
-      background: var(--btg-bg-0);
-      padding: var(--btg-space-2) var(--btg-space-3);
-      padding-bottom: calc(var(--btg-space-2) + env(safe-area-inset-bottom, 0px));
-      text-align: center;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 9999;
+        background: var(--btg-bg-0);
+        padding: var(--btg-space-2) var(--btg-space-3);
+        padding-bottom: calc(var(--btg-space-2) + env(safe-area-inset-bottom, 0px));
+        text-align: center;
 }
 
 .btg-sticky-cta-link {
-      display: block;
-      background: var(--btg-green-link);
-      color: #fff;
-      font-family: var(--btg-font-body);
-      font-weight: 700;
-      font-size: 16px;
-      padding: 12px;
-      border-radius: var(--btg-radius-sm);
-      text-decoration: none;
+        display: block;
+        background: var(--btg-green-link);
+        color: #fff;
+        font-family: var(--btg-font-body);
+        font-weight: 700;
+        font-size: 16px;
+        padding: 12px;
+        border-radius: var(--btg-radius-sm);
+        text-decoration: none;
 }
 
 .btg-sticky-cta-link:focus {
-      outline: 3px solid var(--btg-green-lighter);
-      outline-offset: 2px;
+        /* :focus, not :focus-visible — a sticky call bar on a phone is reached
+           almost exclusively by touch or keyboard, so an always-visible ring
+           costs nothing and avoids relying on a heuristic that headless
+           browsers apply inconsistently for programmatic focus(). */
+  outline: 3px solid var(--btg-green-lighter);
+        outline-offset: 2px;
 }
 
 @media (min-width: 860px) {
-      .btg-sticky-cta {
-              display: none;
-      }
+        .btg-sticky-cta {
+                  display: none; /* desktop already shows the phone number in the header */
+        }
 }
 
 /* 05-scroll-reveal.css */
 @media (prefers-reduced-motion: no-preference) {
-      [data-btg-reveal] {
-              opacity: 0;
-              transform: translateY(16px);
-              transition: opacity 0.4s ease, transform 0.4s ease;
-      }
-      [data-btg-reveal].btg-revealed {
-              opacity: 1;
-              transform: translateY(0);
-      }
+        [data-btg-reveal] {
+                  opacity: 0;
+                  transform: translateY(16px);
+                  transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+        [data-btg-reveal].btg-revealed {
+                  opacity: 1;
+                  transform: translateY(0);
+        }
 }
