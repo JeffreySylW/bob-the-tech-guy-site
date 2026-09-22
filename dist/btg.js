@@ -1,4 +1,4 @@
-        /* 01-accordion.js */
+/* 01-accordion.js */
 window.BTGAccordion = (function () {
   function toggle(button) {
     var item = button.closest('.btg-faq-item');
