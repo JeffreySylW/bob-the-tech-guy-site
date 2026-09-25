@@ -38,7 +38,7 @@
 /* 02-hero.css */
 .btg-hero {
   background-color: var(--btg-bg-0); /* fallback if gradients aren't supported; also keeps background-color non-transparent for tooling that reads it */
-  background-image: radial-gradient(circle at 50% 0%, var(--btg-bg-1), var(--btg-bg-0) 70%);
+  background-image: radial-gradient(ellipse farthest-side at 50% 0%, var(--btg-bg-1), var(--btg-bg-0));
   color: #fff;
   text-align: center;
   padding: var(--btg-space-6) var(--btg-space-4) var(--btg-space-5);
@@ -48,6 +48,12 @@
      tagline box ("Now Open in Chesterfield, Virginia!") sits right after
      it with no top margin of its own, so without this the two touch. */
   margin-bottom: var(--btg-space-6) !important;
+  /* Full-bleed dark band: the shadow paints bg-0 out to both viewport
+     edges while the box (and its text) stays exactly where it is. The
+     gradient already fades to bg-0 at the edges, so there's no seam.
+     Shadows don't create scrollable overflow, so no horizontal scroll. */
+  box-shadow: 0 0 0 100vmax var(--btg-bg-0);
+  clip-path: inset(0 -100vmax);
 }
 
 .btg-hero-eyebrow {

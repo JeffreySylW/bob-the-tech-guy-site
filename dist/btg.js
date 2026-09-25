@@ -235,7 +235,23 @@ window.BTGInit = (function () {
     }
   }
 
+  // Old Avada buttons link to "tel:844-TEKGUY-0"; many phones won't dial
+  // letters. Converts vanity letters to keypad digits sitewide.
+  function fixTelLinks(doc) {
+    var keypad = 'ABC2DEF3GHI4JKL5MNO6PQRS7TUV8WXYZ9';
+    var links = doc.querySelectorAll('a[href^="tel:"]');
+    Array.prototype.forEach.call(links, function (a) {
+      var num = a.getAttribute('href').slice(4);
+      if (!/[a-z]/i.test(num)) return;
+      var digits = num.toUpperCase().replace(/[A-Z]/g, function (c) {
+        return keypad.slice(keypad.indexOf(c)).match(/\d/)[0];
+      }).replace(/\D/g, '');
+      a.setAttribute('href', 'tel:+1' + digits.slice(-10));
+    });
+  }
+
   return {
+    fixTelLinks: fixTelLinks,
     removeDuplicateTitleBar: removeDuplicateTitleBar,
     removeHomeSlider: removeHomeSlider,
     centerHeroOnPage: centerHeroOnPage,
@@ -253,6 +269,7 @@ window.BTGInit = (function () {
   }
 
   function run() {
+    window.BTGInit.fixTelLinks(document);
     window.BTGInit.removeDuplicateTitleBar(document);
     window.BTGInit.removeHomeSlider(document);
     window.BTGInit.centerHeroOnPage(document, window);
