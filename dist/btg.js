@@ -250,7 +250,20 @@ window.BTGInit = (function () {
     });
   }
 
+  // "844-TEKGUY-0" alone can't be typed on many phones; show the digits
+  // (from the CTA's tel: href) on a second line of the button.
+  function addCtaDigits(doc) {
+    var cta = doc.querySelector('.btg-hero-cta');
+    if (!cta || !/[a-z]/i.test(cta.textContent)) return;
+    var d = cta.getAttribute('href').replace(/\D/g, '').slice(-10);
+    var span = doc.createElement('span');
+    span.className = 'btg-hero-cta-digits';
+    span.textContent = '(' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6);
+    cta.appendChild(span);
+  }
+
   return {
+    addCtaDigits: addCtaDigits,
     fixTelLinks: fixTelLinks,
     removeDuplicateTitleBar: removeDuplicateTitleBar,
     removeHomeSlider: removeHomeSlider,
@@ -270,6 +283,7 @@ window.BTGInit = (function () {
 
   function run() {
     window.BTGInit.fixTelLinks(document);
+    window.BTGInit.addCtaDigits(document);
     window.BTGInit.removeDuplicateTitleBar(document);
     window.BTGInit.removeHomeSlider(document);
     window.BTGInit.centerHeroOnPage(document, window);

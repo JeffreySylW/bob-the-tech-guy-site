@@ -121,6 +121,29 @@
   text-decoration: none;
 }
 
+/* Dialable digits under the vanity number (added by addCtaDigits). */
+.btg-hero-cta-digits {
+  display: block;
+  font-weight: 400;
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+/* The site shows the WP toolbar (Log In / Register) to logged-out
+   visitors; hide it for them only. WP pushes <html> down 32/46px for it. */
+body:not(.logged-in) #wpadminbar {
+  display: none !important;
+}
+html:has(body:not(.logged-in)) {
+  margin-top: 0 !important;
+}
+
+/* Avada's #main padding-top (55px) left a white strip between the nav and
+   the full-bleed hero band; the hero has its own top padding. */
+#main:has(.btg-hero) {
+  padding-top: 0 !important;
+}
+
 .btg-hero-cta:focus-visible {
   outline: 3px solid var(--btg-green-lighter);
   outline-offset: 2px;
