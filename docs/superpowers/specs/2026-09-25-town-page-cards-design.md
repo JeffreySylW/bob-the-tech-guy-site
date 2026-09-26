@@ -48,7 +48,7 @@ Measured 2026-09-25: every anchor below exists exactly once in each post's body.
 | Data Recovery | drive | "Have you lost your data…" ¶, the checklist after it (6 items) |
 
 - **Summary:** the first sentence of the card's first paragraph, moved out of that paragraph (each sentence appears exactly once).
-- **Removed:** subheadings the card titles replace — the repeated "PC Repair Service [Town] Virginia" h3s inside the body, "Internet, Home & Wireless Networking", "Home Networking", "Wireless Networking" (Chesterfield's equivalents: "New Computer Setup", "Internet, Home & Wireless Networking", "Home Networking", "Wireless Networking", "Tune-Ups & Data Recovery").
+- **Removed:** subheadings the card titles replace — the repeated "PC Repair Service [Town] Virginia" h3s inside the body, "Internet, Home & Wireless Networking", "Home Networking", "Wireless Networking" (Chesterfield's equivalents: "Best Computer Repair Chesterfield VA", "New Computer Setup", "Internet, Home & Wireless Networking", "Home Networking", "Wireless Networking", "Tune-Ups & Data Recovery").
 - **Moved:** the two paragraphs `<p><strong>Have any questions? … Call Today!</strong></p><p><strong>844-TEKGUY-0</strong></p>` (they currently sit between the two virus paragraphs) go directly after the grid, wrapped in `<div class="btg-cards-cta">`, unchanged inside.
 - **Unchanged:** the hero `<section class="btg-hero">…</section>` byte-for-byte (it already contains the call button — verified rendering 151×66px on the live Chester page), the "Proudly Serving [Town]…" paragraph with its zip codes, the loader `<link>`/`<script>` lines.
 
@@ -111,3 +111,7 @@ Live writes (steps 1, 3, 4, 5) require the session to be out of auto mode.
 ## Follow-up (after rollout)
 
 Read-only sweep of all remaining pages, reporting walls of text (>60-word blocks) and where cards apply. Measured 2026-09-25 as a starting point: Networking (881 words, 3 walls), About (4), Anti-Virus (2), Backup Solutions (2), Reviews (2), Testimonials (2), and single walls on several Services subpages.
+
+## Amendment (implementation, 2026-09-25)
+
+Post 28867 (Chesterfield) is stored as block-editor content (`<!-- wp:… -->` delimiters); the other 8 are classic HTML. On block-editor posts the transform drops the block delimiters inside the regrouped region (including nested `wp:list-item` ones), keeps the "Proudly Serving" heading's own block opener, and wraps the grid + CTA in one `<!-- wp:html -->…<!-- /wp:html -->` Custom HTML block so the editor sees valid blocks. Delimiters render nothing, so visible output is unaffected. Classic posts get no block comments.
