@@ -55,8 +55,8 @@ test('addHeroTrust adds one accessible trust line after the hero CTA', () => {
   const [el, ref] = inserted[0];
   assert.strictEqual(ref, 'NEXT');
   assert.strictEqual(el.className, 'btg-hero-trust');
-  assert.match(el.textContent, /5-star rated · Veteran-owned & operated/);
-  assert.strictEqual(el['aria-label'], '5-star rated. Veteran-owned and operated.');
+  assert.match(el.innerHTML, /^<span aria-hidden="true">★★★★★<\/span> 5-star rated · Veteran-owned &amp; operated$/);
+  assert.strictEqual(el['aria-label'], undefined); // aria-label on a <p> is ignored by screen readers
 });
 
 test('addHeroTrust is idempotent', () => {

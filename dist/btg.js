@@ -271,8 +271,8 @@ window.BTGInit = (function () {
     if (!cta) return;
     var p = doc.createElement('p');
     p.className = 'btg-hero-trust';
-    p.setAttribute('aria-label', '5-star rated. Veteran-owned and operated.');
-    p.textContent = '★★★★★ 5-star rated · Veteran-owned & operated';
+    // Stars hidden from screen readers (aria-label on a <p> is ignored).
+    p.innerHTML = '<span aria-hidden="true">★★★★★</span> 5-star rated · Veteran-owned &amp; operated';
     cta.parentNode.insertBefore(p, cta.nextSibling);
   }
 

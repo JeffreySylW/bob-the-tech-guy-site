@@ -18,7 +18,7 @@ test('every card icon the transform emits has a style', () => {
 
 test('Read more uses the AA-safe link green and has a visible focus ring', () => {
   assert.match(css, /\.btg-card summary \{[^}]*color: var\(--btg-green-link\);/);
-  assert.match(css, /\.btg-card summary:focus-visible \{[^}]*outline: 3px solid/);
+  assert.match(css, /\.btg-card summary:focus-visible \{[^}]*outline: 3px solid var\(--btg-green-link\);/);
 });
 
 test('posts with a hero hide the duplicate title and prev/next nav', () => {
