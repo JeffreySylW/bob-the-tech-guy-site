@@ -10,6 +10,7 @@
   --btg-green-light: #6ec95f;    /* eyebrow text on dark bg */
   --btg-green-lighter: #8ad97c;  /* phone number link on dark bg */
   --btg-green-link: #38792f;     /* AA-safe: text links + solid button fills, replaces the old #3f8a35 */
+  --btg-green-tint: #e3f1df;     /* icon tile background on light cards */
 
   /* Light body scale */
   --btg-text: #1c201b;
@@ -127,6 +128,15 @@
   font-weight: 400;
   font-size: 13px;
   opacity: 0.9;
+}
+
+/* Trust line under the hero CTA (added by addHeroTrust). */
+.btg-hero-trust {
+  margin: var(--btg-space-3) 0 0 !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  font-family: var(--btg-font-body);
+  font-size: 14px;
+  letter-spacing: 0.02em;
 }
 
 /* The site shows the WP toolbar (Log In / Register) to logged-out
@@ -251,4 +261,38 @@ html:has(body:not(.logged-in)) {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* 06-cards.css — town page summary cards (spec 2026-09-25-town-page-cards) */
+.btg-cards { display: grid; grid-template-columns: repeat(3, 1fr); align-items: start; gap: var(--btg-space-4); margin: var(--btg-space-2) 0 var(--btg-space-5); }
+@media (max-width: 900px) {
+  .btg-cards { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .btg-cards { grid-template-columns: 1fr; }
+}
+.btg-card { background: var(--btg-card-bg); border: 1px solid var(--btg-card-border); border-top: 3px solid var(--btg-green); border-radius: var(--btg-radius-md); padding: 22px 22px 16px; }
+.btg-card::before { content: ""; display: block; width: 34px; height: 34px; border-radius: 8px; background: var(--btg-green-tint) center / 22px no-repeat; }
+.btg-card--shield::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338792f' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z'/%3E%3Cpath d='M9 12l2 2 4-4'/%3E%3C/svg%3E"); }
+.btg-card--laptop::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338792f' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='5' width='16' height='11' rx='1'/%3E%3Cpath d='M2 19h20'/%3E%3C/svg%3E"); }
+.btg-card--wifi::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338792f' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 9a15 15 0 0 1 20 0'/%3E%3Cpath d='M5 12.5a10 10 0 0 1 14 0'/%3E%3Cpath d='M8.5 16a5 5 0 0 1 7 0'/%3E%3Ccircle cx='12' cy='19.5' r='1'/%3E%3C/svg%3E"); }
+.btg-card--network::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338792f' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='2' width='6' height='5' rx='1'/%3E%3Crect x='2' y='17' width='6' height='5' rx='1'/%3E%3Crect x='16' y='17' width='6' height='5' rx='1'/%3E%3Cpath d='M12 7v5M5 17v-3h14v3'/%3E%3C/svg%3E"); }
+.btg-card--gauge::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338792f' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 18a8 8 0 1 1 16 0'/%3E%3Cpath d='M12 18l4-6'/%3E%3C/svg%3E"); }
+.btg-card--drive::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338792f' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='16' rx='2'/%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Ccircle cx='12' cy='12' r='1'/%3E%3C/svg%3E"); }
+.btg-card-title { font-family: var(--btg-font-head) !important; font-size: 19px !important; line-height: 1.3 !important; margin: var(--btg-space-3) 0 6px !important; color: var(--btg-text) !important; }
+.btg-card-summary, .btg-card details p, .btg-card details li { color: var(--btg-text-muted); font-size: 15px; line-height: 1.55; }
+.btg-card-summary { margin: 0 0 10px !important; }
+.btg-card summary { cursor: pointer; color: var(--btg-green-link); font-weight: 700; font-size: 14px; list-style: none; }
+.btg-card summary::-webkit-details-marker { display: none; }
+.btg-card summary::after { content: " +"; }
+.btg-card details[open] > summary::after { content: " \2013"; }
+.btg-card details[open] > summary { margin-bottom: 10px; }
+.btg-card summary:focus-visible { outline: 3px solid var(--btg-green-lighter); outline-offset: 2px; border-radius: 2px; }
+.btg-card details ul { list-style: none; margin: 0 !important; padding: 0 !important; }
+.btg-card details li { position: relative; padding-left: 22px; margin-bottom: 6px; }
+.btg-card details li::before { content: ""; position: absolute; left: 2px; top: 0.4em; width: 10px; height: 5px; border-left: 2px solid var(--btg-green); border-bottom: 2px solid var(--btg-green); transform: rotate(-45deg); }
+.btg-cards-cta { text-align: center; margin-bottom: var(--btg-space-5); }
+body.single-post:has(.btg-hero) h2.entry-title,
+body.single-post:has(.btg-hero) .single-navigation {
+  display: none !important;
 }

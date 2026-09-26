@@ -262,7 +262,22 @@ window.BTGInit = (function () {
     cta.appendChild(span);
   }
 
+  // Trust line under the hero CTA. Claims already made elsewhere on the
+  // site only ("Rated 5 stars across every review", Veteran Owned badges).
+  function addHeroTrust(doc) {
+    var hero = doc.querySelector('.btg-hero');
+    if (!hero || hero.querySelector('.btg-hero-trust')) return;
+    var cta = hero.querySelector('.btg-hero-cta');
+    if (!cta) return;
+    var p = doc.createElement('p');
+    p.className = 'btg-hero-trust';
+    p.setAttribute('aria-label', '5-star rated. Veteran-owned and operated.');
+    p.textContent = '★★★★★ 5-star rated · Veteran-owned & operated';
+    cta.parentNode.insertBefore(p, cta.nextSibling);
+  }
+
   return {
+    addHeroTrust: addHeroTrust,
     addCtaDigits: addCtaDigits,
     fixTelLinks: fixTelLinks,
     removeDuplicateTitleBar: removeDuplicateTitleBar,
@@ -284,6 +299,7 @@ window.BTGInit = (function () {
   function run() {
     window.BTGInit.fixTelLinks(document);
     window.BTGInit.addCtaDigits(document);
+    window.BTGInit.addHeroTrust(document);
     window.BTGInit.removeDuplicateTitleBar(document);
     window.BTGInit.removeHomeSlider(document);
     window.BTGInit.centerHeroOnPage(document, window);
