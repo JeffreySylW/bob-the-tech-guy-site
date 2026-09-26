@@ -1,7 +1,7 @@
 # Town Page Cards — Design
 
 **Date:** 2026-09-25
-**Status:** Approved in conversation, awaiting written-spec review
+**Status:** Approved 2026-09-25; amended same day after inspecting raw markup (hero button already present; no leading phone number in paragraphs)
 **Site:** bobthetechguy.com (WordPress + Avada, Editor access only)
 
 ## Goal
@@ -28,7 +28,7 @@ Make the 9 Virginia town pages scannable and attractive instead of overwhelming,
 
 ## Constraints
 
-- Re-skin, don't rewrite: no words added, removed or changed except the 6 card headings, the "Read more" label and the hero call-button text. Moving and splitting existing text is allowed.
+- Re-skin, don't rewrite: no words added, removed or changed except the 6 card headings and the "Read more" label. Moving and splitting existing text is allowed.
 - No street address anywhere (Bob's listed address is a UPS Store mailbox).
 - Brand green stays the accent color; use existing `--btg-*` tokens.
 - No analytics or tracking.
@@ -47,23 +47,22 @@ Measured 2026-09-25: every anchor below exists exactly once in each post's body.
 | Tune-Ups & Maintenance | gauge | "Your computer, like any machine…" ¶ |
 | Data Recovery | drive | "Have you lost your data…" ¶, the checklist after it (6 items) |
 
-- **Summary:** the first sentence of the card's first paragraph, moved out of that paragraph (each sentence appears exactly once). A leading "844-TEKGUY-0" phone link at the start of a paragraph is not part of the summary; it is dropped only if the same number is already present in the call-to-action line below the grid (it is, so no phone number is lost from the page).
+- **Summary:** the first sentence of the card's first paragraph, moved out of that paragraph (each sentence appears exactly once).
 - **Removed:** subheadings the card titles replace — the repeated "PC Repair Service [Town] Virginia" h3s inside the body, "Internet, Home & Wireless Networking", "Home Networking", "Wireless Networking" (Chesterfield's equivalents: "New Computer Setup", "Internet, Home & Wireless Networking", "Home Networking", "Wireless Networking", "Tune-Ups & Data Recovery").
-- **Moved:** "Have any questions? Need a quote for … Call Today!" and its phone number go directly after the grid as its closing call to action.
-- **Unchanged:** the hero (except the added call button), the "Proudly Serving [Town]…" paragraph with its zip codes, the loader `<link>`/`<script>` lines.
+- **Moved:** the two paragraphs `<p><strong>Have any questions? … Call Today!</strong></p><p><strong>844-TEKGUY-0</strong></p>` (they currently sit between the two virus paragraphs) go directly after the grid, wrapped in `<div class="btg-cards-cta">`, unchanged inside.
+- **Unchanged:** the hero `<section class="btg-hero">…</section>` byte-for-byte (it already contains the call button — verified rendering 151×66px on the live Chester page), the "Proudly Serving [Town]…" paragraph with its zip codes, the loader `<link>`/`<script>` lines.
 
 ## Markup (saved in post content)
 
 ```html
 <div class="btg-cards"><article class="btg-card btg-card--shield"><h3 class="btg-card-title">Virus &amp; Malware Removal</h3><p class="btg-card-summary">…first sentence…</p><details><summary>Read more</summary><p>…rest of paragraph…</p><p>…</p><ul>…</ul></details></article>…5 more…</div>
-<p class="btg-cards-cta">Have any questions? … Call Today! <a class="btg-hero-cta" href="tel:+18448354890">844-TEKGUY-0</a></p>
+<div class="btg-cards-cta"><p><strong>Have any questions? … Call Today!</strong></p><p><strong>844-TEKGUY-0</strong></p></div>
 ```
 
 - Written with **no blank lines inside the grid** so WordPress's `wpautop` does not inject stray `<p>`/`<br>` tags.
 - `<details>`/`<summary>`: native, keyboard and screen-reader accessible, no JavaScript; collapsed text is indexed.
 - Card titles are h3, keeping the post's order: h1 (hero) → h3.
 - Icons are not in the markup; CSS draws them from the `btg-card--<icon>` modifier.
-- **Hero call button:** each post's `<section class="btg-hero">` gets `<a class="btg-hero-cta" href="tel:8448354890">844-TEKGUY-0</a>` after its lede, matching the main pages (bundle v1.0.7 adds the digits line, v1.0.8 the trust line).
 
 ## Styling (bundle v1.0.9, `dist/btg.css`)
 
@@ -74,8 +73,8 @@ Measured 2026-09-25: every anchor below exists exactly once in each post's body.
 - `.btg-card-summary` and body text: `--btg-text-muted`, 14–15px, line-height 1.55.
 - `summary`: `--btg-green-link` (AA-safe), bold, custom "+"/"–" marker, default marker hidden, visible `:focus-visible` outline.
 - Checklists inside cards: green check-mark bullets instead of discs.
-- `.btg-cards-cta`: centered, with the existing `.btg-hero-cta` button style reused on light background.
-- Posts with a hero: hide Avada's post title bar and Previous/Next nav (`body.single-post:has(.btg-hero) …`).
+- `.btg-cards-cta`: centered block under the grid.
+- Posts with a hero: hide the duplicate post title `h2.entry-title` and the Previous/Next `.single-navigation` (`body.single-post:has(.btg-hero) …`). The `.fusion-page-title-bar` is already removed by `removeDuplicateTitleBar` in `btg.js`.
 
 ## Transform tool (`tools/cards-transform.js`)
 
@@ -86,9 +85,9 @@ Pure function `transform(html, { town }) → html`, plus a CLI that reads/writes
 
 ## Safety checks (all must pass before any save)
 
-1. **Word conservation:** the multiset of words in the output equals the input's, minus the removed subheadings and the dropped duplicate phone number, plus only the allowed additions (6 card titles, "Read more", hero button text).
-2. **Protected content identical:** hero section (apart from the added button), "Proudly Serving" paragraph, loader lines.
-3. **Address banlist:** output contains no street address (existing banlist).
+1. **Word conservation:** the multiset of words in the output equals the input's, minus the removed subheadings, plus only the allowed additions (6 card titles, "Read more").
+2. **Protected content identical:** hero section, "Proudly Serving" paragraph, loader lines — byte-for-byte.
+3. **Address check:** output contains no street-address pattern (number + street name + suffix such as St/Rd/Ave/Dr/Ln/Pkwy/Hwy/Tpke). Word conservation already guarantees no new text, so this is a second guard.
 4. **Structure:** exactly 6 `.btg-card`, each with one h3, one summary, one `<details>`.
 
 ## Testing (TDD, `node --test`)
@@ -100,7 +99,7 @@ Pure function `transform(html, { town }) → html`, plus a CLI that reads/writes
 ## Rollout
 
 1. Ship bundle **v1.0.9** (card CSS + title-bar hide). Harmless before any post uses the classes.
-2. Back up each post's current raw HTML to `backups/2026-09-25/<id>.html` in the repo.
+2. Back up each post's current raw HTML to `backups/2026-09-25/<id>.html` in the repo. The browser extension will not return raw post HTML to the session, so this is one user-approved browser download (`bob-posts-raw-2026-09-25.json`, ~80 KB) moved into the repo; the Chester and Chesterfield entries also become the test fixtures. The transform itself runs in the browser on the live raw HTML (same code, loaded from the tagged repo), with all safety checks enforced before each save.
 3. Transform + save **Chester (28873) only**. Verify the live page on desktop and phone: grid, expanders, no stray `<p>`, call button, title bar hidden.
 4. If Chester passes, transform + save the other 8; verify each publicly.
 5. Bump all 15 loaders to v1.0.9 (existing scripted step).
