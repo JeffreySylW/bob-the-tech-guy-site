@@ -109,7 +109,10 @@
     }
 
     var cards = CARDS.map(function (c) {
-      var ps = c.paras.map(function (a) { return findP(a, (c.optional || []).indexOf(a) !== -1); }).filter(Boolean);
+      // One paragraph can hold two anchors (Chesterfield's "There are
+      // multiple ways…" also contains "When asked to set up a shared…").
+      var ps = c.paras.map(function (a) { return findP(a, (c.optional || []).indexOf(a) !== -1); })
+        .filter(function (p, i, all) { return p && all.indexOf(p) === i; });
       var parts = ps.slice();
       if (c.list) {
         var ul = null;
@@ -148,5 +151,40 @@
     return html.slice(0, els[heroIdx].end) + '\n\n' + grid + '\n\n' + html.slice(els[endIdx].start);
   }
 
-  return { text: text, split: split, splitFirstSentence: splitFirstSentence, CARDS: CARDS, REMOVABLE: REMOVABLE, transform: transform };
+  var ADDED = CARDS.map(function (c) { return c.title; }).join(' ') + ' ' + new Array(CARDS.length + 1).join('Read more ');
+  var ADDRESS = /\b\d{1,6}\s+(?:[A-Z][a-z]+\s+){1,3}(?:St|Street|Rd|Road|Ave|Avenue|Blvd|Boulevard|Dr|Drive|Ln|Lane|Ct|Court|Pkwy|Parkway|Hwy|Highway|Tpke|Turnpike|Pike|Way|Pl|Place)\b/;
+
+  function words(html) { return text(html).toLowerCase().split(/[^a-z0-9'\-]+/).filter(Boolean); }
+  function bag(list) { var m = {}; list.forEach(function (w) { m[w] = (m[w] || 0) + 1; }); return m; }
+  function count(s, re) { return (s.match(re) || []).length; }
+  function heroOf(h) { var e = split(h).filter(function (x) { return x.tag === 'section' && /class="btg-hero"/.test(x.html); })[0]; return e ? e.html : null; }
+  function tailOf(h) {
+    var els = split(h);
+    for (var i = 0; i < els.length; i++) if (isHeading(els[i]) && els[i].text.indexOf('Proudly Serving') === 0) return h.slice(els[i].start);
+    return null;
+  }
+
+  // Safety gate before any save: [] means safe.
+  function verify(before, after) {
+    var problems = [];
+    var removed = split(before).filter(function (e) { return isHeading(e) && REMOVABLE.test(e.text); }).map(function (e) { return e.html; }).join(' ');
+    var expect = bag(words(before).concat(words(ADDED)));
+    words(removed).forEach(function (w) { expect[w]--; });
+    var got = bag(words(after));
+    Object.keys(expect).concat(Object.keys(got)).forEach(function (w) {
+      var e = expect[w] || 0, g = got[w] || 0;
+      var msg = 'Word "' + w + '" expected ' + e + ' times, found ' + g;
+      if (e !== g && problems.indexOf(msg) === -1) problems.push(msg);
+    });
+    if (heroOf(after) === null || heroOf(after) !== heroOf(before)) problems.push('Hero changed');
+    if (tailOf(after) === null || tailOf(after) !== tailOf(before)) problems.push('Proudly Serving / loader section changed');
+    if (ADDRESS.test(text(after))) problems.push('Street-address pattern found');
+    var n = count(after, /<article class="btg-card btg-card--/g);
+    if (n !== 6 || count(after, /<h3 class="btg-card-title">/g) !== 6 || count(after, /<p class="btg-card-summary">/g) !== 6 || count(after, /<details><summary>Read more<\/summary>/g) !== 6) {
+      problems.push('Expected 6 cards with title, summary and Read more; found ' + n + ' cards');
+    }
+    return problems;
+  }
+
+  return { text: text, split: split, splitFirstSentence: splitFirstSentence, CARDS: CARDS, REMOVABLE: REMOVABLE, transform: transform, verify: verify };
 });

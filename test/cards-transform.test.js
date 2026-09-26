@@ -115,3 +115,45 @@ test('transform() leaves no block delimiters inside the Custom HTML block', () =
   const inner = out.split('<!-- wp:html -->')[1].split('<!-- /wp:html -->')[0];
   assert.doesNotMatch(inner, /<!-- \/?wp:/);
 });
+
+test('verify() passes a real transform of both fixtures', () => {
+  for (const id of ['28873', '28867']) {
+    const before = fx(id);
+    assert.deepStrictEqual(C.verify(before, C.transform(before)), []);
+  }
+});
+
+test('verify() catches a changed word', () => {
+  const before = fx('28873');
+  const after = C.transform(before).replace('sophisticated', 'advanced');
+  assert.ok(C.verify(before, after).some((p) => /sophisticated|advanced/.test(p)));
+});
+
+test('verify() catches a dropped sentence', () => {
+  const before = fx('28873');
+  const after = C.transform(before).replace(/<p class="btg-card-summary">[\s\S]*?<\/p>/, '<p class="btg-card-summary"></p>');
+  assert.ok(C.verify(before, after).length > 0);
+});
+
+test('verify() catches a changed hero', () => {
+  const before = fx('28873');
+  const after = C.transform(before).replace('btg-hero-lede">', 'btg-hero-lede"> ');
+  assert.ok(C.verify(before, after).includes('Hero changed'));
+});
+
+test('verify() catches a street address', () => {
+  const before = fx('28873');
+  const after = C.transform(before).replace('Read more</summary>', 'Read more</summary><p>123 Main Street</p>');
+  assert.ok(C.verify(before, after).includes('Street-address pattern found'));
+});
+
+test('verify() catches a wrong card count', () => {
+  const before = fx('28873');
+  const after = C.transform(before).replace(/<article class="btg-card btg-card--drive">[\s\S]*?<\/article>/, '');
+  assert.ok(C.verify(before, after).some((p) => /6 cards/.test(p)));
+});
+
+test('transform() never repeats a paragraph that matches two anchors', () => {
+  const out = C.transform(fx('28867'));
+  assert.strictEqual(out.split('There are multiple ways').length - 1, 1);
+});
