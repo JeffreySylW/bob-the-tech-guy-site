@@ -109,3 +109,38 @@ test('transformService() output has no blank lines inside the rebuilt body', () 
     assert.doesNotMatch(body.trim(), /\n\s*\n/, id);
   }
 });
+
+test('verifyService() passes the real transform of all 6 pages', () => {
+  for (const id of IDS) {
+    const before = fx(id);
+    assert.deepStrictEqual(S.verifyService(before, S.transformService(before, R[id]), R[id]), [], id);
+  }
+});
+
+test('verifyService() catches an edited word', () => {
+  const before = fx('11804');
+  const after = S.transformService(before, R['11804']).replace('rootkits', 'rootkit');
+  assert.ok(S.verifyService(before, after, R['11804']).length > 0);
+});
+
+test('verifyService() catches a sentence moved to another card', () => {
+  const before = fx('11863');
+  let after = S.transformService(before, R['11863']);
+  const s = 'Losing your data!';
+  assert.ok(after.includes(s));
+  after = after.replace(s + ' ', '').replace('Cloud-based backup uses', s + ' Cloud-based backup uses');
+  assert.ok(S.verifyService(before, after, R['11863']).some((p) => /card/i.test(p)));
+});
+
+test('verifyService() catches a dropped list item', () => {
+  const before = fx('11857');
+  const after = S.transformService(before, R['11857']).replace(/<li>Installation and configuration[^<]*<\/li>/, '');
+  assert.ok(S.verifyService(before, after, R['11857']).length > 0);
+});
+
+test('verifyService() catches hidden text and a changed style tail', () => {
+  const before = fx('11857');
+  const out = S.transformService(before, R['11857']);
+  assert.ok(S.verifyService(before, out.replace('<details>', '<details style="display:none">'), R['11857']).some((p) => /hidden|style/i.test(p)));
+  assert.ok(S.verifyService(before, out.replace('font-size:16.5px', 'font-size:17px'), R['11857']).some((p) => /tail/i.test(p)));
+});

@@ -125,5 +125,56 @@
     return heroHtml(r.hero) + '\n\n' + out.join('\n') + '\n\n' + c.tail;
   }
 
-  return { chunks: chunks, itemHtml: itemHtml, addLoader: addLoader, transformService: transformService };
+  function norm(t) { return C.text(t).replace(GLYPH, '').replace(/^[✓•*]\s*/, '').replace(/\s+/g, ' ').trim(); }
+  function sentences(t) { return t ? t.split(/(?<=[.!?]['")]*)\s+(?=\S)/) : []; }
+  function bag(list) { var m = {}; list.forEach(function (s) { m[s] = (m[s] || 0) + 1; }); return m; }
+
+  // Text units of the explicit-markup output (p, li, headings, summary).
+  function outputUnits(html) {
+    var head = html.slice(0, html.indexOf('<style>/* btg-styles */'));
+    var re = /<(p|li|h[1-6]|summary)\b[^>]*>([\s\S]*?)<\/\1>/g, m, out = [];
+    while ((m = re.exec(head))) out.push(norm(m[2]));
+    return out.filter(Boolean);
+  }
+
+  // Safety gate before any save: [] means safe.
+  function verifyService(before, after, r) {
+    var problems = [];
+    var c = chunks(before);
+    var units = [];
+    c.blocks.forEach(function (b) {
+      var t = norm(b.html);
+      if (!t || (r.removeSubheads || []).indexOf(t) !== -1) return;
+      if (b.kind === 'p' && (r.merge || []).some(function (m) { return t.indexOf(m) === 0; })) { units[units.length - 1] += ' ' + t; return; }
+      units.push(r.ctaFix ? t.replace(norm(r.ctaFix[0]), norm(r.ctaFix[1])) : t);
+    });
+    var added = [r.hero.eyebrow, r.hero.title, r.hero.lede].concat(r.cards.map(function (cd) { return cd.title; }))
+      .concat(r.cards.map(function () { return 'Read more'; })).map(norm);
+    var expect = bag([].concat.apply([], units.concat(added).map(sentences)));
+    var got = bag([].concat.apply([], outputUnits(after).map(sentences)));
+    Object.keys(expect).concat(Object.keys(got)).forEach(function (s) {
+      var e = expect[s] || 0, g = got[s] || 0, msg = 'Sentence "' + s.slice(0, 60) + '" expected ' + e + ', found ' + g;
+      if (e !== g && problems.indexOf(msg) === -1) problems.push(msg);
+    });
+
+    // Card membership and order: each card's sentences, in order, equal its anchors' paragraphs.
+    var articles = after.match(/<article class="btg-card[\s\S]*?<\/article>/g) || [];
+    if (articles.length !== r.cards.length) problems.push('Expected ' + r.cards.length + ' cards, found ' + articles.length);
+    r.cards.forEach(function (cd, i) {
+      var src = cd.anchors.map(function (a) { return c.blocks.filter(function (b) { return b.kind === 'p' && b.text.indexOf(a) !== -1; })[0]; })
+        .filter(function (p, k, all) { return p && all.indexOf(p) === k; });
+      var want = [].concat.apply([], src.map(function (p) { return sentences(norm(p.html)); })).join(' | ');
+      var body = (articles[i] || '').replace(/<h3 class="btg-card-title">[\s\S]*?<\/h3>|<summary>[\s\S]*?<\/summary>/g, '');
+      var have = [].concat.apply([], (body.match(/<p\b[^>]*>[\s\S]*?<\/p>/g) || []).map(function (p) { return sentences(norm(p)); })).join(' | ');
+      if (want !== have) problems.push('Card "' + cd.title + '" content differs from its source paragraphs');
+    });
+
+    var grid = (after.split('class="btg-cards"')[1] || '').split('class="btg-cta-block"')[0];
+    if (/\s(hidden|style)=/.test(grid)) problems.push('Hidden or styled element inside the cards');
+    if (!after.endsWith(c.tail)) problems.push('Style tail changed');
+    if (/\b\d{1,6}\s+(?:[A-Z][a-z]+\s+){1,3}(?:St|Street|Rd|Road|Ave|Avenue|Blvd|Boulevard|Dr|Drive|Ln|Lane|Ct|Court|Pkwy|Parkway|Hwy|Highway|Tpke|Turnpike|Pike|Way|Pl|Place)\b/.test(C.text(after))) problems.push('Street-address pattern found');
+    return problems;
+  }
+
+  return { chunks: chunks, itemHtml: itemHtml, addLoader: addLoader, transformService: transformService, verifyService: verifyService };
 });
