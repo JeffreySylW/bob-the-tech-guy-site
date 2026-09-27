@@ -57,13 +57,18 @@
       var ch = inner[i];
       if (ch === '<') inTag = true;
       else if (ch === '>') inTag = false;
-      else if (!inTag && /[.!?]/.test(ch) && (i + 1 === inner.length || /\s/.test(inner[i + 1]))) { cut = i + 1; break; }
+      else if (!inTag && /[.!?]/.test(ch)) {
+        // allow closing quotes/brackets after the punctuation (…“Cable.” While…)
+        var j = i + 1, close;
+        while (j < inner.length && (close = /^(["'”’)]|&#8221;|&rdquo;|&#8217;|&rsquo;)/.exec(inner.slice(j)))) j += close[0].length;
+        if (j === inner.length || /\s/.test(inner[j]) || inner.slice(j, j + 6) === '&nbsp;') { cut = j; break; }
+      }
     }
     var sentence = inner.slice(0, cut).trim();
     var open = (sentence.match(/<[a-z][^>]*>/gi) || []).length;
     var close = (sentence.match(/<\/[a-z][^>]*>/gi) || []).length;
     if (open !== close) throw new Error('First sentence has unbalanced tags: ' + sentence.slice(0, 60));
-    var rest = inner.slice(cut).trim();
+    var rest = inner.slice(cut).replace(/^(\s|&nbsp;)+/, '').trim();
     return { sentence: sentence, restHtml: rest ? '<p' + attrs + '>' + rest + '</p>' : '' };
   }
 

@@ -157,3 +157,15 @@ test('transform() never repeats a paragraph that matches two anchors', () => {
   const out = C.transform(fx('28867'));
   assert.strictEqual(out.split('There are multiple ways').length - 1, 1);
 });
+
+test('splitFirstSentence() cuts after a closing curly quote', () => {
+  const r = C.splitFirstSentence('<p>It is DSL or “Cable.” While cable is faster.</p>');
+  assert.strictEqual(r.sentence, 'It is DSL or “Cable.”');
+  assert.strictEqual(r.restHtml, '<p>While cable is faster.</p>');
+});
+
+test('splitFirstSentence() treats &nbsp; after the period as a break', () => {
+  const r = C.splitFirstSentence('<p>First one.&nbsp;Second one.</p>');
+  assert.strictEqual(r.sentence, 'First one.');
+  assert.strictEqual(r.restHtml, '<p>Second one.</p>');
+});
