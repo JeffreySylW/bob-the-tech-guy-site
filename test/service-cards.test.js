@@ -144,3 +144,36 @@ test('verifyService() catches hidden text and a changed style tail', () => {
   assert.ok(S.verifyService(before, out.replace('<details>', '<details style="display:none">'), R['11857']).some((p) => /hidden|style/i.test(p)));
   assert.ok(S.verifyService(before, out.replace('font-size:16.5px', 'font-size:17px'), R['11857']).some((p) => /tail/i.test(p)));
 });
+
+test('verifyService() catches reordered list items and a moved block', () => {
+  const before = fx('11981');
+  const out = S.transformService(before, R['11981']);
+  const swapped = out.replace(/(<li>Update router firmware \(if needed\)<\/li>)(<li>Give network a unique name \(SSID\)<\/li>)/, '$2$1');
+  assert.notStrictEqual(swapped, out);
+  assert.ok(S.verifyService(before, swapped, R['11981']).some((p) => /order/i.test(p)));
+});
+
+test('verifyService() catches text outside checked elements', () => {
+  const before = fx('11857');
+  const out = S.transformService(before, R['11857']).replace('<div class="btg-cta-block">', '<div>Extra sentence here.</div><div class="btg-cta-block">');
+  assert.ok(S.verifyService(before, out, R['11857']).length > 0);
+});
+
+test('verifyService() catches a changed link', () => {
+  const before = fx('11857');
+  const out = S.transformService(before, R['11857']).replace('tel:(862)210-5656', 'tel:5555555555');
+  assert.ok(S.verifyService(before, out, R['11857']).some((p) => /link/i.test(p)));
+});
+
+test('verifyService() catches swapped card titles', () => {
+  const before = fx('11863');
+  const out = S.transformService(before, R['11863']).replace('>Why Back Up<', '>TMP<').replace('>Cloud-Based Backup<', '>Why Back Up<').replace('>TMP<', '>Cloud-Based Backup<');
+  assert.ok(S.verifyService(before, out, R['11863']).some((p) => /title/i.test(p)));
+});
+
+test('verifyService() catches aria-hidden and pre-opened details in cards', () => {
+  const before = fx('11857');
+  const out = S.transformService(before, R['11857']);
+  assert.ok(S.verifyService(before, out.replace('<details>', '<details open>'), R['11857']).length > 0);
+  assert.ok(S.verifyService(before, out.replace('<p class="btg-card-summary">', '<p aria-hidden="true" class="btg-card-summary">'), R['11857']).length > 0);
+});

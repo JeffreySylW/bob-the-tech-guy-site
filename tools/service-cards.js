@@ -131,7 +131,9 @@
 
   // Text units of the explicit-markup output (p, li, headings, summary).
   function outputUnits(html) {
-    var head = html.slice(0, html.indexOf('<style>/* btg-styles */'));
+    var at = html.indexOf('<style>/* btg-styles */');
+    if (at < 0) throw new Error('No btg-styles tail in output');
+    var head = html.slice(0, at);
     var re = /<(p|li|h[1-6]|summary)\b[^>]*>([\s\S]*?)<\/\1>/g, m, out = [];
     while ((m = re.exec(head))) out.push(norm(m[2]));
     return out.filter(Boolean);
@@ -170,7 +172,30 @@
     });
 
     var grid = (after.split('class="btg-cards"')[1] || '').split('class="btg-cta-block"')[0];
-    if (/\s(hidden|style)=/.test(grid)) problems.push('Hidden or styled element inside the cards');
+    if (/\s(hidden|style|aria-hidden|open)(=|>|\s)|screen-reader-text/.test(grid)) problems.push('Hidden or styled element inside the cards');
+
+    // Order: the page's sentences, minus the approved additions, read in the original order.
+    var addLeft = bag([].concat.apply([], added.map(sentences)));
+    var ordered = [].concat.apply([], outputUnits(after).map(sentences)).filter(function (s) {
+      if (addLeft[s]) { addLeft[s]--; return false; }
+      return true;
+    });
+    if (ordered.join(' | ') !== [].concat.apply([], units.map(sentences)).join(' | ')) problems.push('Content order differs from the original page');
+
+    // No text outside the checked elements (the hero call button is the one allowed exception).
+    var stray = C.text(after.slice(0, after.indexOf('<style>/* btg-styles */'))
+      .replace(/<a class="btg-hero-cta"[^>]*>[\s\S]*?<\/a>/, '')
+      .replace(/<(p|li|h[1-6]|summary)\b[^>]*>[\s\S]*?<\/\1>/g, ''));
+    if (stray) problems.push('Text outside checked elements: ' + stray.slice(0, 60));
+
+    // Links: the same hrefs as before, plus the hero call button.
+    function hrefs(h) { return (h.match(/href="[^"]*"/g) || []).sort().join(' '); }
+    var wantHrefs = (before.slice(0, before.length - c.tail.length).match(/href="[^"]*"/g) || []).concat(['href="tel:8448354890"']).sort().join(' ');
+    if (hrefs(after.slice(0, after.length - c.tail.length)) !== wantHrefs) problems.push('Links differ from the original page');
+
+    // Card titles in recipe order.
+    var gotTitles = (after.match(/<h3 class="btg-card-title">[^<]*<\/h3>/g) || []).map(function (t) { return t.replace(/<[^>]+>/g, ''); });
+    if (gotTitles.join('|') !== r.cards.map(function (cd) { return cd.title; }).join('|')) problems.push('Card titles differ from the recipe');
     if (!after.endsWith(c.tail)) problems.push('Style tail changed');
     if (/\b\d{1,6}\s+(?:[A-Z][a-z]+\s+){1,3}(?:St|Street|Rd|Road|Ave|Avenue|Blvd|Boulevard|Dr|Drive|Ln|Lane|Ct|Court|Pkwy|Parkway|Hwy|Highway|Tpke|Turnpike|Pike|Way|Pl|Place)\b/.test(C.text(after))) problems.push('Street-address pattern found');
     return problems;

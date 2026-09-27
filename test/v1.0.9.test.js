@@ -7,7 +7,7 @@ const css = fs.readFileSync(path.join(__dirname, '../dist/btg.css'), 'utf8');
 const C = require('../tools/cards-transform.js');
 
 test('card grid adapts to the column: min 280px, top-aligned', () => {
-  assert.match(css, /\.btg-cards \{[^}]*grid-template-columns: repeat\(auto-fill, minmax\(280px, 1fr\)\);[^}]*align-items: start;/);
+  assert.match(css, /\.btg-cards \{[^}]*grid-template-columns: repeat\(auto-fit, minmax\(min\(280px, 100%\), 1fr\)\);[^}]*align-items: start;/);
   assert.doesNotMatch(css, /\.btg-cards \{ grid-template-columns: repeat\(2, 1fr\); \}/);
 });
 
