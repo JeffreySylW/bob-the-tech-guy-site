@@ -1,0 +1,152 @@
+[
+ {
+  "id": 2,
+  "type": "pages",
+  "slug": "about"
+ },
+ {
+  "id": 2318,
+  "type": "pages",
+  "slug": "home-version-5"
+ },
+ {
+  "id": 3754,
+  "type": "pages",
+  "slug": "testimonials"
+ },
+ {
+  "id": 11649,
+  "type": "pages",
+  "slug": "gallery"
+ },
+ {
+  "id": 11653,
+  "type": "pages",
+  "slug": "services-2"
+ },
+ {
+  "id": 11802,
+  "type": "pages",
+  "slug": "contact-2"
+ },
+ {
+  "id": 11804,
+  "type": "pages",
+  "slug": "anti-virus"
+ },
+ {
+  "id": 11806,
+  "type": "pages",
+  "slug": "computer-set-up"
+ },
+ {
+  "id": 11853,
+  "type": "pages",
+  "slug": "screen-replacement"
+ },
+ {
+  "id": 11855,
+  "type": "pages",
+  "slug": "software-installation-and-configuration"
+ },
+ {
+  "id": 11857,
+  "type": "pages",
+  "slug": "parental-controls"
+ },
+ {
+  "id": 11859,
+  "type": "pages",
+  "slug": "printer-solutions"
+ },
+ {
+  "id": 11861,
+  "type": "pages",
+  "slug": "operating-system-install"
+ },
+ {
+  "id": 11863,
+  "type": "pages",
+  "slug": "backup-solutions"
+ },
+ {
+  "id": 11869,
+  "type": "pages",
+  "slug": "data-recovery-service"
+ },
+ {
+  "id": 11971,
+  "type": "pages",
+  "slug": "email-setup"
+ },
+ {
+  "id": 11973,
+  "type": "pages",
+  "slug": "hardware-install"
+ },
+ {
+  "id": 11976,
+  "type": "pages",
+  "slug": "hardware-repair-upgrades"
+ },
+ {
+  "id": 11978,
+  "type": "pages",
+  "slug": "memory-install"
+ },
+ {
+  "id": 11981,
+  "type": "pages",
+  "slug": "networking"
+ },
+ {
+  "id": 12166,
+  "type": "pages",
+  "slug": "reviews"
+ },
+ {
+  "id": 28867,
+  "type": "posts",
+  "slug": "best-computer-repair-chesterfield-va"
+ },
+ {
+  "id": 28872,
+  "type": "posts",
+  "slug": "pc-repair-service-midlothian-virginia"
+ },
+ {
+  "id": 28873,
+  "type": "posts",
+  "slug": "pc-repair-service-chester-virginia"
+ },
+ {
+  "id": 28874,
+  "type": "posts",
+  "slug": "pc-repair-service-bon-air-virginia"
+ },
+ {
+  "id": 28875,
+  "type": "posts",
+  "slug": "pc-repair-service-brandermill-virginia"
+ },
+ {
+  "id": 28876,
+  "type": "posts",
+  "slug": "pc-repair-service-woodlake-virginia"
+ },
+ {
+  "id": 28877,
+  "type": "posts",
+  "slug": "pc-repair-service-moseley-virginia"
+ },
+ {
+  "id": 28878,
+  "type": "posts",
+  "slug": "pc-repair-service-colonial-heights-virginia"
+ },
+ {
+  "id": 28879,
+  "type": "posts",
+  "slug": "pc-repair-service-richmond-virginia"
+ }
+]
