@@ -173,45 +173,6 @@ window.BTGInit = (function () {
     return false;
   }
 
-  // Re-centers the hero horizontally on the true page/viewport width. Every
-  // in-scope page uses the Avada theme's default "content + sidebar" page
-  // layout (a #content column floated left inside a centered .fusion-row,
-  // with a #sidebar widget column — a near-invisible Facebook Like Box
-  // widget — floated to its right). Because .btg-hero renders inside
-  // #content > .post-content, it's only ever centered *within that
-  // narrower, left-shifted column*, not on the page as a whole — confirmed
-  // live via getBoundingClientRect, ~168px off-center on a 1536px-wide
-  // viewport. Rather than hardcode the theme's column percentages in CSS
-  // (which vary by breakpoint and could change with a theme update — Avada
-  // collapses to a single, full-width column below its own breakpoint,
-  // where no correction is needed at all), this measures the hero's
-  // actual rendered position and nudges it into place with a transform.
-  // A margin-left adjustment was tried first and rejected: .btg-hero has
-  // no explicit width (width: auto), so increasing margin-left just eats
-  // into the box's own auto-computed width instead of moving it — the
-  // right edge stays pinned to the container and the box never reaches
-  // center. transform: translateX() shifts the painted box without
-  // touching the box model at all, so it moves by exactly the computed
-  // delta. The transform is reset before each measurement so the delta is
-  // always computed from the true static (untransformed) position, making
-  // this safe to re-run on resize without compounding.
-  function centerHeroOnPage(doc, win) {
-    var hero = doc.querySelector('.btg-hero');
-    if (!hero) return false;
-
-    function recenter() {
-      hero.style.transform = 'none';
-      var rect = hero.getBoundingClientRect();
-      var heroCenter = rect.left + rect.width / 2;
-      var pageCenter = win.innerWidth / 2;
-      var delta = pageCenter - heroCenter;
-      hero.style.transform = Math.abs(delta) > 0.5 ? 'translateX(' + delta + 'px)' : 'none';
-    }
-
-    recenter();
-    win.addEventListener('resize', recenter);
-    return true;
-  }
 
   function injectSchemaAndMeta(doc, win) {
     if (win.BTGSchema) {
@@ -282,7 +243,6 @@ window.BTGInit = (function () {
     fixTelLinks: fixTelLinks,
     removeDuplicateTitleBar: removeDuplicateTitleBar,
     removeHomeSlider: removeHomeSlider,
-    centerHeroOnPage: centerHeroOnPage,
     injectSchemaAndMeta: injectSchemaAndMeta,
   };
 })();
@@ -302,7 +262,6 @@ window.BTGInit = (function () {
     window.BTGInit.addHeroTrust(document);
     window.BTGInit.removeDuplicateTitleBar(document);
     window.BTGInit.removeHomeSlider(document);
-    window.BTGInit.centerHeroOnPage(document, window);
     window.BTGInit.injectSchemaAndMeta(document, window);
   }
   if (document.readyState !== 'loading') {

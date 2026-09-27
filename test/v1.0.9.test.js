@@ -6,10 +6,9 @@ const path = require('node:path');
 const css = fs.readFileSync(path.join(__dirname, '../dist/btg.css'), 'utf8');
 const C = require('../tools/cards-transform.js');
 
-test('card grid: 3 / 2 / 1 columns, top-aligned', () => {
-  assert.match(css, /\.btg-cards \{[^}]*grid-template-columns: repeat\(3, 1fr\);[^}]*align-items: start;/);
-  assert.match(css, /@media \(max-width: 900px\) \{\s*\.btg-cards \{ grid-template-columns: repeat\(2, 1fr\); \}/);
-  assert.match(css, /@media \(max-width: 600px\) \{\s*\.btg-cards \{ grid-template-columns: 1fr; \}/);
+test('card grid adapts to the column: min 280px, top-aligned', () => {
+  assert.match(css, /\.btg-cards \{[^}]*grid-template-columns: repeat\(auto-fill, minmax\(280px, 1fr\)\);[^}]*align-items: start;/);
+  assert.doesNotMatch(css, /\.btg-cards \{ grid-template-columns: repeat\(2, 1fr\); \}/);
 });
 
 test('every card icon the transform emits has a style', () => {
