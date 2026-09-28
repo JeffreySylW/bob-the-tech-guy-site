@@ -3,17 +3,14 @@
 // transform() removes them (image and its link), tidies the blank lines and adds the bundle loader;
 // verify() proves nothing else changed. Bob's words and other links are untouched.
 (function (root, factory) {
-  if (typeof module === 'object' && module.exports) module.exports = factory();
-  else root.BTGNjPosts = factory();
-})(typeof self !== 'undefined' ? self : this, function () {
+  if (typeof module === 'object' && module.exports) module.exports = factory(require('./loader.js'));
+  else root.BTGNjPosts = factory(root.BTGLoader);
+})(typeof self !== 'undefined' ? self : this, function (BTGLoader) {
   'use strict';
   var UPLOADS = 'https://bobthetechguy.com/wp-content/uploads/';
   var BANNER = /<a\b[^>]*>\s*<img\b[^>]*>\s*<\/a>/g;
 
-  function loader(version) {
-    var cdn = 'https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@' + version + '/dist/btg.';
-    return '\n\n<!-- btg-loader v1 -->\n<link rel="stylesheet" href="' + cdn + 'css">\n<script src="' + cdn + 'js"></script>';
-  }
+  function loader(version) { return BTGLoader.loaderBlock(version); }
   function text(h) { return h.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim(); }
   function tagCounts(h) {
     var c = {}, m, re = /<(\/?[a-zA-Z][a-zA-Z0-9]*)/g;
