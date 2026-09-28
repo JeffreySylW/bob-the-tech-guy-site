@@ -375,7 +375,7 @@ window.BTGSearch = (function () {
     btn.addEventListener('click', function () { if (box.hidden) openBox(); else closeBox(); });
     // A click anywhere outside the panel and its button closes it.
     doc.addEventListener('mousedown', function (e) {
-      if (!box.hidden && !box.contains(e.target) && !btn.contains(e.target)) { box.hidden = true; btn.setAttribute('aria-expanded', 'false'); }
+      if (!box.hidden && !box.contains(e.target) && !btn.contains(e.target)) { box.hidden = true; btn.setAttribute('aria-expanded', 'false'); input.setAttribute('aria-expanded', 'false'); status.textContent = ''; }
     });
     doc.addEventListener('keydown', function (e) {
       var a = doc.activeElement;
@@ -516,7 +516,8 @@ window.BTGHeader = (function () {
     var mob = header.querySelector('.fusion-mobile-menu-icons');
     if (mob) tools.appendChild(mob);
 
-    buildDropdown(doc, nav, header);
+    // A failed panel build leaves the theme's own Services submenu working.
+    try { buildDropdown(doc, nav, header); } catch (e) { if (win.console) win.console.error('btg: Services panel', e); }
 
     var wrapper = doc.querySelector('.fusion-header-wrapper');
     if (wrapper) {

@@ -3,9 +3,9 @@
 // bundle's card markup: announcement, services, why-choose, reviews, about,
 // call-to-action, badges. Bob's words, links and images are moved, never changed.
 (function (root, factory) {
-  if (typeof module === 'object' && module.exports) module.exports = factory(require('./cards-transform.js'));
-  else root.BTGHomeRebuild = factory(root.BTGCards);
-})(typeof self !== 'undefined' ? self : this, function (C) {
+  if (typeof module === 'object' && module.exports) module.exports = factory(require('./cards-transform.js'), require('./markup-guard.js'));
+  else root.BTGHomeRebuild = factory(root.BTGCards, root.BTGGuard);
+})(typeof self !== 'undefined' ? self : this, function (C, G) {
   'use strict';
 
   function attr(tag, name) {
@@ -98,16 +98,20 @@
   function verifyHomeRebuild(before, after) {
     var problems = [];
     var start = before.indexOf('[tagline_box');
+    if (start < 0) return ['Original page has no builder content to compare against'];
     var hero = before.slice(0, start), tail = before.slice(tailStart(before));
     if (!after.startsWith(hero)) problems.push('Hero changed');
     if (!after.endsWith(tail)) problems.push('Loader tail changed');
     var body = after.slice(hero.length, after.length - tail.length);
     if (C.text(body) !== beforeText(before)) problems.push('Visible text differs from the original (words or order)');
     var beforeBody = before.slice(start, tailStart(before));
-    var beforeLinks = hrefs(beforeBody) + ' ' + (beforeBody.match(/\[(button|tagline_box) [^\]]*\]/g) || []).map(function (t) { return 'href="' + attr(t, 'link') + '"'; }).join(' ');
-    if (hrefs(body) !== beforeLinks.trim().split(' ').filter(Boolean).sort().join(' ')) problems.push('Links differ from the original');
+    // Links in document order (so two cards cannot trade links): shortcode link
+    // attributes count where their tag sits.
+    var beforeLinks = [], lm, lre = /href="([^"]*)"|\[(?:button|tagline_box) [^\]]*\]/g;
+    while ((lm = lre.exec(beforeBody))) beforeLinks.push(lm[1] !== undefined ? lm[1] : attr(lm[0], 'link'));
+    if (G.links(body).join('\n') !== beforeLinks.join('\n')) problems.push('Links differ from the original (or are in a different order)');
     if (srcs(body) !== srcs(beforeBody)) problems.push('Images differ from the original');
-    if (/<[^>]*\s(hidden|aria-hidden|style)(=|>|\s)/.test(body)) problems.push('Hidden or styled element in the rebuilt body');
+    G.markupProblems(body).forEach(function (p) { problems.push(p); });
     if (/\[\/?[a-z_]+[\s\]]/.test(body)) problems.push('Builder shortcode left in the rebuilt body');
     if ((after.slice(0, tailStart(after)).match(/<h1\b/g) || []).length !== 1) problems.push('Expected exactly one h1 (the hero)');
     return problems;

@@ -8,7 +8,7 @@ const v = css.slice(css.indexOf('/* v1.5.2'));
 
 test('gallery: responsive grid, cropped rounded photos, controls span the row', () => {
   assert.ok(v.length > 100, 'v1.5.2 block missing');
-  assert.match(v, /\.ngg-galleryoverview \{[^}]*display: grid !important;[^}]*grid-template-columns: repeat\(auto-fill, minmax\(min\(200px, 100%\), 1fr\)\);/);
+  assert.match(v, /\.ngg-galleryoverview:not\(\.ngg-slideshow\) \{[^}]*display: grid !important;[^}]*grid-template-columns: repeat\(auto-fill, minmax\(min\(200px, 100%\), 1fr\)\);/);
   assert.match(v, /\.ngg-gallery-thumbnail img \{[^}]*object-fit: cover;/);
   assert.match(v, /\.ngg-galleryoverview > \.slideshowlink,\s*\.ngg-galleryoverview > \.ngg-navigation \{ grid-column: 1 \/ -1; \}/);
 });

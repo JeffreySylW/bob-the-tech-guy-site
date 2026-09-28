@@ -4,9 +4,9 @@
 // Hero lines reuse the Reviews page's approved copy; the only other added text
 // is the homepage's existing "Read all of our customer reviews »" link.
 (function (root, factory) {
-  if (typeof module === 'object' && module.exports) module.exports = factory(require('./cards-transform.js'));
-  else root.BTGTestimonials = factory(root.BTGCards);
-})(typeof self !== 'undefined' ? self : this, function (C) {
+  if (typeof module === 'object' && module.exports) module.exports = factory(require('./cards-transform.js'), require('./markup-guard.js'));
+  else root.BTGTestimonials = factory(root.BTGCards, root.BTGGuard);
+})(typeof self !== 'undefined' ? self : this, function (C, G) {
   'use strict';
   var HERO = '<section class="btg-hero">\n' +
     '  <p class="btg-hero-eyebrow">Testimonials</p>\n' +
@@ -43,9 +43,15 @@
     var tail = before.slice(tailStart(before));
     if (!after.endsWith(tail)) problems.push('Tail changed');
     if (after.indexOf(HERO) !== 0) problems.push('Hero missing or changed');
-    var body = after.slice(HERO.length, after.length - tail.length).replace(MORE, ' ');
-    if (C.text(body) !== C.text(before.slice(0, tailStart(before)).replace(/&nbsp;/g, ' '))) problems.push('Testimonial text differs from the original (words or order)');
-    if (/<[^>]*\s(hidden|aria-hidden|style)(=|>|\s)/.test(body)) problems.push('Hidden or styled element');
+    var full = after.slice(HERO.length, after.length - tail.length);
+    if (full.split(MORE).length !== 2) problems.push('Reviews link missing or duplicated');
+    var body = full.replace(MORE, ' ');
+    var beforeHead = before.slice(0, tailStart(before));
+    if (C.text(body) !== C.text(beforeHead.replace(/&nbsp;/g, ' '))) problems.push('Testimonial text differs from the original (words or order)');
+    if (G.links(body).join('\n') !== G.links(beforeHead).join('\n')) problems.push('Links differ from the original');
+    var srcs = function (h) { return (h.match(/\ssrc="[^"]*"/g) || []).join('\n'); };
+    if (srcs(body) !== srcs(beforeHead)) problems.push('Images differ from the original');
+    G.markupProblems(full).forEach(function (p) { problems.push(p); });
     if ((body.match(/<figure class="btg-home-quote">/g) || []).length !== 5) problems.push('Expected 5 quote cards');
     return problems;
   }
