@@ -42,3 +42,11 @@ test('dist/logo.png exists at 2x of the 282x80 slot', () => {
   assert.strictEqual(buf.readUInt32BE(16), 564);
   assert.strictEqual(buf.readUInt32BE(20), 160);
 });
+
+test('removeLogo() removes exactly the one in-page logo and nothing else', () => {
+  const swapped = L.swapLogo(fx('2.html'), 'v1.4.1');
+  const out = L.removeLogo(swapped);
+  assert.ok(!/btg-content-logo/.test(out));
+  assert.strictEqual(out, swapped.replace(L.newLogo('v1.4.1'), ''));
+  assert.throws(() => L.removeLogo(out), /exactly one/);
+});

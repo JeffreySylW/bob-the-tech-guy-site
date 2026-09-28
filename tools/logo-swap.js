@@ -21,5 +21,13 @@
     return out;
   }
 
-  return { OLD_LOGO: OLD_LOGO, newLogo: newLogo, swapLogo: swapLogo };
+  // The header now carries the logo, so the in-page copy is redundant.
+  var CONTENT_LOGO = /<img class="alignnone btg-content-logo" [^>]*>/;
+  function removeLogo(html) {
+    var all = html.match(new RegExp(CONTENT_LOGO.source, 'g')) || [];
+    if (all.length !== 1) throw new Error('Expected exactly one in-page logo, found ' + all.length);
+    return html.replace(CONTENT_LOGO, '');
+  }
+
+  return { OLD_LOGO: OLD_LOGO, newLogo: newLogo, swapLogo: swapLogo, removeLogo: removeLogo };
 });

@@ -548,3 +548,32 @@ html .fusion-header-wrapper:before { display: none !important; }
 @media (prefers-reduced-motion: reduce) {
   .btg-home-svc, .btg-home-cta-btn { transition: none; transform: none; }
 }
+
+/* v1.5.0 — review cards everywhere, consistent body text, contact form. */
+.btg-home-quote { display: flex; flex-direction: column; }
+.btg-home-quote blockquote { position: relative; padding-left: 24px !important; }
+.btg-home-quote blockquote::before { position: absolute; left: 0; top: -4px; float: none; margin: 0; }
+.btg-home-quote figcaption { order: 2; }
+.btg-home-quotes + .btg-home-more { margin-top: 4px !important; }
+
+html .post-content { font-size: 16.5px; line-height: 1.72; color: var(--btg-text); }
+
+.wpcr3_reviews_holder { columns: 2 320px; column-gap: 16px; }
+.wpcr3_review { break-inside: avoid; background: var(--btg-card-bg); border: 1px solid var(--btg-card-border); border-radius: var(--btg-radius-md); padding: 16px 18px; margin: 0 0 16px; }
+.wpcr3_dotline { display: none !important; }
+.wpcr3_review_datePublished, .wpcr3_review_author { display: inline; font-size: 13.5px !important; color: var(--btg-text-muted); }
+.wpcr3_review_title { font-family: var(--btg-font-head); font-size: 16px; font-weight: 700; text-transform: none !important; margin-top: 6px; }
+.wpcr3_review blockquote.wpcr3_content { margin: 8px 0 0 !important; padding: 0 !important; border: 0 !important; background: none !important; font-style: normal !important; font-size: 15.5px !important; line-height: 1.6 !important; color: #2b3029; }
+.wpcr3_review blockquote.wpcr3_content p { margin: 0 !important; }
+.wpcr3_button_1 { display: inline-block; border: 1px solid #38792f !important; color: #38792f !important; background: #fff !important; border-radius: 6px !important; padding: 6px 14px !important; font-weight: 700; cursor: pointer; }
+.wpcr3_button_1:hover { background: var(--btg-green-tint) !important; }
+
+.wpcf7-form { background: var(--btg-card-bg); border: 1px solid var(--btg-card-border); border-top: 3px solid var(--btg-green); border-radius: var(--btg-radius-md); padding: 22px 24px 8px; max-width: 640px; margin-top: 16px; }
+.wpcf7-form label { display: block; font-weight: 700; font-size: 15px; }
+.wpcf7-form-control:not([type="submit"]) { width: 100% !important; box-sizing: border-box; margin-top: 4px; padding: 10px 12px !important; border: 1.5px solid var(--btg-card-border) !important; border-radius: 8px !important; background: #fff !important; font: inherit !important; font-weight: 400 !important; height: auto !important; }
+.wpcf7-form-control:focus { outline: none; border-color: var(--btg-green) !important; box-shadow: 0 0 0 4px var(--btg-green-tint); }
+.wpcf7-form input[type="submit"] { background: #3a7f30 !important; color: #fff !important; border: 0 !important; border-radius: 8px !important; padding: 11px 26px !important; font: 700 15px var(--btg-font-body) !important; cursor: pointer; transition: transform .18s, box-shadow .18s; }
+.wpcf7-form input[type="submit"]:hover, .wpcf7-form input[type="submit"]:focus-visible { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(84, 170, 71, .45); }
+@media (prefers-reduced-motion: reduce) {
+  .wpcf7-form input[type="submit"] { transition: none; transform: none; }
+}
