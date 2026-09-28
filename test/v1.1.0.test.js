@@ -27,7 +27,7 @@ test('checklist and CTA block styles exist', () => {
 });
 
 test('every Services card icon has a style', () => {
-  for (const r of Object.values(R)) for (const c of r.cards) assert.match(css, new RegExp('\.btg-card--' + c.icon + '::before \{'));
+  for (const r of Object.values(R)) for (const c of r.cards || []) assert.match(css, new RegExp('\.btg-card--' + c.icon + '::before \{'));
 });
 
 test('a lone card spans the column and cards never overflow narrow phones', () => {

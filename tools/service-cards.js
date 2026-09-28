@@ -15,10 +15,16 @@
   // WordPress turns blank-line-separated text into paragraphs on render;
   // this mirrors that split. The trailing style block (and anything after
   // it) is the tail and is never touched.
-  function chunks(html) {
+  // Where the untouchable tail (per-page style block, then the loader) starts.
+  function tailStart(html) {
     var at = html.search(/<style>\/\* btg-styles \*\/|<!-- btg-loader/);
-    var head = at < 0 ? html : html.slice(0, at);
-    var tail = at < 0 ? '' : html.slice(at);
+    return at < 0 ? html.length : at;
+  }
+
+  function chunks(html) {
+    var at = tailStart(html);
+    var head = html.slice(0, at);
+    var tail = html.slice(at);
     var blocks = [], last = 0, m;
     function pushText(t) {
       t.split(/\n\s*\n/).forEach(function (p) {
@@ -125,6 +131,59 @@
     return heroHtml(r.hero) + '\n\n' + out.join('\n') + '\n\n' + c.tail;
   }
 
+  // Small Services pages: intro paragraph(s) beside a "Services Include" card.
+  // Spec: docs/superpowers/specs/2026-09-27-services-split-and-index-design.md
+  var LONG_LIST = 8;
+  function transformSplit(html, r) {
+    if (html.indexOf('class="btg-hero"') !== -1) throw new Error('Already transformed');
+    var c = chunks(html), blocks = c.blocks, claimed = [];
+    function claim(b) { if (claimed.indexOf(b) === -1) claimed.push(b); return b; }
+    function one(list, what) {
+      if (list.length !== 1) throw new Error((list.length ? 'Found ' + list.length + ' times' : 'Missing anchor') + ': "' + what + '"');
+      return claim(list[0]);
+    }
+    function heading(start) { return one(blocks.filter(function (b) { return b.kind === 'block' && /^h[2-4]$/.test(b.tag) && b.text.indexOf(start) === 0; }), start); }
+
+    var h = heading(r.listHeading), cta = heading('Have any questions?');
+    var hi = blocks.indexOf(h), ci = blocks.indexOf(cta);
+    var banner = null, intro = [], items = [], notes = [];
+    blocks.slice(0, hi).forEach(function (b) {
+      if (b.kind !== 'p') return;
+      if (!b.text) {
+        if (/<img\b/.test(b.html)) { if (banner) throw new Error('Two images before the list'); banner = claim(b); }
+        else claim(b);
+        return;
+      }
+      intro.push(claim(b));
+    });
+    if (!intro.length) throw new Error('No intro paragraph before "' + r.listHeading + '"');
+    blocks.slice(hi + 1, ci).forEach(function (b) {
+      if (b.kind !== 'p') return;
+      claim(b);
+      if (!b.text) return;
+      if (/^(•|\*)/.test(b.text)) {
+        if (notes.length) throw new Error('List item after a note: ' + b.text.slice(0, 40));
+        items.push(itemHtml(b.html));
+      } else notes.push(b);
+    });
+    if (!items.length) throw new Error('No list items under "' + r.listHeading + '"');
+    var call = one(blocks.filter(function (b) { return b.kind === 'p' && b.text === 'Call Today!'; }), 'Call Today!');
+    var phones = one(blocks.filter(function (b) { return b.kind === 'p' && b.text.indexOf('844-TEKGUY-0 /') !== -1; }), '844-TEKGUY-0 /');
+    blocks.forEach(function (b) { if (b.kind === 'p' && !b.text && !/<img\b/.test(b.html)) claim(b); });
+    var left = blocks.filter(function (b) { return claimed.indexOf(b) === -1; });
+    if (left.length) throw new Error('Unmapped content: ' + left.map(function (b) { return b.text.slice(0, 50); }).join(' | '));
+
+    var out = heroHtml(r.hero) + '\n\n';
+    if (banner) out += '<p class="btg-banner">' + banner.html + '</p>\n';
+    out += '<div class="btg-split' + (items.length > LONG_LIST ? ' btg-split--stacked' : '') + '">' +
+      '<div class="btg-split-text">' + intro.map(function (p) { return '<p>' + p.html + '</p>'; }).join('') + '</div>' +
+      '<div class="btg-include-card btg-card--' + r.icon + '">' + h.html +
+      '<ul class="btg-checklist">' + items.map(function (i) { return '<li>' + i + '</li>'; }).join('') + '</ul></div></div>\n';
+    notes.forEach(function (n) { out += '<p class="btg-note">' + n.html + '</p>\n'; });
+    out += '<div class="btg-cta-block">' + cta.html + '<p>' + call.html + '</p><p>' + phones.html + '</p></div>';
+    return out + (c.tail ? '\n\n' + c.tail : '');
+  }
+
   function norm(t) { return C.text(t).replace(GLYPH, '').replace(/^[✓•*]\s*/, '').replace(/\s+/g, ' ').trim(); }
   function sentences(t) { return t ? t.split(/(?<=[.!?]['")]*)\s+(?=\S)/) : []; }
   function bag(list) { var m = {}; list.forEach(function (s) { m[s] = (m[s] || 0) + 1; }); return m; }
@@ -201,5 +260,5 @@
     return problems;
   }
 
-  return { chunks: chunks, itemHtml: itemHtml, addLoader: addLoader, transformService: transformService, verifyService: verifyService };
+  return { tailStart: tailStart, chunks: chunks, itemHtml: itemHtml, addLoader: addLoader, transformService: transformService, transformSplit: transformSplit, verifyService: verifyService };
 });
