@@ -45,7 +45,7 @@ Live structure (Avada header v5): `.fusion-secondary-header` (top bar) → `.fus
 - **Last row:** always "Search all pages for "<query>" →", which submits to the WordPress search (`/?s=<query>`). Enter with no highlighted suggestion does the same.
 - **Empty:** "No matching pages. Press Enter to search the whole site."
 - **Keyboard / screen readers:** combobox pattern (`role="combobox"`, `aria-expanded`, `aria-controls`, `aria-activedescendant`; list `role="listbox"`, options `role="option"`); ↑/↓ move, Enter opens, Escape closes and returns focus to the search button.
-- **The page list (29 entries):** the 15 services, the 9 Virginia town pages (AREA), and Home, About, Reviews, Testimonials, Contact (PAGE). Each entry: `title`, `url`, `type`, `icon`, `keywords`. Keywords are words that appear on that page itself (plus title words), curated by a build script `tools/search-index.js` from the saved page backups and checked in as data inside `dist/btg.js`. The build fails if any URL is not in the live menu/town list or any keyword is absent from its page's text.
+- **The page list (29 entries):** the 15 services, the 9 Virginia town pages (AREA), and Home, About, Reviews, Testimonials, Contact (PAGE). Each entry: `title`, `url`, `type`, `icon`, `keywords`. Keywords are everyday search words for that page's topic (e.g. "slow" for Computer Tune Up — no service page contains that word), kept in `tools/search-pages.js` and never displayed, so no visible copy changes. A build script `tools/build-search-data.js` copies them into `dist/btg.js`; tests fail if any URL is not in the live menu or the Virginia town list, or if the copy in `dist/btg.js` is stale.
 - No network requests while typing; nothing is logged or sent anywhere.
 
 ## Testing
