@@ -628,6 +628,8 @@ window.BTGAccount = (function () {
     safely(function () { window.BTGSearch.init(document, window); });
     safely(function () { window.BTGSearch.initPage(document, window); });
     safely(function () { window.BTGAccount.init(document, window); });
+    // Reveals the header and page area the loader's inline style kept hidden until now.
+    document.documentElement.classList.add('btg-ready');
   }
   if (document.readyState !== 'loading') {
     run();

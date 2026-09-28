@@ -11,6 +11,7 @@ export default function serve(port = 4410) {
     const url = new URL(req.url, 'http://x');
     try {
       if (url.pathname.startsWith('/dist/')) {
+        if (process.env.BTG_DELAY) await new Promise((r) => setTimeout(r, Number(process.env.BTG_DELAY)));
         const f = await readFile(path.join(root, url.pathname));
         res.writeHead(200, { 'content-type': url.pathname.endsWith('.css') ? 'text/css' : 'application/javascript' });
         return res.end(f);
