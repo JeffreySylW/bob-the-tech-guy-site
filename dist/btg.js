@@ -325,9 +325,10 @@ window.BTGSearch = (function () {
     box.hidden = true;
     box.innerHTML = '<form class="btg-search-form" role="search" action="/" method="get">' +
       '<input id="btg-search-input" class="btg-search-input" type="search" name="s" placeholder="Search" aria-label="Search" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="btg-search-list" aria-autocomplete="list">' +
-      '<ul id="btg-search-list" class="btg-search-list" role="listbox" hidden></ul></form>';
+      '<ul id="btg-search-list" class="btg-search-list" role="listbox" hidden></ul>' +
+      '<p class="btg-search-status" role="status" aria-live="polite"></p></form>';
     header.appendChild(box);
-    var input = box.querySelector('input'), list = box.querySelector('ul'), form = box.querySelector('form'), active = -1;
+    var input = box.querySelector('input'), list = box.querySelector('ul'), form = box.querySelector('form'), status = box.querySelector('[role=status]'), active = -1;
 
     function options() { return list.querySelectorAll('[role=option]'); }
     function openBox() { box.hidden = false; btn.setAttribute('aria-expanded', 'true'); input.focus(); }
@@ -336,7 +337,7 @@ window.BTGSearch = (function () {
       var q = input.value, items = rank(q, PAGES, 5);
       active = -1;
       input.removeAttribute('aria-activedescendant');
-      if (norm(q).length < 2) { list.hidden = true; list.innerHTML = ''; input.setAttribute('aria-expanded', 'false'); return; }
+      if (norm(q).length < 2) { list.hidden = true; list.innerHTML = ''; status.textContent = ''; input.setAttribute('aria-expanded', 'false'); return; }
       var html = items.map(function (p, i) {
         return '<li role="option" id="btg-opt-' + i + '" class="btg-search-opt" data-url="' + esc(p.url) + '">' +
           '<span class="btg-search-ico btg-card--' + p.icon + '" aria-hidden="true"></span>' +
@@ -347,12 +348,13 @@ window.BTGSearch = (function () {
       list.innerHTML = html;
       list.hidden = false;
       input.setAttribute('aria-expanded', 'true');
+      status.textContent = items.length ? items.length + (items.length === 1 ? ' suggestion' : ' suggestions') : 'No matching pages. Press Enter to search the whole site.';
     }
     function highlight(i) {
       var o = options();
       if (!o.length) return;
       active = (i + o.length) % o.length;
-      for (var k = 0; k < o.length; k++) o[k].classList.toggle('is-active', k === active);
+      for (var k = 0; k < o.length; k++) { o[k].classList.toggle('is-active', k === active); o[k].setAttribute('aria-selected', String(k === active)); }
       input.setAttribute('aria-activedescendant', o[active].id);
     }
     function go(el) {
@@ -363,7 +365,7 @@ window.BTGSearch = (function () {
     input.addEventListener('keydown', function (e) {
       if (e.key === 'ArrowDown') { e.preventDefault(); highlight(active + 1); }
       else if (e.key === 'ArrowUp') { e.preventDefault(); highlight(active - 1); }
-      else if (e.key === 'Enter') { e.preventDefault(); go(active >= 0 ? options()[active] : null); }
+      else if (e.key === 'Enter') { e.preventDefault(); if (active >= 0) go(options()[active]); else if (norm(input.value).length >= 2) go(null); }
       else if (e.key === 'Escape') { e.preventDefault(); closeBox(); }
     });
     list.addEventListener('mousedown', function (e) {
@@ -371,9 +373,13 @@ window.BTGSearch = (function () {
       if (el) { e.preventDefault(); go(el); }
     });
     btn.addEventListener('click', function () { if (box.hidden) openBox(); else closeBox(); });
+    // A click anywhere outside the panel and its button closes it.
+    doc.addEventListener('mousedown', function (e) {
+      if (!box.hidden && !box.contains(e.target) && !btn.contains(e.target)) { box.hidden = true; btn.setAttribute('aria-expanded', 'false'); }
+    });
     doc.addEventListener('keydown', function (e) {
       var a = doc.activeElement;
-      if (e.key !== '/' || (a && (/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) || a.isContentEditable))) return;
+      if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey || (a &&(/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) || a.isContentEditable))) return;
       e.preventDefault();
       openBox();
     });
@@ -444,6 +450,16 @@ window.BTGHeader = (function () {
     li.classList.add('btg-has-panel');
     svc.setAttribute('aria-expanded', 'false');
     svc.setAttribute('aria-controls', panel.id);
+    // Avada copies this menu into its phone menu after we run; that copy has no
+    // panel, so drop the copied ARIA from it.
+    var stripClones = function () {
+      [].forEach.call(doc.querySelectorAll('.fusion-mobile-nav-holder [aria-controls="' + panel.id + '"]'), function (a) {
+        a.removeAttribute('aria-controls');
+        a.removeAttribute('aria-expanded');
+      });
+    };
+    setTimeout(stripClones, 0);
+    if (doc.defaultView) doc.defaultView.addEventListener('load', stripClones);
     var t;
     // Attached on first open: Avada clones this menu into its mobile menu on
     // ready, and the clone must not carry a second copy of the panel.
@@ -530,15 +546,18 @@ window.BTGHeader = (function () {
     return;
   }
 
+  // Each enhancement runs on its own, so one failing (e.g. after a theme update)
+  // never stops the others; the page itself always works without them.
+  function safely(fn) { try { fn(); } catch (e) { if (window.console) console.warn('btg:', e); } }
   function run() {
-    window.BTGInit.fixTelLinks(document);
-    window.BTGInit.addCtaDigits(document);
-    window.BTGInit.addHeroTrust(document);
-    window.BTGInit.removeDuplicateTitleBar(document);
-    window.BTGInit.removeHomeSlider(document);
-    window.BTGInit.injectSchemaAndMeta(document, window);
-    window.BTGHeader.init(document, window);
-    window.BTGSearch.init(document, window);
+    safely(function () { window.BTGInit.fixTelLinks(document); });
+    safely(function () { window.BTGInit.addCtaDigits(document); });
+    safely(function () { window.BTGInit.addHeroTrust(document); });
+    safely(function () { window.BTGInit.removeDuplicateTitleBar(document); });
+    safely(function () { window.BTGInit.removeHomeSlider(document); });
+    safely(function () { window.BTGInit.injectSchemaAndMeta(document, window); });
+    safely(function () { window.BTGHeader.init(document, window); });
+    safely(function () { window.BTGSearch.init(document, window); });
   }
   if (document.readyState !== 'loading') {
     run();

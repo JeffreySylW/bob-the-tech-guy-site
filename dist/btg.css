@@ -577,3 +577,7 @@ html .post-content { font-size: 16.5px; line-height: 1.72; color: var(--btg-text
 @media (prefers-reduced-motion: reduce) {
   .wpcf7-form input[type="submit"] { transition: none; transform: none; }
 }
+
+/* v1.5.1: search status line (read by screen readers, visible only as a quiet note) and search above the Services panel. */
+.btg-search-status { margin: 8px 2px 0 !important; font-size: 13px; color: var(--btg-text-muted); min-height: 1em; }
+.btg-search { z-index: 80; }

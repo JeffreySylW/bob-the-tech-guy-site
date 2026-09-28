@@ -55,12 +55,24 @@ await b.type('slow computer'); await b.sleep(200);
 check('suggestions: Tune Up first + "Search all" row', await b.evalJs(`(() => { const o = [...document.querySelectorAll('.btg-search-opt .btg-search-title')].map((e) => e.textContent); return o[0] === 'Computer Tune Up' && !!document.querySelector('.btg-search-all'); })()`));
 check('combobox ARIA', await b.evalJs(`(() => { const i = document.querySelector('.btg-search-input'); return i.getAttribute('role') === 'combobox' && i.getAttribute('aria-expanded') === 'true' && document.querySelector('#btg-search-list').getAttribute('role') === 'listbox'; })()`));
 await b.shot(out + '/search.png');
+check('status line announces the number of suggestions', await b.evalJs(`(() => { const st = document.querySelector('.btg-search [role=status]'); return !!st && /\\d+ suggestion/.test(st.textContent); })()`));
+
 await b.key('ArrowDown', 'ArrowDown', 40); await b.sleep(100);
 check('ArrowDown highlights the first suggestion', await b.evalJs(`document.querySelector('.btg-search-input').getAttribute('aria-activedescendant') === 'btg-opt-0'`));
+check('highlighted suggestion is aria-selected', await b.evalJs(`document.getElementById('btg-opt-0').getAttribute('aria-selected') === 'true'`));
 await b.stub('*bobthetechguy.com/computer-tune-up/*', '<html><body>stub</body></html>');
 await b.key('Enter', 'Enter', 13, String.fromCharCode(13)); await b.sleep(1500);
 check('Enter opens the suggested page', await b.evalJs(`location.href`).then((h) => /computer-tune-up/.test(h)), await b.evalJs('location.href'));
 await b.goto('http://localhost:4410/memory-install/');
+// Search panel: Enter with under 2 characters does nothing; outside click closes; Ctrl+/ does not open.
+await b.evalJs(`document.querySelector('.btg-search-btn').click()`); await b.sleep(200);
+await b.type('a'); await b.key('Enter', 'Enter', 13, String.fromCharCode(13)); await b.sleep(800);
+check('Enter with one character does not submit a search', await b.evalJs(`!/[?&]s=/.test(location.search) && !document.querySelector('.btg-search').hidden`), await b.evalJs(`JSON.stringify({ href: location.href, hidden: document.querySelector('.btg-search') && document.querySelector('.btg-search').hidden, val: document.querySelector('.btg-search-input') && document.querySelector('.btg-search-input').value })`));
+await b.click(700, 700); await b.sleep(300);
+check('clicking outside closes the search panel', await b.evalJs(`document.querySelector('.btg-search').hidden`));
+await b.evalJs(`document.activeElement.blur()`);
+await b.send('Input.dispatchKeyEvent', { type: 'keyDown', key: '/', code: 'Slash', windowsVirtualKeyCode: 191, modifiers: 2 }); await b.send('Input.dispatchKeyEvent', { type: 'keyUp', key: '/', code: 'Slash', windowsVirtualKeyCode: 191, modifiers: 2 }); await b.sleep(200);
+check('Ctrl+/ does not open search', await b.evalJs(`document.querySelector('.btg-search').hidden`));
 // Scroll, then fire the scroll event itself: headless tabs deliver scroll events late while the live theme assets load.
 await b.evalJs(`(async () => { for (let i = 0; i < 40 && scrollY < 800; i++) { scrollTo(0, 900); await new Promise((r) => setTimeout(r, 150)); } dispatchEvent(new Event('scroll')); })()`);
 await b.sleep(600);
@@ -89,6 +101,7 @@ await b.shot(out + '/phone.png');
 const mb = await b.evalJs(`(() => { const e = document.querySelector('.fusion-mobile-menu-icons a, .fusion-mobile-menu-icons button'); if (!e) return null; const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; })()`);
 if (mb) { await b.click(mb[0], mb[1]); await b.sleep(800); }
 check('phone: theme mobile menu opens', await b.evalJs(`(() => { const n = document.querySelector('.fusion-mobile-nav-holder, .fusion-mobile-navigation'); return !!n && n.getBoundingClientRect().height > 50; })()`));
+check('phone: mobile menu copy carries no stale panel ARIA', await b.evalJs(`!document.querySelector('.fusion-mobile-nav-holder [aria-controls="btg-services-panel"]')`));
 await b.shot(out + '/phone-menu.png');
 await b.close();
 
