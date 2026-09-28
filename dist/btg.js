@@ -315,7 +315,72 @@ window.BTGSearch = (function () {
       .map(function (x) { return x.p; });
   }
 
-  return { PAGES: PAGES, norm: norm, esc: esc, rank: rank };
+  var SEARCH_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38792f" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>';
+
+  function init(doc, win) {
+    var btn = doc.querySelector('.btg-search-btn'), header = doc.querySelector('.fusion-header');
+    if (!btn || !header || doc.querySelector('.btg-search')) return false;
+    var box = doc.createElement('div');
+    box.className = 'btg-search';
+    box.hidden = true;
+    box.innerHTML = '<form class="btg-search-form" role="search" action="/" method="get">' +
+      '<input id="btg-search-input" class="btg-search-input" type="search" name="s" placeholder="Search" aria-label="Search" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="btg-search-list" aria-autocomplete="list">' +
+      '<ul id="btg-search-list" class="btg-search-list" role="listbox" hidden></ul></form>';
+    header.appendChild(box);
+    var input = box.querySelector('input'), list = box.querySelector('ul'), form = box.querySelector('form'), active = -1;
+
+    function options() { return list.querySelectorAll('[role=option]'); }
+    function openBox() { box.hidden = false; btn.setAttribute('aria-expanded', 'true'); input.focus(); }
+    function closeBox() { box.hidden = true; btn.setAttribute('aria-expanded', 'false'); btn.focus(); }
+    function render() {
+      var q = input.value, items = rank(q, PAGES, 5);
+      active = -1;
+      input.removeAttribute('aria-activedescendant');
+      if (norm(q).length < 2) { list.hidden = true; list.innerHTML = ''; input.setAttribute('aria-expanded', 'false'); return; }
+      var html = items.map(function (p, i) {
+        return '<li role="option" id="btg-opt-' + i + '" class="btg-search-opt" data-url="' + esc(p.url) + '">' +
+          '<span class="btg-search-ico btg-card--' + p.icon + '" aria-hidden="true"></span>' +
+          '<span class="btg-search-title">' + esc(p.title) + '</span><span class="btg-search-type">' + p.type + '</span></li>';
+      }).join('');
+      if (!items.length) html += '<li class="btg-search-empty" role="presentation">No matching pages. Press Enter to search the whole site.</li>';
+      html += '<li role="option" id="btg-opt-all" class="btg-search-all">Search all pages for "' + esc(q) + '" &rarr;</li>';
+      list.innerHTML = html;
+      list.hidden = false;
+      input.setAttribute('aria-expanded', 'true');
+    }
+    function highlight(i) {
+      var o = options();
+      if (!o.length) return;
+      active = (i + o.length) % o.length;
+      for (var k = 0; k < o.length; k++) o[k].classList.toggle('is-active', k === active);
+      input.setAttribute('aria-activedescendant', o[active].id);
+    }
+    function go(el) {
+      if (!el || el.id === 'btg-opt-all') form.submit();
+      else win.location.href = el.getAttribute('data-url');
+    }
+    input.addEventListener('input', render);
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); highlight(active + 1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); highlight(active - 1); }
+      else if (e.key === 'Enter') { e.preventDefault(); go(active >= 0 ? options()[active] : null); }
+      else if (e.key === 'Escape') { e.preventDefault(); closeBox(); }
+    });
+    list.addEventListener('mousedown', function (e) {
+      var el = e.target.closest('[role=option]');
+      if (el) { e.preventDefault(); go(el); }
+    });
+    btn.addEventListener('click', function () { if (box.hidden) openBox(); else closeBox(); });
+    doc.addEventListener('keydown', function (e) {
+      var a = doc.activeElement;
+      if (e.key !== '/' || (a && (/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) || a.isContentEditable))) return;
+      e.preventDefault();
+      openBox();
+    });
+    return true;
+  }
+
+  return { PAGES: PAGES, norm: norm, esc: esc, rank: rank, init: init, SEARCH_ICON: SEARCH_ICON };
 })();
 
 
@@ -365,7 +430,92 @@ window.BTGHeader = (function () {
     }).join('') + '</div>';
   }
 
-  return { LOGO_SVG: LOGO_SVG, ICON_SVG: ICON_SVG, GROUPS: GROUPS, groupLinks: groupLinks, panelsHtml: panelsHtml };
+  function buildDropdown(doc, nav, header) {
+    var svc = nav && nav.querySelector('a[href$="/services-2/"]');
+    if (!svc) return;
+    var li = svc.closest('li');
+    var links = [].map.call(li.querySelectorAll('.sub-menu a'), function (a) { return { href: a.href, text: a.textContent.trim() }; });
+    if (!links.length) return;
+    var panel = doc.createElement('div');
+    panel.className = 'btg-dropdown';
+    panel.id = 'btg-services-panel';
+    panel.hidden = true;
+    panel.innerHTML = panelsHtml(groupLinks(links));
+    li.classList.add('btg-has-panel');
+    svc.setAttribute('aria-expanded', 'false');
+    svc.setAttribute('aria-controls', panel.id);
+    var t;
+    // Attached on first open: Avada clones this menu into its mobile menu on
+    // ready, and the clone must not carry a second copy of the panel.
+    function open() {
+      clearTimeout(t);
+      if (!panel.parentNode) li.appendChild(panel);
+      panel.hidden = false;
+      svc.setAttribute('aria-expanded', 'true');
+    }
+    function close() { clearTimeout(t); panel.hidden = true; svc.setAttribute('aria-expanded', 'false'); }
+    function later(fn) { clearTimeout(t); t = setTimeout(fn, 150); }
+    li.addEventListener('mouseenter', function () { later(open); });
+    li.addEventListener('mouseleave', function () { later(close); });
+    svc.addEventListener('focus', open);
+    li.addEventListener('focusout', function (e) { if (!li.contains(e.relatedTarget)) close(); });
+    li.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !panel.hidden) { e.preventDefault(); close(); svc.focus(); }
+    });
+  }
+
+  function init(doc, win) {
+    var header = doc.querySelector('.fusion-header');
+    if (!header || header.getAttribute('data-btg-header')) return false;
+    header.setAttribute('data-btg-header', '1');
+    var row = header.querySelector('.fusion-row') || header;
+
+    var logo = header.querySelector('.fusion-logo-link');
+    if (logo) {
+      [].forEach.call(logo.querySelectorAll('img'), function (i) { i.parentNode.removeChild(i); });
+      logo.insertAdjacentHTML('afterbegin', LOGO_SVG);
+      logo.setAttribute('aria-label', 'Bob The Tech Guy — home');
+    }
+    if (doc.head) {
+      var icon = doc.createElement('link');
+      icon.rel = 'icon';
+      icon.type = 'image/svg+xml';
+      icon.href = 'data:image/svg+xml,' + encodeURIComponent(ICON_SVG);
+      doc.head.appendChild(icon);
+    }
+
+    var nav = doc.querySelector('.fusion-secondary-main-menu .fusion-main-menu') || doc.querySelector('.fusion-header .fusion-main-menu');
+    // Avada fills its mobile menu from the menu beside it (holder.parent().find('.fusion-main-menu'))
+    // and toggles it inside .fusion-secondary-main-menu, so that whole row moves into the logo row
+    // intact; CSS gives it display: contents so the menu joins the one-row layout.
+    var sec = nav && nav.closest('.fusion-secondary-main-menu');
+    if (sec) row.appendChild(sec); else if (nav) row.appendChild(nav);
+    var tools = doc.createElement('div');
+    tools.className = 'btg-header-tools';
+    tools.innerHTML = '<button type="button" class="btg-search-btn" aria-label="Search" aria-expanded="false">' + window.BTGSearch.SEARCH_ICON + '</button>' +
+      '<a class="btg-call" href="tel:8448354890">844-TEKGUY-0<small>(844) 835-4890</small></a>';
+    row.appendChild(tools);
+    var mob = header.querySelector('.fusion-mobile-menu-icons');
+    if (mob) tools.appendChild(mob);
+
+    buildDropdown(doc, nav, header);
+
+    var wrapper = doc.querySelector('.fusion-header-wrapper');
+    if (wrapper) {
+      // Stick the main header row; let the top bar above it scroll away.
+      // The top bar's height changes as fonts load, so re-measure rather than fix it once.
+      var pin = function () { wrapper.style.top = -(header.getBoundingClientRect().top - wrapper.getBoundingClientRect().top) + 'px'; };
+      var onScroll = function () { wrapper.classList.toggle('btg-scrolled', (win.pageYOffset || 0) > 80); pin(); };
+      win.addEventListener('scroll', onScroll, { passive: true });
+      win.addEventListener('resize', pin);
+      win.addEventListener('load', pin);
+      onScroll();
+    }
+    doc.documentElement.classList.add('btg-header-on');
+    return true;
+  }
+
+  return { LOGO_SVG: LOGO_SVG, ICON_SVG: ICON_SVG, GROUPS: GROUPS, groupLinks: groupLinks, panelsHtml: panelsHtml, init: init };
 })();
 
 
@@ -385,6 +535,8 @@ window.BTGHeader = (function () {
     window.BTGInit.removeDuplicateTitleBar(document);
     window.BTGInit.removeHomeSlider(document);
     window.BTGInit.injectSchemaAndMeta(document, window);
+    window.BTGHeader.init(document, window);
+    window.BTGSearch.init(document, window);
   }
   if (document.readyState !== 'loading') {
     run();

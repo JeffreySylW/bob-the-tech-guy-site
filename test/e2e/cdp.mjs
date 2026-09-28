@@ -13,20 +13,26 @@ export async function launch({ width = 1440, height = 900, mobile = false } = {}
   const ws = new WebSocket(tabs.find((t) => t.type === 'page').webSocketDebuggerUrl);
   await new Promise((r) => ws.addEventListener('open', r));
   let id = 0; const pending = new Map();
-  ws.addEventListener('message', (e) => { const m = JSON.parse(e.data); pending.get(m.id)?.(m); pending.delete(m.id); });
-  const send = (method, params = {}) => new Promise((r) => { pending.set(++id, r); ws.send(JSON.stringify({ id, method, params })); });
+  const handlers = {};
+  ws.addEventListener('message', (e) => { const m = JSON.parse(e.data); if (m.method) (handlers[m.method] || []).forEach((f) => f(m.params)); else { pending.get(m.id)?.(m); pending.delete(m.id); } });
+  const on = (method, f) => { (handlers[method] = handlers[method] || []).push(f); };
+  // Every call answers within 15s, so a stalled page fails a check instead of hanging the run.
+  const send = (method, params = {}) => new Promise((r) => { const n = ++id; pending.set(n, r); ws.send(JSON.stringify({ id: n, method, params })); setTimeout(() => { if (pending.has(n)) { pending.delete(n); console.log('  (cdp timeout: ' + method + ')'); r({ error: 'timeout' }); } }, 15000); });
   if (mobile) {
     await send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 2, mobile: true });
     await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
   }
   await send('Page.enable');
-  const evalJs = async (x) => (await send('Runtime.evaluate', { expression: x, awaitPromise: true, returnByValue: true })).result.result?.value;
+  const evalJs = async (x) => { const r = await send('Runtime.evaluate', { expression: x, awaitPromise: true, returnByValue: true }); return r.result && r.result.result ? r.result.result.value : undefined; };
   const key = async (k, code, vk, text) => { await send('Input.dispatchKeyEvent', { type: 'keyDown', key: k, code, windowsVirtualKeyCode: vk, text }); await send('Input.dispatchKeyEvent', { type: 'keyUp', key: k, code, windowsVirtualKeyCode: vk }); };
   const type = async (s) => { for (const ch of s) await key(ch, 'Key' + ch.toUpperCase(), ch.toUpperCase().charCodeAt(0), ch); };
   const click = async (x, y) => { for (const t of ['mousePressed', 'mouseReleased']) await send('Input.dispatchMouseEvent', { type: t, x, y, button: 'left', clickCount: 1 }); };
   const move = (x, y) => send('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y });
-  const goto = async (url) => { await send('Page.navigate', { url }); await sleep(3500); };
+  // Wait for the load event (capped at 20s), then let late scripts settle.
+  const goto = async (url) => { const loaded = new Promise((r) => on('Page.loadEventFired', r)); await send('Page.navigate', { url }); await Promise.race([loaded, sleep(20000)]); await sleep(800); };
   const shot = async (file) => writeFileSync(file, Buffer.from((await send('Page.captureScreenshot', { format: 'png' })).result.data, 'base64'));
   const close = () => new Promise((ok) => { ws.close(); spawn('powershell', ['-Command', `Get-CimInstance Win32_Process -Filter "Name='msedge.exe'" | ? { $_.CommandLine -match 'e2e-profile-${port}' } | % { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }`], { stdio: 'ignore' }).on('exit', ok); });
-  return { send, evalJs, key, type, click, move, goto, shot, sleep, close };
+  // Answer matching requests locally (keeps tests off slow live pages).
+  const stub = async (pattern, body) => { await send('Fetch.enable', { patterns: [{ urlPattern: pattern }] }); on('Fetch.requestPaused', (p) => send('Fetch.fulfillRequest', { requestId: p.requestId, responseCode: 200, responseHeaders: [{ name: 'content-type', value: 'text/html' }], body: Buffer.from(body).toString('base64') })); };
+  return { on, stub, send, evalJs, key, type, click, move, goto, shot, sleep, close };
 }

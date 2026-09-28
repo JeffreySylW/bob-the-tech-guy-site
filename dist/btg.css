@@ -363,9 +363,9 @@ html .fusion-header-wrapper::before,
 html .fusion-header-wrapper:before { display: none !important; }
 .fusion-secondary-header { background: #20241f !important; border: 0 !important; padding: 0 !important; }
 .fusion-secondary-header .fusion-row { display: flex !important; align-items: center; justify-content: space-between; gap: 16px; max-width: 1180px; margin: 0 auto; padding: 7px 24px !important; }
-.fusion-secondary-header .fusion-row::before { content: "NOW SERVING CHESTERFIELD \00B7 MIDLOTHIAN \00B7 CHESTER \00B7 BON AIR \00B7 COLONIAL HEIGHTS \00B7 GREATER RICHMOND, VA"; display: block; color: #e8efe6; font-family: var(--btg-font-body); font-size: 12.5px; font-weight: 700; letter-spacing: .04em; line-height: 1.4; }
+.fusion-secondary-header .fusion-row::before { content: "NOW SERVING CHESTERFIELD \00B7  MIDLOTHIAN \00B7  CHESTER \00B7  BON AIR \00B7  COLONIAL HEIGHTS \00B7  GREATER RICHMOND, VA"; display: block; color: #e8efe6; font-family: var(--btg-font-body); font-size: 12.5px; font-weight: 700; letter-spacing: .04em; line-height: 1.4; }
 .fusion-secondary-header .fusion-row::after { display: none !important; }
-.fusion-secondary-header .fusion-alignleft { float: none !important; margin: 0 !important; }
+.fusion-secondary-header .fusion-alignleft { float: none !important; margin: 0 0 0 auto !important; }
 .fusion-secondary-header .fusion-contact-info,
 .fusion-secondary-header .fusion-contact-info a { font-family: var(--btg-font-body) !important; font-size: 12.5px !important; font-weight: 700 !important; letter-spacing: .04em !important; line-height: 1.4 !important; color: #e8efe6 !important; }
 @media (max-width: 900px) {
@@ -386,7 +386,8 @@ html .fusion-header-wrapper:before { display: none !important; }
 .btg-logo-accent { fill: #38792f; }
 .btg-logo-pad { animation: btg-pulse 2.4s ease-in-out infinite; }
 @keyframes btg-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
-.btg-header-on .fusion-secondary-main-menu { display: none !important; }
+.btg-header-on .fusion-header .fusion-secondary-main-menu,
+.btg-header-on .fusion-header .fusion-secondary-main-menu > .fusion-row { display: contents !important; }
 .btg-header-on .fusion-header .fusion-main-menu { float: none !important; flex: 1; display: flex; justify-content: center; }
 .btg-header-on .fusion-main-menu > ul { display: flex !important; gap: 4px; }
 .btg-header-on .fusion-main-menu > ul > li { position: static; padding: 0 !important; }
@@ -446,4 +447,24 @@ html .fusion-header-wrapper:before { display: none !important; }
   .btg-logo-pad { animation: none; }
   .btg-logo, .btg-header-on .fusion-header, .btg-header-on .fusion-header .fusion-row,
   .btg-header-on .fusion-main-menu > ul > li > a::after, .btg-call, .btg-search-btn { transition: none; }
+}
+.btg-header-on .fusion-header .fusion-row { flex-wrap: wrap; }
+.btg-header-on .fusion-header .fusion-mobile-nav-holder { flex-basis: 100%; order: 10; margin: 0; }
+/* The panel lives inside the theme menu: position it from the header row and undo the theme menu-item styles. */
+.btg-header-on .fusion-header .fusion-main-menu,
+.btg-header-on .fusion-header .fusion-main-menu > ul { position: static !important; overflow: visible !important; }
+.btg-dropdown { top: 100% !important; left: 0 !important; right: 0 !important; width: auto !important; z-index: 70; }
+.btg-dropdown ul, .btg-dropdown li { float: none !important; display: block !important; position: static !important; height: auto !important; width: auto !important; background: none !important; }
+.btg-dropdown .btg-panel-link { display: flex !important; height: auto !important; line-height: 1.3 !important; padding: 9px 2px !important; font-size: 15px !important; border: 0 !important; }
+.btg-dropdown .btg-panel-link::after { content: "\203A" !important; position: static !important; transform: none !important; height: auto !important; background: none !important; box-shadow: none !important; }
+.fusion-secondary-header .fusion-contact-info { text-align: right; }
+@media (max-width: 900px) { .fusion-secondary-header .fusion-alignleft { margin: 0 auto !important; } .fusion-secondary-header .fusion-contact-info { text-align: center; } }
+/* Undo the theme's mobile header spacing so logo and tools share one row on phones. */
+.btg-header-on .fusion-header { padding: 0 !important; height: auto !important; min-height: 0 !important; }
+.btg-header-on .fusion-header .fusion-logo { width: auto !important; text-align: left !important; padding: 0 !important; }
+.fusion-secondary-header .fusion-alignleft { border: 0 !important; padding: 0 !important; }
+@media (max-width: 900px) {
+  .btg-header-on .fusion-header .fusion-logo { flex: 1 1 auto; min-width: 0; }
+  .btg-header-tools { gap: 8px; }
+  .btg-header-on .fusion-mobile-menu-icons a { display: block; margin: 0 !important; }
 }
