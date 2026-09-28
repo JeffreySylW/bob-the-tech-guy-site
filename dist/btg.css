@@ -602,3 +602,15 @@ html .post-content { font-size: 16.5px; line-height: 1.72; color: var(--btg-text
 @media (prefers-reduced-motion: reduce) {
   .ngg-gallery-thumbnail img { transition: none; transform: none !important; }
 }
+
+/* v1.5.3 — contact page: two location cards, lead line above the form. */
+.btg-locations { display: grid; grid-template-columns: 1fr; gap: 16px; margin: 8px 0 20px; }
+@media (min-width: 600px) { .btg-locations { grid-template-columns: repeat(2, 1fr); } }
+.btg-location { background: var(--btg-card-bg); border: 1px solid var(--btg-card-border); border-top: 3px solid var(--btg-green); border-radius: var(--btg-radius-md); padding: 18px 20px; display: flex; flex-direction: column; }
+.btg-location h3 { font-size: 18px !important; margin: 0 0 6px !important; padding-top: 0 !important; color: var(--btg-text) !important; }
+.btg-location h3::before { display: none !important; }
+.btg-location p { margin: 0 0 12px !important; color: var(--btg-text-muted); font-size: 15px; line-height: 1.55; }
+.btg-location .btg-location-phone { margin: auto 0 0 !important; }
+.btg-location-phone a { display: inline-block; font-weight: 700; font-size: 17px; color: #38792f !important; text-decoration: none !important; border: 1px solid #38792f; border-radius: 8px; padding: 6px 14px; }
+.btg-location-phone a:hover, .btg-location-phone a:focus-visible { background: var(--btg-green-tint); }
+.btg-contact-lead { font-weight: 700; margin: 0 0 4px !important; }
