@@ -35,10 +35,12 @@ test('transformSplit() turns every fake bullet into a checklist item, words unch
   assert.match(S.transformSplit(fx('11978'), R['11978']), /<li>Verify RAM is recognized in BIOS and operating system<\/li>/);
 });
 
-test('transformSplit() stacks the two long lists only', () => {
+test('transformSplit() stacks long lists and lists that outweigh a short intro', () => {
+  // Side by side only where the card would not tower over the paragraph.
+  const stackedIds = ['11806', '11867', '11869', '11973', '11859', '11855'];
   for (const id of SPLIT) {
     const stacked = /class="btg-split btg-split--stacked"/.test(S.transformSplit(fx(id), R[id]));
-    assert.strictEqual(stacked, id === '11806' || id === '11867', id);
+    assert.strictEqual(stacked, stackedIds.includes(id), id);
   }
 });
 

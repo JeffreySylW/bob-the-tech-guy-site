@@ -134,6 +134,7 @@
   // Small Services pages: intro paragraph(s) beside a "Services Include" card.
   // Spec: docs/superpowers/specs/2026-09-27-services-split-and-index-design.md
   var LONG_LIST = 8;
+  var STACK_RATIO = 0.5; // calibrated on the 9 pages' rendered heights at 1440px
   function transformSplit(html, r) {
     if (html.indexOf('class="btg-hero"') !== -1) throw new Error('Already transformed');
     var c = chunks(html), blocks = c.blocks, claimed = [];
@@ -175,7 +176,12 @@
 
     var out = heroHtml(r.hero) + '\n\n';
     if (banner) out += '<p class="btg-banner">' + banner.html + '</p>\n';
-    out += '<div class="btg-split' + (items.length > LONG_LIST ? ' btg-split--stacked' : '') + '">' +
+    // Stack (paragraph above a full-width card) when the card would tower over the
+    // paragraph beside it: a long list, or list text over half the intro's length.
+    var introLen = C.text(intro.map(function (p) { return p.html; }).join(' ')).length;
+    var listLen = C.text(items.join(' ')).length;
+    var stacked = items.length > LONG_LIST || listLen > introLen * STACK_RATIO;
+    out += '<div class="btg-split' + (stacked ? ' btg-split--stacked' : '') + '">' +
       '<div class="btg-split-text">' + intro.map(function (p) { return '<p>' + p.html + '</p>'; }).join('') + '</div>' +
       '<div class="btg-include-card btg-card--' + r.icon + '">' + h.html +
       '<ul class="btg-checklist">' + items.map(function (i) { return '<li>' + i + '</li>'; }).join('') + '</ul></div></div>\n';
