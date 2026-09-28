@@ -319,6 +319,56 @@ window.BTGSearch = (function () {
 })();
 
 
+/* 07-header.js */
+window.BTGHeader = (function () {
+  var LOGO_SVG = '<svg class="btg-logo" viewBox="0 0 212 66" width="176" height="55" aria-hidden="true" focusable="false">' +
+    '<text x="4" y="24" font-family="Roboto Slab, Georgia, serif" font-size="14" letter-spacing="3.5" class="btg-logo-top">BOB THE</text>' +
+    '<text x="2" y="51" font-family="Roboto Slab, Georgia, serif" font-weight="700" font-size="30" class="btg-logo-main">Tech <tspan class="btg-logo-accent">Guy</tspan></text>' +
+    '<path d="M4 60h122l8-8h58" fill="none" stroke="#54aa47" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '<circle class="btg-logo-pad" cx="197" cy="52" r="5" fill="#54aa47"/>' +
+    '<circle cx="197" cy="52" r="9.5" fill="none" stroke="#54aa47" stroke-opacity=".35" stroke-width="2"/></svg>';
+  var ICON_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#1c201b"/>' +
+    '<text x="15" y="44" font-family="Georgia, serif" font-weight="700" font-size="34" fill="#fff">B</text>' +
+    '<path d="M13 53h24l5-5h9" fill="none" stroke="#6ec95f" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '<circle cx="52" cy="48" r="4" fill="#6ec95f"/></svg>';
+  // Keep equal to tools/services-index.js GROUPS (test/header.test.js enforces it).
+  var GROUPS = [
+    { name: 'Repairs &amp; Upgrades', items: [['hardware-repair-upgrades', 'tool'], ['screen-replacement', 'screen'], ['memory-install', 'chip'], ['hardware-install', 'plug'], ['computer-tune-up', 'gauge'], ['data-recovery-service', 'drive']] },
+    { name: 'Setup &amp; Software', items: [['computer-set-up', 'laptop'], ['operating-system-install', 'window'], ['software-installation-and-configuration', 'box'], ['printer-solutions', 'printer'], ['email-setup', 'mail']] },
+    { name: 'Security &amp; Networking', items: [['networking', 'wifi'], ['anti-virus', 'shield'], ['backup-solutions', 'cloud'], ['parental-controls', 'lock']] }
+  ];
+
+  function slugOf(href) { var m = /\/([a-z0-9-]+)\/?$/.exec(href || ''); return m ? m[1] : ''; }
+
+  function groupLinks(links) {
+    var used = [];
+    var out = GROUPS.map(function (g) {
+      var items = [];
+      g.items.forEach(function (it) {
+        links.forEach(function (l) {
+          if (slugOf(l.href) === it[0] && used.indexOf(l) === -1) { used.push(l); items.push({ href: l.href, text: l.text, icon: it[1] }); }
+        });
+      });
+      return { name: g.name, items: items };
+    }).filter(function (g) { return g.items.length; });
+    var more = links.filter(function (l) { return used.indexOf(l) === -1; }).map(function (l) { return { href: l.href, text: l.text, icon: 'page' }; });
+    if (more.length) out.push({ name: 'More', items: more });
+    return out;
+  }
+
+  function panelsHtml(groups) {
+    var esc = window.BTGSearch.esc;
+    return '<div class="btg-panels">' + groups.map(function (g) {
+      return '<section class="btg-panel"><h2 class="btg-panel-title">' + g.name + '</h2><ul class="btg-panel-list">' +
+        g.items.map(function (i) { return '<li><a class="btg-panel-link btg-card--' + i.icon + '" href="' + esc(i.href) + '">' + esc(i.text) + '</a></li>'; }).join('') +
+        '</ul></section>';
+    }).join('') + '</div>';
+  }
+
+  return { LOGO_SVG: LOGO_SVG, ICON_SVG: ICON_SVG, GROUPS: GROUPS, groupLinks: groupLinks, panelsHtml: panelsHtml };
+})();
+
+
 (function () {
   // Guards against the Node test environment's minimal `document` stub,
   // which has no querySelector/readyState/addEventListener — this file is
