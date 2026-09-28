@@ -134,6 +134,7 @@
   // Small Services pages: intro paragraph(s) beside a "Services Include" card.
   // Spec: docs/superpowers/specs/2026-09-27-services-split-and-index-design.md
   var LONG_LIST = 8;
+  var EMBED = /<(img|iframe|video|embed|object)\b/i;
   var STACK_RATIO = 0.5; // calibrated on the 9 pages' rendered heights at 1440px
   function transformSplit(html, r) {
     if (html.indexOf('class="btg-hero"') !== -1) throw new Error('Already transformed');
@@ -160,6 +161,7 @@
     if (!intro.length) throw new Error('No intro paragraph before "' + r.listHeading + '"');
     blocks.slice(hi + 1, ci).forEach(function (b) {
       if (b.kind !== 'p') return;
+      if (EMBED.test(b.html)) throw new Error('Image or embed inside the list: ' + b.html.slice(0, 60));
       claim(b);
       if (!b.text) return;
       if (/^(•|\*)/.test(b.text)) {
@@ -170,7 +172,7 @@
     if (!items.length) throw new Error('No list items under "' + r.listHeading + '"');
     var call = one(blocks.filter(function (b) { return b.kind === 'p' && b.text === 'Call Today!'; }), 'Call Today!');
     var phones = one(blocks.filter(function (b) { return b.kind === 'p' && b.text.indexOf('844-TEKGUY-0 /') !== -1; }), '844-TEKGUY-0 /');
-    blocks.forEach(function (b) { if (b.kind === 'p' && !b.text && !/<img\b/.test(b.html)) claim(b); });
+    blocks.forEach(function (b) { if (b.kind === 'p' && !b.text && !EMBED.test(b.html)) claim(b); });
     var left = blocks.filter(function (b) { return claimed.indexOf(b) === -1; });
     if (left.length) throw new Error('Unmapped content: ' + left.map(function (b) { return b.text.slice(0, 50); }).join(' | '));
 
@@ -261,6 +263,10 @@
     function hrefs(h) { return (h.match(/href="[^"]*"/g) || []).sort().join(' '); }
     var wantHrefs = (before.slice(0, before.length - c.tail.length).match(/href="[^"]*"/g) || []).concat(['href="tel:8448354890"']).sort().join(' ');
     if (hrefs(after.slice(0, after.length - c.tail.length)) !== wantHrefs) problems.push('Links differ from the original page');
+
+    // Images and embeds: the same src values as before, same count.
+    function srcs(h) { return (h.match(/\ssrc="[^"]*"/g) || []).sort().join(' '); }
+    if (srcs(after.slice(0, tailStart(after))) !== srcs(before.slice(0, before.length - c.tail.length))) problems.push('Images or embeds differ from the original page');
 
     // Card titles in recipe order.
     var gotTitles = (after.match(/<h3 class="btg-card-title">[^<]*<\/h3>/g) || []).map(function (t) { return t.replace(/<[^>]+>/g, ''); });

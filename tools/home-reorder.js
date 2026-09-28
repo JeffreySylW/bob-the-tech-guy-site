@@ -37,6 +37,10 @@
   // Safety gate: [] means safe.
   function verifyHome(before, after) {
     var problems = [];
+    // Exact: the page must equal the deterministic reorder of the original.
+    var expected = null;
+    try { expected = reorderHome(before); } catch (e) { problems.push('Original page cannot be reordered: ' + e.message); }
+    if (expected !== null && after !== expected) problems.push('Page differs from the exact reorder of the original');
     if (after.split(BTN_NEW).length !== 2) problems.push('"All Services" label missing or duplicated');
     var restored = after.replace(BTN_NEW, BTN);
     if (restored.length !== before.length) problems.push('Length changed by ' + (after.length - before.length) + ' (expected +4)');

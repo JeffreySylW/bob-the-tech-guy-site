@@ -22,9 +22,19 @@
     // Start at the top-level menu item (menu-text span), not any other link to the page.
     while ((m = re.exec(publicHtml)) && !(m[2] === 'services-2' && m[3] === 'menu-text')) { /* skip */ }
     if (!m) throw new Error('Services menu item not found');
+    var start = re.lastIndex;
     while ((m = re.exec(publicHtml)) && m[3] === '') {
       out.push({ slug: m[2], url: m[1], title: m[4].replace(/&#038;/g, '&amp;') });
     }
+    // Every link inside the Services submenu (nested lists included) must have been read.
+    var tag = /<\/?ul\b/g, depth = 0, t, end = -1;
+    tag.lastIndex = publicHtml.indexOf('<ul', start);
+    while ((t = tag.exec(publicHtml))) {
+      depth += t[0] === '<ul' ? 1 : -1;
+      if (depth === 0) { end = t.index; break; }
+    }
+    var links = (publicHtml.slice(start, end).match(/<a\s/g) || []).length;
+    if (end < 0 || links !== out.length) throw new Error('Services submenu has ' + links + ' links but only ' + out.length + ' could be read');
     return out;
   }
 

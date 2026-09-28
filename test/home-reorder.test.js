@@ -36,3 +36,10 @@ test('reorderHome() refuses a changed or already-reordered page', () => {
   const twice = home.replace('[fusion_text]<strong>Certified Computer Repair', '[fusion_text]<strong>Certified Computer Repair Services.</strong>[/fusion_text][fusion_text]<strong>Certified Computer Repair');
   assert.throws(() => H.reorderHome(twice), /Certified/);
 });
+
+test('verifyHome() catches reworded or reordered words inside a block (same characters)', () => {
+  const out = H.reorderHome(home);
+  const swapped = out.replace('custom setup!', 'setup custom!');
+  assert.notStrictEqual(swapped, out);
+  assert.ok(H.verifyHome(home, swapped).length > 0);
+});

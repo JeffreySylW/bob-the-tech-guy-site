@@ -116,3 +116,14 @@ test('verifyService() handles a page with no tail', () => {
   const noTail = fx('11978').replace(/<style>\/\* btg-styles \*\/[\s\S]*$/, '');
   assert.deepStrictEqual(S.verifyService(noTail, S.transformSplit(noTail, R['11978']), R['11978']), []);
 });
+
+test('transformSplit() refuses an image or embed inside the list instead of dropping it', () => {
+  const withImg = fx('11978').replace('<strong>* Verify RAM', '<img src="https://example.com/ram.png" alt="">\n\n<strong>* Verify RAM');
+  assert.throws(() => S.transformSplit(withImg, R['11978']), /image or embed/i);
+});
+
+test('verifyService() catches a dropped image', () => {
+  const before = fx('11806');
+  const out = S.transformSplit(before, R['11806']).replace(/<p class="btg-banner">[\s\S]*?<\/p>\n/, '');
+  assert.ok(S.verifyService(before, out, R['11806']).some((p) => /image/i.test(p)));
+});

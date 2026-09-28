@@ -58,3 +58,10 @@ test('parseServicesMenu() ignores other links to /services-2/ before the menu (c
     fx('menu.html');
   assert.deepStrictEqual(I.parseServicesMenu(page), menu);
 });
+
+test('parseServicesMenu() throws on a Services submenu link it cannot read', () => {
+  const src = fx('menu.html');
+  const at = src.indexOf('<ul class="sub-menu">', src.indexOf('menu-text">Services<')) + '<ul class="sub-menu">'.length;
+  const odd = src.slice(0, at) + '<li><a  href="https://bobthetechguy.com/services-2/virus-removal/"><span class="">Virus Removal</span></a></li>' + src.slice(at);
+  assert.throws(() => I.parseServicesMenu(odd), /could be read/i);
+});
