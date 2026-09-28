@@ -605,6 +605,30 @@ window.BTGAccount = (function () {
 })();
 
 
+/* 09-bob.js */
+window.BTGBob = (function () {
+  var PORTRAIT = 'https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@v1.5.9/dist/brand/bob-portrait.jpg';
+  var ALT = 'Bob Dyer, Bob the Tech Guy';
+  function faceHtml() { return '<img class="btg-hero-face" src="' + PORTRAIT + '" alt="' + ALT + '" width="88" height="88">'; }
+  function facePaths() {
+    var paths = ['/', '/contact-2/'];
+    window.BTGSearch.PAGES.forEach(function (p) { if (p.type === 'SERVICE') paths.push(p.url.replace('https://bobthetechguy.com', '')); });
+    return paths;
+  }
+  // Home, Contact and the service pages get Bob's face above the hero heading.
+  function initHero(doc, win) {
+    var path = win.location.pathname || '/';
+    if (path.charAt(path.length - 1) !== '/') path += '/';
+    if (facePaths().indexOf(path) === -1) return false;
+    var hero = doc.querySelector('.btg-hero');
+    if (!hero || hero.querySelector('.btg-hero-face')) return false;
+    hero.insertAdjacentHTML('afterbegin', faceHtml());
+    return true;
+  }
+  return { PORTRAIT: PORTRAIT, faceHtml: faceHtml, initHero: initHero };
+})();
+
+
 (function () {
   // Guards against the Node test environment's minimal `document` stub,
   // which has no querySelector/readyState/addEventListener — this file is
@@ -628,6 +652,7 @@ window.BTGAccount = (function () {
     safely(function () { window.BTGSearch.init(document, window); });
     safely(function () { window.BTGSearch.initPage(document, window); });
     safely(function () { window.BTGAccount.init(document, window); });
+    safely(function () { window.BTGBob.initHero(document, window); });
     // Reveals the header and page area the loader's inline style kept hidden until now.
     document.documentElement.classList.add('btg-ready');
   }

@@ -652,3 +652,11 @@ html .post-content { font-size: 16.5px; line-height: 1.72; color: var(--btg-text
 .btg-acct-in { font-weight: 700; margin: 0 0 12px !important; }
 .btg-acct-t { display: flex; flex-direction: column; } .btg-acct-t small { font-weight: 400; color: var(--btg-text-muted); font-size: 13.5px; }
 @media (prefers-reduced-motion: reduce) { .btg-acct-go { transition: none; transform: none !important; } }
+
+/* v1.5.9 — Bob's portrait: round face in the hero, larger photo beside the About story. */
+.btg-hero-face { display: block; width: 88px; height: 88px; border-radius: 50%; object-fit: cover; margin: 0 auto 16px; box-shadow: 0 0 0 3px #1c201b, 0 0 0 5px #54aa47, 0 10px 24px rgba(0, 0, 0, .35); }
+.btg-bob-intro { display: grid; grid-template-columns: 1fr; gap: 22px; align-items: start; margin: 8px 0 24px; }
+@media (min-width: 720px) { .btg-bob-intro { grid-template-columns: 240px 1fr; gap: 32px; } }
+.btg-bob-photo { margin: 0 auto !important; width: 100%; max-width: 240px; }
+.btg-bob-photo img { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; border-radius: var(--btg-radius-md); box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--btg-green), 0 14px 30px rgba(20, 30, 20, .18); }
+.btg-bob-story > p:first-child { margin-top: 0 !important; }
