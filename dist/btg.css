@@ -632,3 +632,23 @@ html .post-content { font-size: 16.5px; line-height: 1.72; color: var(--btg-text
 .btg-sr-item:hover, .btg-sr-item:focus-visible { border-color: var(--btg-green); transform: translateY(-1px); }
 .btg-sr-more { margin: 22px 0 0 !important; color: var(--btg-text-muted); } .btg-sr-more a { color: #38792f !important; font-weight: 700; }
 @media (prefers-reduced-motion: reduce) { .btg-sr-item { transition: none; transform: none !important; } }
+
+/* v1.5.7 — customer login and account hub. */
+.btg-acct-grid { display: grid; gap: 18px; grid-template-columns: 1fr; margin: 8px 0 24px; }
+@media (min-width: 720px) { .btg-acct-grid { grid-template-columns: 1.4fr 1fr; align-items: start; } }
+.btg-acct-card { background: var(--btg-card-bg); border: 1px solid var(--btg-card-border); border-top: 3px solid var(--btg-green); border-radius: var(--btg-radius-md); padding: 22px 24px; }
+.btg-acct-h { font-size: 22px !important; margin: 0 0 12px !important; padding-top: 0 !important; }
+.btg-acct-h::before { display: none !important; }
+.btg-acct-form label { display: block; font-weight: 700; font-size: 15px; margin: 12px 0 0; }
+.btg-acct-form input[type="text"], .btg-acct-form input[type="password"] { width: 100%; box-sizing: border-box; margin-top: 4px; padding: 10px 12px !important; border: 1.5px solid var(--btg-card-border) !important; border-radius: 8px !important; background: #fff !important; font: inherit !important; font-weight: 400 !important; height: auto !important; }
+.btg-acct-form input:focus { outline: none; border-color: #38792f !important; box-shadow: 0 0 0 3px #38792f33, 0 0 0 1px #38792f; }
+.btg-acct-check { display: flex !important; align-items: center; gap: 8px; font-weight: 400 !important; }
+.btg-acct-go { margin-top: 16px; background: #3a7f30 !important; color: #fff !important; border: 0 !important; border-radius: 8px !important; padding: 11px 26px !important; font: 700 15px var(--btg-font-body) !important; cursor: pointer; transition: transform .18s, box-shadow .18s; }
+.btg-acct-go:hover, .btg-acct-go:focus-visible { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(84, 170, 71, .45); }
+.btg-acct-links { margin: 14px 0 0 !important; } .btg-acct-links a, .btg-acct-help a { color: #38792f !important; font-weight: 700; }
+.btg-acct-alt { display: inline-block; border: 1px solid #38792f; color: #38792f !important; border-radius: 8px; padding: 9px 18px; font-weight: 700; text-decoration: none !important; }
+.btg-acct-alt:hover, .btg-acct-alt:focus-visible { background: var(--btg-green-tint); }
+.btg-acct-help { margin: 16px 0 0 !important; color: var(--btg-text-muted); }
+.btg-acct-in { font-weight: 700; margin: 0 0 12px !important; }
+.btg-acct-t { display: flex; flex-direction: column; } .btg-acct-t small { font-weight: 400; color: var(--btg-text-muted); font-size: 13.5px; }
+@media (prefers-reduced-motion: reduce) { .btg-acct-go { transition: none; transform: none !important; } }
