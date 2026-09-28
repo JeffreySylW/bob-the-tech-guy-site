@@ -28,3 +28,7 @@ test('contact form: checkbox/radio groups are not boxed like text fields; focus 
 test('header init survives a failing Services dropdown build', () => {
   assert.match(js, /try \{ buildDropdown\(doc, nav, header\); \} catch \(e\) \{/);
 });
+
+test('v1.5.5: Testimonials italic quote is plain inline italics, not the home review sub-block', () => {
+  assert.match(css, /\.btg-home-quote figcaption:first-child \+ blockquote > em \{ display: inline; margin: 0; padding: 0; border: 0; font-size: inherit; color: inherit; \}/);
+});

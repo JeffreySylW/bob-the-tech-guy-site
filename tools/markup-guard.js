@@ -33,7 +33,18 @@
     return problems;
   }
 
+  // Bold/italic phrases in order, as "tag: text", so a rebuild cannot drop Bob's emphasis.
+  function emphasis(html) {
+    var out = [], m, re = /<(em|strong|b|i)\b[^>]*>([\s\S]*?)<\/\1>/gi;
+    while ((m = re.exec(html))) out.push(m[1].toLowerCase() + ': ' + m[2].replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim());
+    return out;
+  }
+  function lostEmphasis(before, after) {
+    var left = emphasis(after);
+    return emphasis(before).filter(function (x) { var i = left.indexOf(x); if (i < 0) return true; left.splice(i, 1); return false; });
+  }
+
   function links(html) { var out = [], m, re = /href="([^"]*)"/g; while ((m = re.exec(html))) out.push(m[1]); return out; }
 
-  return { markupProblems: markupProblems, links: links };
+  return { markupProblems: markupProblems, links: links, emphasis: emphasis, lostEmphasis: lostEmphasis };
 });

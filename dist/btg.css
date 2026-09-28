@@ -555,6 +555,7 @@ html .fusion-header-wrapper:before { display: none !important; }
 .btg-home-quote blockquote::before { position: absolute; left: 0; top: -4px; float: none; margin: 0; }
 .btg-home-quote figcaption:first-child + blockquote { padding-left: 0 !important; }
 .btg-home-quote figcaption:first-child + blockquote::before { display: none; }
+.btg-home-quote figcaption:first-child + blockquote > em { display: inline; margin: 0; padding: 0; border: 0; font-size: inherit; color: inherit; }
 .btg-home-quotes + .btg-home-more { margin-top: 4px !important; }
 
 html .post-content { font-size: 16.5px; line-height: 1.72; color: var(--btg-text); }

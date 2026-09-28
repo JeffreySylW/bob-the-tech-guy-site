@@ -45,3 +45,15 @@ test('Testimonials verify() catches an added link, a removed reviews link and hi
   assert.ok(T.verify(tRaw, out.replace(/<p class="btg-home-more">[\s\S]*?<\/p>/, '')).length > 0);
   assert.ok(T.verify(tRaw, out.replace('<div class="btg-home-quotes">', '<div class="btg-home-quotes"><template>').replace('</div>\n<p class="btg-home-more">', '</template></div>\n<p class="btg-home-more">')).length > 0);
 });
+
+test('lostEmphasis() lists bold/italic phrases the rebuild dropped', () => {
+  assert.deepStrictEqual(G.lostEmphasis('<em>a  b</em> <strong>c</strong>', '<span>a b</span> <strong>c</strong>'), ['em: a b']);
+  assert.deepStrictEqual(G.lostEmphasis('<b>x</b>', '<figcaption><b>x</b></figcaption>'), []);
+});
+
+test('Testimonials rebuild keeps Bob\'s bold names and italic quotes, and verify() guards them', () => {
+  const out = T.rebuild(tRaw);
+  assert.deepStrictEqual(G.lostEmphasis(tRaw, out), []);
+  assert.doesNotMatch(out, /data-hovercard-id/);
+  assert.ok(T.verify(tRaw, out.replace(/<em>/, '<span>').replace(/<\/em>/, '</span>')).some((p) => /bold|italic|emphasis/i.test(p)));
+});
