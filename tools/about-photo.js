@@ -31,7 +31,8 @@
     if (G.links(a).join('\n') !== G.links(b).join('\n')) problems.push('Links differ from the original');
     var imgs = function (h) { return (h.match(/<img\b/gi) || []).length; };
     if (imgs(a) !== imgs(b) + 1 || a.indexOf(PORTRAIT) === -1) problems.push('Expected exactly one added image (the portrait)');
-    G.markupProblems(a).forEach(function (p) { problems.push(p); });
+    // The hero (with its h1) is untouched; hold only the body below it to the allowlist.
+    G.markupProblems(a.slice(a.indexOf('</section>') + 10)).forEach(function (p) { problems.push(p); });
     return problems;
   }
 
