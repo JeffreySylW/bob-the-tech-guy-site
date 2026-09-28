@@ -524,7 +524,8 @@ html .fusion-header-wrapper:before { display: none !important; }
 .btg-home-quotes { columns: 3 280px; column-gap: 16px; }
 .btg-home-quote { break-inside: avoid; margin: 0 0 16px !important; background: var(--btg-card-bg); border: 1px solid var(--btg-card-border); border-radius: var(--btg-radius-md); padding: 18px 18px 14px; }
 .btg-home-quote blockquote { margin: 0 0 10px !important; padding: 0 !important; border: 0 !important; background: none !important; font-size: 15.5px !important; line-height: 1.6 !important; font-style: normal !important; color: #2b3029; }
-.btg-home-quote blockquote::before { content: "\201C"; font-family: var(--btg-font-head); font-size: 34px; line-height: 0; color: var(--btg-green); vertical-align: -12px; margin-right: 2px; }
+.btg-home-quote blockquote::before { content: "\201C"; float: left; font-family: var(--btg-font-head); font-size: 38px; line-height: .9; color: var(--btg-green); margin: 0 4px 0 0; }
+.btg-home-quote blockquote p { margin: 0 !important; }
 .btg-home-quote blockquote em { display: block; margin-top: 8px; font-size: 14px; color: var(--btg-text-muted); border-left: 3px solid #cfe3c9; padding-left: 10px; }
 .btg-home-quote figcaption { font-weight: 700; font-size: 14px; }
 .btg-home-more { margin: 0 !important; } .btg-home-more a { color: #38792f !important; font-weight: 700; }
