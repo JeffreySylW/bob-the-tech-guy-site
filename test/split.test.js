@@ -78,3 +78,39 @@ test('transformSplit() throws on a missing list heading or unmapped content', ()
   const extra = fx('11978').replace('Call Today!', 'Call Today!\n\nAn unexpected closing line.');
   assert.throws(() => S.transformSplit(extra, R['11978']), /Unmapped content: An unexpected closing line/);
 });
+test('verifyService() passes the real split transform of all 9 pages', () => {
+  for (const id of SPLIT) {
+    const before = fx(id);
+    assert.deepStrictEqual(S.verifyService(before, S.transformSplit(before, R[id]), R[id]), [], id);
+  }
+});
+
+test('verifyService() on split pages catches an edited word, a dropped item and a reorder', () => {
+  const before = fx('11978');
+  const out = S.transformSplit(before, R['11978']);
+  assert.ok(S.verifyService(before, out.replace('perk your computer up', 'speed your computer up'), R['11978']).length > 0);
+  assert.ok(S.verifyService(before, out.replace(/<li>Test device for proper functionality<\/li>/, ''), R['11978']).length > 0);
+  const swapped = out.replace(/(<li>Install RAM into one computer<\/li>)(<li>Verify RAM[^<]*<\/li>)/, '$2$1');
+  assert.notStrictEqual(swapped, out);
+  assert.ok(S.verifyService(before, swapped, R['11978']).some((p) => /order/i.test(p)));
+});
+
+test('verifyService() on split pages catches hidden text, a changed link and a changed tail', () => {
+  const before = fx('11855');
+  const out = S.transformSplit(before, R['11855']);
+  assert.ok(S.verifyService(before, out.replace('<p class="btg-note">', '<p class="btg-note" hidden>'), R['11855']).some((p) => /hidden|style/i.test(p)));
+  assert.ok(S.verifyService(before, out.replace('<div class="btg-include-card', '<div style="display:none" class="btg-include-card'), R['11855']).some((p) => /hidden|style/i.test(p)));
+  assert.ok(S.verifyService(before, out.replace('tel:(862)210-5656', 'tel:5555555555'), R['11855']).some((p) => /link/i.test(p)));
+  assert.ok(S.verifyService(before, out.replace('font-size:16.5px', 'font-size:17px'), R['11855']).some((p) => /tail/i.test(p)));
+});
+
+test('verifyService() on split pages allows the hero lines and nothing else new', () => {
+  const before = fx('11978');
+  const out = S.transformSplit(before, R['11978']).replace('</ul></div></div>', '<li>Free pickup and delivery</li></ul></div></div>');
+  assert.ok(S.verifyService(before, out, R['11978']).length > 0);
+});
+
+test('verifyService() handles a page with no tail', () => {
+  const noTail = fx('11978').replace(/<style>\/\* btg-styles \*\/[\s\S]*$/, '');
+  assert.deepStrictEqual(S.verifyService(noTail, S.transformSplit(noTail, R['11978']), R['11978']), []);
+});

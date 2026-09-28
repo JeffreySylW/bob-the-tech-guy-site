@@ -190,9 +190,7 @@
 
   // Text units of the explicit-markup output (p, li, headings, summary).
   function outputUnits(html) {
-    var at = html.indexOf('<style>/* btg-styles */');
-    if (at < 0) throw new Error('No btg-styles tail in output');
-    var head = html.slice(0, at);
+    var head = html.slice(0, tailStart(html));
     var re = /<(p|li|h[1-6]|summary)\b[^>]*>([\s\S]*?)<\/\1>/g, m, out = [];
     while ((m = re.exec(head))) out.push(norm(m[2]));
     return out.filter(Boolean);
@@ -200,6 +198,7 @@
 
   // Safety gate before any save: [] means safe.
   function verifyService(before, after, r) {
+    var cards = r.cards || [];
     var problems = [];
     var c = chunks(before);
     var units = [];
@@ -209,8 +208,8 @@
       if (b.kind === 'p' && (r.merge || []).some(function (m) { return t.indexOf(m) === 0; })) { units[units.length - 1] += ' ' + t; return; }
       units.push(r.ctaFix ? t.replace(norm(r.ctaFix[0]), norm(r.ctaFix[1])) : t);
     });
-    var added = [r.hero.eyebrow, r.hero.title, r.hero.lede].concat(r.cards.map(function (cd) { return cd.title; }))
-      .concat(r.cards.map(function () { return 'Read more'; })).map(norm);
+    var added = [r.hero.eyebrow, r.hero.title, r.hero.lede].concat(cards.map(function (cd) { return cd.title; }))
+      .concat(cards.map(function () { return 'Read more'; })).map(norm);
     var expect = bag([].concat.apply([], units.concat(added).map(sentences)));
     var got = bag([].concat.apply([], outputUnits(after).map(sentences)));
     Object.keys(expect).concat(Object.keys(got)).forEach(function (s) {
@@ -220,8 +219,8 @@
 
     // Card membership and order: each card's sentences, in order, equal its anchors' paragraphs.
     var articles = after.match(/<article class="btg-card[\s\S]*?<\/article>/g) || [];
-    if (articles.length !== r.cards.length) problems.push('Expected ' + r.cards.length + ' cards, found ' + articles.length);
-    r.cards.forEach(function (cd, i) {
+    if (articles.length !== cards.length) problems.push('Expected ' + cards.length + ' cards, found ' + articles.length);
+    cards.forEach(function (cd, i) {
       var src = cd.anchors.map(function (a) { return c.blocks.filter(function (b) { return b.kind === 'p' && b.text.indexOf(a) !== -1; })[0]; })
         .filter(function (p, k, all) { return p && all.indexOf(p) === k; });
       var want = [].concat.apply([], src.map(function (p) { return sentences(norm(p.html)); })).join(' | ');
@@ -230,8 +229,13 @@
       if (want !== have) problems.push('Card "' + cd.title + '" content differs from its source paragraphs');
     });
 
-    var grid = (after.split('class="btg-cards"')[1] || '').split('class="btg-cta-block"')[0];
-    if (/\s(hidden|style|aria-hidden|open)(=|>|\s)|screen-reader-text/.test(grid)) problems.push('Hidden or styled element inside the cards');
+    // Built region: from the cards grid / split opening tag up to the CTA block.
+    function region(marker) {
+      var i = after.indexOf(marker);
+      return i < 0 ? '' : after.slice(i + marker.length).split('class="btg-cta-block"')[0].replace(/^[^>]*>/, '');
+    }
+    var built = region('class="btg-cards"') + region('class="btg-split');
+    if (/<[^>]*\s(hidden|style|aria-hidden|open)(=|>|\s|\/)[^>]*>?|screen-reader-text/.test(built)) problems.push('Hidden or styled element inside the cards');
 
     // Order: the page's sentences, minus the approved additions, read in the original order.
     var addLeft = bag([].concat.apply([], added.map(sentences)));
@@ -242,7 +246,7 @@
     if (ordered.join(' | ') !== [].concat.apply([], units.map(sentences)).join(' | ')) problems.push('Content order differs from the original page');
 
     // No text outside the checked elements (the hero call button is the one allowed exception).
-    var stray = C.text(after.slice(0, after.indexOf('<style>/* btg-styles */'))
+    var stray = C.text(after.slice(0, tailStart(after))
       .replace(/<a class="btg-hero-cta"[^>]*>[\s\S]*?<\/a>/, '')
       .replace(/<(p|li|h[1-6]|summary)\b[^>]*>[\s\S]*?<\/\1>/g, ''));
     if (stray) problems.push('Text outside checked elements: ' + stray.slice(0, 60));
@@ -254,7 +258,7 @@
 
     // Card titles in recipe order.
     var gotTitles = (after.match(/<h3 class="btg-card-title">[^<]*<\/h3>/g) || []).map(function (t) { return t.replace(/<[^>]+>/g, ''); });
-    if (gotTitles.join('|') !== r.cards.map(function (cd) { return cd.title; }).join('|')) problems.push('Card titles differ from the recipe');
+    if (gotTitles.join('|') !== cards.map(function (cd) { return cd.title; }).join('|')) problems.push('Card titles differ from the recipe');
     if (!after.endsWith(c.tail)) problems.push('Style tail changed');
     if (/\b\d{1,6}\s+(?:[A-Z][a-z]+\s+){1,3}(?:St|Street|Rd|Road|Ave|Avenue|Blvd|Boulevard|Dr|Drive|Ln|Lane|Ct|Court|Pkwy|Parkway|Hwy|Highway|Tpke|Turnpike|Pike|Way|Pl|Place)\b/.test(C.text(after))) problems.push('Street-address pattern found');
     return problems;
