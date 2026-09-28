@@ -113,7 +113,7 @@ git commit -m "Snapshot 11 pages' raw HTML (backups) + fixtures and public menu"
 ### Task 2: `transformSplit()` and the 9 split recipes
 
 **Files:**
-- Modify: `tools/service-cards.js`, `tools/service-recipes.js`
+- Modify: `tools/service-cards.js`, `tools/service-recipes.js`, `test/v1.1.0.test.js` (split recipes have no `cards`)
 - Test: `test/split.test.js` (create)
 
 **Interfaces:**
@@ -200,7 +200,7 @@ test('transformSplit() refuses to run twice, and throws on a stray line inside t
 
 test('transformSplit() throws on a missing list heading or unmapped content', () => {
   assert.throws(() => S.transformSplit(fx('11978').replace('Memory Install Services Include:', 'Something else'), R['11978']), /Memory Install Services Include:/);
-  const extra = fx('11978').replace(/(Have any questions\?)/, '$1').replace('Call Today!', 'Call Today!\n\nAn unexpected closing line.');
+  const extra = fx('11978').replace('Call Today!', 'Call Today!\n\nAn unexpected closing line.');
   assert.throws(() => S.transformSplit(extra, R['11978']), /Unmapped content: An unexpected closing line/);
 });
 ```
@@ -233,6 +233,8 @@ Expected: FAIL — `R['11806']` undefined / `S.transformSplit is not a function`
     11855: { layout: 'split', slug: 'software-installation-and-configuration', icon: 'box', listHeading: 'Software Installation and Configuration Services Include:',
       hero: { eyebrow: 'Services &middot; Software', title: 'Your software, <strong>installed and set up</strong>.', lede: 'Programs for work and play, installed and configured the way you like.' } }
 ```
+
+In `test/v1.1.0.test.js`, change `for (const c of r.cards)` to `for (const c of r.cards || [])` so the old icon test ignores split recipes.
 
 Update the header comment's first line to `// tools/service-recipes.js — approved content for the Services pages (6 carded, 9 split).`
 
@@ -329,8 +331,8 @@ Export them: change the return line to
 
 - [ ] **Step 5: Run the tests**
 
-Run: `node --test test/split.test.js test/service-cards.test.js`
-Expected: PASS (the old 22 tests still pass). If an item count differs from Step 1's table, read that fixture's list — fix the parser, never the expected count, unless the fixture itself shows the count is different; then tell the user.
+Run: `node --test test/split.test.js test/service-cards.test.js test/v1.1.0.test.js`
+Expected: PASS (the old tests still pass). If an item count differs from Step 1's table, read that fixture's list — fix the parser, never the expected count, unless the fixture itself shows the count is different; then tell the user.
 
 - [ ] **Step 6: Commit**
 

@@ -77,7 +77,7 @@ Replaced: the 10 `<h1 class="entry-title"><strong><a …>` links → `<div class
 | Security & Networking | Networking, Anti-Virus, Backup Solutions, Parental Controls |
 
 - Names and URLs come from the live menu's Services submenu at build time. The build stops if the menu does not contain exactly these 15 pages. "Laptop Screen Replacement" becomes "Screen Replacement" (the page's title).
-- Grid: 3 columns ≥ 1000px, 2 columns ≥ 640px, 1 below.
+- Grid: adaptive (`auto-fit`, panels at least 240px wide), which gives 3 columns in the desktop content column, 2 on tablets and 1 on phones.
 - Icons: inline SVG from the bundle's existing icon set, adding any missing ones (chip, plug, screen, printer, box, window, drive).
 - Result: one `h1` on the page instead of 11.
 
