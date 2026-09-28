@@ -1,0 +1,31 @@
+// Browser test for the /search/ page. Run: node test/e2e/search-page.e2e.mjs
+import serve from './serve.mjs';
+import { launch } from './cdp.mjs';
+import { mkdirSync } from 'node:fs';
+const out = process.env.TEMP + '/btg-e2e'; mkdirSync(out, { recursive: true });
+const server = await serve(4411);
+const results = [];
+const check = (name, ok, info = '') => { results.push(ok); console.log((ok ? 'ok   ' : 'FAIL ') + name + (info ? '  ' + info : '')); };
+const b = await launch({ width: 1440, height: 900 });
+await b.goto('http://localhost:4411/search/?q=zzqxv');
+check('new header on the results page', await b.evalJs(`document.documentElement.classList.contains('btg-header-on')`));
+check('no-match message names the query', await b.evalJs(`/No pages match .zzqxv./.test(document.querySelector('.btg-sr-body').innerText)`));
+check('useful links: 15 current service pages', await b.evalJs(`document.querySelectorAll('.btg-sr-body .btg-sr-item').length === 15`));
+check('links are our real pages (no cart/shop/activity)', await b.evalJs(`[...document.querySelectorAll('.btg-sr-item')].every((a) => a.href.startsWith('https://bobthetechguy.com/') && !['cart', 'shop', 'checkout', 'activity', 'my-account'].some((w) => a.href.includes(w)))`));
+check('full-text search link goes to the theme search', await b.evalJs(`!!document.querySelector('.btg-sr-more a[href$="/?s=zzqxv"]')`));
+check('cards use the site font and are not unstyled', await b.evalJs(`(() => { const a = document.querySelector('.btg-sr-item'); const cs = getComputedStyle(a); return cs.display === 'flex' && cs.borderTopLeftRadius !== '0px' && a.getBoundingClientRect().height > 40; })()`));
+check('no horizontal scroll', !(await b.evalJs(`document.documentElement.scrollWidth > innerWidth`)));
+await b.evalJs(`document.querySelector('.btg-sr-form').scrollIntoView()`); await b.sleep(500);
+await b.shot(out + '/search-nomatch.png');
+await b.goto('http://localhost:4411/search/?q=slow+computer');
+check('matching query lists suggestions with a count', await b.evalJs(`/pages? match/.test(document.querySelector('.btg-sr-count').innerText) && document.querySelector('.btg-sr-item .btg-sr-title').textContent === 'Computer Tune Up'`));
+check('input is prefilled', await b.evalJs(`document.querySelector('.btg-sr-input').value === 'slow computer'`));
+await b.shot(out + '/search-match.png');
+// Header search box: Enter with a no-match word lands here.
+await b.goto('http://localhost:4411/memory-install/');
+await b.evalJs(`document.querySelector('.btg-search-btn').click()`); await b.sleep(200);
+await b.type('zzqxv'); await b.key('Enter', 'Enter', 13, String.fromCharCode(13)); await b.sleep(1200);
+check('header search Enter goes to /search/?q=', await b.evalJs(`location.pathname === '/search/' && /q=zzqxv/.test(location.search)`), await b.evalJs('location.href'));
+await b.resize?.(390, 800);
+await b.close(); server.close();
+const bad = results.filter((x) => !x).length; console.log(`${results.length - bad}/${results.length} passed`); process.exit(bad ? 1 : 0);
