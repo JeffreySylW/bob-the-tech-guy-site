@@ -553,7 +553,8 @@ html .fusion-header-wrapper:before { display: none !important; }
 .btg-home-quote { display: flex; flex-direction: column; }
 .btg-home-quote blockquote { position: relative; padding-left: 24px !important; }
 .btg-home-quote blockquote::before { position: absolute; left: 0; top: -4px; float: none; margin: 0; }
-.btg-home-quote figcaption { order: 2; }
+.btg-home-quote figcaption:first-child + blockquote { padding-left: 0 !important; }
+.btg-home-quote figcaption:first-child + blockquote::before { display: none; }
 .btg-home-quotes + .btg-home-more { margin-top: 4px !important; }
 
 html .post-content { font-size: 16.5px; line-height: 1.72; color: var(--btg-text); }
@@ -570,8 +571,8 @@ html .post-content { font-size: 16.5px; line-height: 1.72; color: var(--btg-text
 
 .wpcf7-form { background: var(--btg-card-bg); border: 1px solid var(--btg-card-border); border-top: 3px solid var(--btg-green); border-radius: var(--btg-radius-md); padding: 22px 24px 8px; max-width: 640px; margin-top: 16px; }
 .wpcf7-form label { display: block; font-weight: 700; font-size: 15px; }
-.wpcf7-form-control:not([type="submit"]) { width: 100% !important; box-sizing: border-box; margin-top: 4px; padding: 10px 12px !important; border: 1.5px solid var(--btg-card-border) !important; border-radius: 8px !important; background: #fff !important; font: inherit !important; font-weight: 400 !important; height: auto !important; }
-.wpcf7-form-control:focus { outline: none; border-color: var(--btg-green) !important; box-shadow: 0 0 0 4px var(--btg-green-tint); }
+.wpcf7-form-control:not([type="submit"]):not(.wpcf7-checkbox):not(.wpcf7-radio):not(.wpcf7-acceptance) { width: 100% !important; box-sizing: border-box; margin-top: 4px; padding: 10px 12px !important; border: 1.5px solid var(--btg-card-border) !important; border-radius: 8px !important; background: #fff !important; font: inherit !important; font-weight: 400 !important; height: auto !important; }
+.wpcf7-form-control:focus { outline: none; border-color: #38792f !important; box-shadow: 0 0 0 3px #38792f33, 0 0 0 1px #38792f; }
 .wpcf7-form input[type="submit"] { background: #3a7f30 !important; color: #fff !important; border: 0 !important; border-radius: 8px !important; padding: 11px 26px !important; font: 700 15px var(--btg-font-body) !important; cursor: pointer; transition: transform .18s, box-shadow .18s; }
 .wpcf7-form input[type="submit"]:hover, .wpcf7-form input[type="submit"]:focus-visible { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(84, 170, 71, .45); }
 @media (prefers-reduced-motion: reduce) {
@@ -583,8 +584,8 @@ html .post-content { font-size: 16.5px; line-height: 1.72; color: var(--btg-text
 .btg-search { z-index: 80; }
 
 /* v1.5.2 — gallery: modern photo grid, button-style slideshow link and page numbers. */
-.ngg-galleryoverview { display: grid !important; grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr)); gap: 12px; margin: 8px 0 24px !important; }
-.ngg-galleryoverview > .ngg-clear, .ngg-galleryoverview > br { display: none !important; }
+.ngg-galleryoverview:not(.ngg-slideshow) { display: grid !important; grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr)); gap: 12px; margin: 8px 0 24px !important; }
+.ngg-galleryoverview:not(.ngg-slideshow) > .ngg-clear, .ngg-galleryoverview:not(.ngg-slideshow) > br { display: none !important; }
 .ngg-galleryoverview > .slideshowlink,
 .ngg-galleryoverview > .ngg-navigation { grid-column: 1 / -1; }
 .ngg-gallery-thumbnail-box { float: none !important; width: auto !important; margin: 0 !important; }
