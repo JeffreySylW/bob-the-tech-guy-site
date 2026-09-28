@@ -50,3 +50,11 @@ test('verifyIndex() passes the real build and catches tampering', () => {
   assert.ok(I.verifyIndex(before, out.replace('<section class="btg-panel">', '<section class="btg-panel" style="display:none">'), menu).length > 0);
   assert.ok(I.verifyIndex(before, out.replace('</section>\n', '</section>\n<h1>Extra</h1>\n'), menu).length > 0);
 });
+
+test('parseServicesMenu() ignores other links to /services-2/ before the menu (canonical, admin bar)', () => {
+  const page = '<link rel="canonical" href="https://bobthetechguy.com/services-2/" />' +
+    '<a href="https://bobthetechguy.com/services-2/">Services</a>' +
+    '<li><a  href="https://bobthetechguy.com/about/"><span class="menu-text">About</span></a><ul class="sub-menu"><li><a  href="https://bobthetechguy.com/reviews/"><span class="">Reviews</span></a></li></ul></li>' +
+    fx('menu.html');
+  assert.deepStrictEqual(I.parseServicesMenu(page), menu);
+});

@@ -18,11 +18,10 @@
 
   // Submenu items of "Services" in the public page's first menu, in menu order.
   function parseServicesMenu(publicHtml) {
-    var at = publicHtml.indexOf('href="https://bobthetechguy.com/services-2/"');
-    if (at < 0) throw new Error('Services menu item not found');
     var re = /<a\s+href="(https:\/\/bobthetechguy\.com\/([a-z0-9-]+)\/)"[^>]*><span class="([^"]*)">([^<]*)<\/span><\/a>/g, m, out = [];
-    re.lastIndex = at - 9;
-    m = re.exec(publicHtml);
+    // Start at the top-level menu item (menu-text span), not any other link to the page.
+    while ((m = re.exec(publicHtml)) && !(m[2] === 'services-2' && m[3] === 'menu-text')) { /* skip */ }
+    if (!m) throw new Error('Services menu item not found');
     while ((m = re.exec(publicHtml)) && m[3] === '') {
       out.push({ slug: m[2], url: m[1], title: m[4].replace(/&#038;/g, '&amp;') });
     }
