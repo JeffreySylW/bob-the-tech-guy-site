@@ -3,6 +3,7 @@ const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
+const C = require('../tools/cards-transform.js');
 const T = require('../tools/testimonials-rebuild.js');
 const raw = fs.readFileSync(path.join(__dirname, '..', 'backups', '2026-09-26', '3754.html'), 'utf8');
 const live = raw + '\n<!-- btg-loader v1 -->\n<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@v1.4.1/dist/btg.css">\n<script src="https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@v1.4.1/dist/btg.js"></script>';
@@ -10,9 +11,9 @@ const live = raw + '\n<!-- btg-loader v1 -->\n<link rel="stylesheet" href="https
 test('parse() finds the five testimonials with name/place and quote', () => {
   const items = T.parse(live).items;
   assert.strictEqual(items.length, 5);
-  assert.match(items[0].who, /Drew C\. , Pompton Lakes, NJ/);
-  assert.match(items[4].who, /Cassie F\. , Pompton Lakes, NJ/);
-  assert.match(items[3].quote, /^" If you need any computer repair/);
+  assert.match(C.text(items[0].who), /Drew C\. , Pompton Lakes, NJ/);
+  assert.match(C.text(items[4].who), /Cassie F\. , Pompton Lakes, NJ/);
+  assert.match(items[3].quote, /^<em>" If you need any computer repair/);
 });
 
 test('rebuild() adds the hero, quote cards and the reviews link; keeps the tail', () => {

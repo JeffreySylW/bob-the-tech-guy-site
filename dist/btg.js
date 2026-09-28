@@ -365,7 +365,7 @@ window.BTGSearch = (function () {
     input.addEventListener('keydown', function (e) {
       if (e.key === 'ArrowDown') { e.preventDefault(); highlight(active + 1); }
       else if (e.key === 'ArrowUp') { e.preventDefault(); highlight(active - 1); }
-      else if (e.key === 'Enter') { e.preventDefault(); if (active >= 0) go(options()[active]); else if (norm(input.value).length >= 2) go(null); }
+      else if (e.key === 'Enter') { e.preventDefault(); if (active >= 0) go(options()[active]); else if (norm(input.value).length >= 2) go(null); else status.textContent = 'Type at least 2 letters to search.'; }
       else if (e.key === 'Escape') { e.preventDefault(); closeBox(); }
     });
     list.addEventListener('mousedown', function (e) {

@@ -68,6 +68,7 @@ await b.goto('http://localhost:4410/memory-install/');
 await b.evalJs(`document.querySelector('.btg-search-btn').click()`); await b.sleep(200);
 await b.type('a'); await b.key('Enter', 'Enter', 13, String.fromCharCode(13)); await b.sleep(800);
 check('Enter with one character does not submit a search', await b.evalJs(`!/[?&]s=/.test(location.search) && !document.querySelector('.btg-search').hidden`), await b.evalJs(`JSON.stringify({ href: location.href, hidden: document.querySelector('.btg-search') && document.querySelector('.btg-search').hidden, val: document.querySelector('.btg-search-input') && document.querySelector('.btg-search-input').value })`));
+check('Enter with one character explains the 2-letter minimum', await b.evalJs(`document.querySelector('.btg-search [role=status]').textContent === 'Type at least 2 letters to search.'`));
 await b.type('u'); await b.sleep(300);
 await b.click(700, 700); await b.sleep(300);
 check('clicking outside closes the search panel', await b.evalJs(`document.querySelector('.btg-search').hidden`));

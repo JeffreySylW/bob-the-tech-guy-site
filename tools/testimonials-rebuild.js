@@ -23,7 +23,7 @@
     if (s.indexOf('class="btg-hero"') !== -1) throw new Error('Already rebuilt');
     var head = s.slice(0, tailStart(s)), items = [], m;
     ITEM.lastIndex = 0;
-    while ((m = ITEM.exec(head))) items.push({ who: C.text(m[1]), quote: m[2].trim() });
+    while ((m = ITEM.exec(head))) items.push({ who: m[1].replace(/\s+data-[a-z-]+="[^"]*"/g, '').trim(), quote: '<em>' + m[2].trim() + '</em>' });
     var left = C.text(head.replace(ITEM, ' ').replace(/&nbsp;/g, ' '));
     if (left) throw new Error('Unmapped content: ' + left.slice(0, 80));
     if (items.length !== 5) throw new Error('Expected 5 testimonials, found ' + items.length);
@@ -51,6 +51,7 @@
     if (G.links(body).join('\n') !== G.links(beforeHead).join('\n')) problems.push('Links differ from the original');
     var srcs = function (h) { return (h.match(/\ssrc="[^"]*"/g) || []).join('\n'); };
     if (srcs(body) !== srcs(beforeHead)) problems.push('Images differ from the original');
+    G.lostEmphasis(beforeHead, body).forEach(function (x) { problems.push('Bold/italic formatting dropped: ' + x); });
     G.markupProblems(full).forEach(function (p) { problems.push(p); });
     if ((body.match(/<figure class="btg-home-quote">/g) || []).length !== 5) problems.push('Expected 5 quote cards');
     return problems;
