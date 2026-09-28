@@ -17,8 +17,8 @@
 |---|---|
 | Computer Set Up, Computer Tune Up, Data Recovery Service, Hardware Install, Memory Install, Operating System Install, Printer Solutions, Screen Replacement, Software Installation and Configuration | Hero + split layout (IDs resolved by slug at run time) |
 | Services index `/services-2/` (page 11653) | Three group panels replace the 10 `<h1>` links |
-| Homepage (page 2) | Paragraph reorder + button label |
-| Bundle | v1.2.0: `.btg-split`, `.btg-include-card`, `.btg-note`, `.btg-panels` styles; loader pin bumped on all 30 bundle pages |
+| Homepage (page 2318) | Paragraph reorder + button label |
+| Bundle | v1.2.0: `.btg-split`, `.btg-include-card`, `.btg-note`, `.btg-panels` styles; loader pin bumped on all 30 bundle pages; Computer Tune Up (11867, not yet on the bundle) gets the loader → 31 pages |
 
 **Out:** the logo (next project), the ~370 legacy New Jersey pages, SSL (Bob's hosting).
 
@@ -45,6 +45,8 @@ New structure:
 **Long lists:** when the list has more than 8 items (Computer Set Up 14, Computer Tune Up 12) the split becomes stacked: paragraph full width, include card full width below it with a 2-column checklist (`.btg-split--stacked`).
 
 **Responsive:** `.btg-split` is a 2-column grid (≈1.3fr / 1fr) from 768px; below that it stacks, paragraph first.
+
+**Computer Set Up** starts with a linked 2015 banner image (`computer_setup.png`); it is kept unchanged, centered above the split.
 
 **Screen Replacement** keeps its in-text "862 210 5656" exactly as written.
 
@@ -97,12 +99,12 @@ The edit prepared on 2026-09-25, unchanged:
 
 ## Rollout
 
-1. Back up the raw content of all 11 pages to `backups/2026-09-27/`.
+1. Back up the raw content of all 11 pages (via a user-approved JSON download from the signed-in WordPress tab; the browser extension blocks returning raw HTML directly) to `backups/2026-09-27/`.
 2. Tag and push bundle v1.2.0 (new styles only; existing pages unaffected until their loader is bumped).
 3. Memory Install first → live check at both widths.
 4. The other 8 small pages → live check.
 5. Services index → live check. Homepage → live check.
-6. Bump the loader pin to `@v1.2.0` on all 30 bundle pages.
+6. Bump the loader pin to `@v1.2.0` on all 30 bundle pages (Computer Tune Up gets its loader in step 4).
 7. Rollback: restore a page from its backup; revert the loader pin to `@v1.1.1`.
 
 Writes to WordPress and tag pushes need the user to switch out of auto mode, as in earlier phases.
