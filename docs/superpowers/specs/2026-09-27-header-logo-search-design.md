@@ -17,7 +17,7 @@
 - Editor access only: theme settings (logo, header layout, favicon, `<head>`) cannot be changed. Everything ships in the bundle (`dist/btg.css`, `dist/btg.js`), which loads on 31 pages.
 - **Known limit:** the ~370 legacy New Jersey pages do not load the bundle and keep the old header and logo.
 - **Known limit:** the bundle loads inside page content, after the header markup. On a slow connection the old header can paint briefly before the new styles apply (the existing "NOW SERVING" strip already behaves this way). No fix is possible without theme access.
-- No page content changes in this phase. No copy changes except the approved new UI words: "Search", "Search all pages for", "No matching pages. Press Enter to search the whole site.", and the suggestion labels SERVICE / AREA / PAGE.
+- No page content changes in this phase. No copy changes except the approved new UI words: "Search", "Search all pages for", "No matching pages. Press Enter to search the whole site.", the suggestion labels SERVICE / AREA / PAGE, and "More" (fallback dropdown group, only if the menu gains a page outside the three groups).
 - No street address; brand green `#54aa47` and `--btg-*` tokens; no analytics; no third-party requests.
 - Respect `prefers-reduced-motion` (no pulse, no trace animation, no header shrink transition).
 
