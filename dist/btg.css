@@ -616,3 +616,19 @@ html .post-content { font-size: 16.5px; line-height: 1.72; color: var(--btg-text
 .btg-location-phone a { display: inline-block; font-weight: 700; font-size: 17px; color: #38792f !important; text-decoration: none !important; border: 1px solid #38792f; border-radius: 8px; padding: 6px 14px; }
 .btg-location-phone a:hover, .btg-location-phone a:focus-visible { background: var(--btg-green-tint); }
 .btg-contact-lead { font-weight: 700; margin: 0 0 4px !important; }
+
+/* v1.5.6 — search results page (/search/): current header, service cards, useful links. */
+.btg-sr-form { display: flex; gap: 10px; max-width: 640px; margin: 8px 0 22px; }
+.btg-sr-input { flex: 1; min-width: 0; box-sizing: border-box; font: inherit; font-size: 17px !important; padding: 11px 14px !important; border: 1.5px solid var(--btg-card-border) !important; border-radius: 8px !important; background: #fff !important; height: auto !important; }
+.btg-sr-input:focus { outline: none; border-color: #38792f !important; box-shadow: 0 0 0 3px #38792f33, 0 0 0 1px #38792f; }
+.btg-sr-go { background: #3a7f30 !important; color: #fff !important; border: 0 !important; border-radius: 8px !important; padding: 0 22px !important; font: 700 15px var(--btg-font-body) !important; cursor: pointer; }
+.btg-sr-go:hover, .btg-sr-go:focus-visible { box-shadow: 0 6px 16px rgba(84, 170, 71, .45); }
+.btg-sr-count, .btg-sr-none { font-weight: 700; margin: 0 0 12px !important; }
+.btg-sr-h { font-size: 22px !important; margin: 28px 0 4px !important; }
+.btg-sr-group { font-size: 13px !important; letter-spacing: .12em; text-transform: uppercase; color: var(--btg-text-muted); margin: 18px 0 8px !important; }
+.btg-sr-list { list-style: none; margin: 0 0 8px !important; padding: 0 !important; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); gap: 10px; }
+.btg-sr-list li { margin: 0 !important; }
+.btg-sr-item { display: flex; align-items: center; gap: 10px; background: var(--btg-card-bg); border: 1px solid var(--btg-card-border); border-radius: var(--btg-radius-md); padding: 12px 14px; color: var(--btg-text) !important; text-decoration: none !important; font-weight: 700; transition: border-color .18s, transform .18s; }
+.btg-sr-item:hover, .btg-sr-item:focus-visible { border-color: var(--btg-green); transform: translateY(-1px); }
+.btg-sr-more { margin: 22px 0 0 !important; color: var(--btg-text-muted); } .btg-sr-more a { color: #38792f !important; font-weight: 700; }
+@media (prefers-reduced-motion: reduce) { .btg-sr-item { transition: none; transform: none !important; } }

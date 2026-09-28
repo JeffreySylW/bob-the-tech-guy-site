@@ -317,14 +317,48 @@ window.BTGSearch = (function () {
 
   var SEARCH_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38792f" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>';
 
+  // Results page (/search/?q=...): a page we control, so it wears the current header and cards.
+  var SITE = 'https://bobthetechguy.com/';
+  function item(p) {
+    return '<li><a class="btg-sr-item btg-card--' + p.icon + '" href="' + esc(p.url) + '"><span class="btg-search-ico btg-card--' + p.icon + '" aria-hidden="true"></span>' +
+      '<span class="btg-sr-title">' + esc(p.title) + '</span><span class="btg-search-type">' + p.type + '</span></a></li>';
+  }
+  function browseHtml() {
+    var groups = (window.BTGHeader && window.BTGHeader.GROUPS) || [];
+    return '<h2 class="btg-sr-h">Browse all services</h2>' + groups.map(function (g) {
+      var items = g.items.map(function (it) {
+        return PAGES.filter(function (p) { return p.url === SITE + it[0] + '/'; })[0];
+      }).filter(Boolean);
+      return '<h3 class="btg-sr-group">' + g.name + '</h3><ul class="btg-sr-list">' + items.map(item).join('') + '</ul>';
+    }).join('');
+  }
+  function resultsHtml(query) {
+    var q = String(query || '').trim(), out = '';
+    if (norm(q).length < 2) return browseHtml();
+    var found = rank(q, PAGES, 12);
+    if (found.length) out += '<p class="btg-sr-count">' + found.length + (found.length === 1 ? ' page matches' : ' pages match') + ' \u201C' + esc(q) + '\u201D</p><ul class="btg-sr-list">' + found.map(item).join('') + '</ul>';
+    else out += '<p class="btg-sr-none">No pages match \u201C' + esc(q) + '\u201D. Try a simpler word, or pick a service below.</p>' + browseHtml();
+    out += '<p class="btg-sr-more">Not what you need? <a href="' + SITE + '?s=' + encodeURIComponent(q) + '">Search the full site text</a> or call <a href="tel:8448354890">844-TEKGUY-0</a>.</p>';
+    return out;
+  }
+  function initPage(doc, win) {
+    var box = doc.querySelector('.btg-search-page');
+    if (!box || box.getAttribute('data-btg')) return false;
+    box.setAttribute('data-btg', '1');
+    var m = /[?&]q=([^&]*)/.exec(win.location.search || ''), q = '';
+    try { q = m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : ''; } catch (e) { q = ''; }
+    box.innerHTML = '<form class="btg-sr-form" role="search" action="/search/" method="get"><input class="btg-sr-input" type="search" name="q" aria-label="Search this site" placeholder="What do you need help with?" value="' + esc(q) + '"><button class="btg-sr-go" type="submit">Search</button></form><div class="btg-sr-body" aria-live="polite">' + resultsHtml(q) + '</div>';
+    return true;
+  }
+
   function init(doc, win) {
     var btn = doc.querySelector('.btg-search-btn'), header = doc.querySelector('.fusion-header');
     if (!btn || !header || doc.querySelector('.btg-search')) return false;
     var box = doc.createElement('div');
     box.className = 'btg-search';
     box.hidden = true;
-    box.innerHTML = '<form class="btg-search-form" role="search" action="/" method="get">' +
-      '<input id="btg-search-input" class="btg-search-input" type="search" name="s" placeholder="Search" aria-label="Search" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="btg-search-list" aria-autocomplete="list">' +
+    box.innerHTML = '<form class="btg-search-form" role="search" action="/search/" method="get">' +
+      '<input id="btg-search-input" class="btg-search-input" type="search" name="q" placeholder="Search" aria-label="Search" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="btg-search-list" aria-autocomplete="list">' +
       '<ul id="btg-search-list" class="btg-search-list" role="listbox" hidden></ul>' +
       '<p class="btg-search-status" role="status" aria-live="polite"></p></form>';
     header.appendChild(box);
@@ -386,7 +420,7 @@ window.BTGSearch = (function () {
     return true;
   }
 
-  return { PAGES: PAGES, norm: norm, esc: esc, rank: rank, init: init, SEARCH_ICON: SEARCH_ICON };
+  return { PAGES: PAGES, norm: norm, esc: esc, rank: rank, resultsHtml: resultsHtml, initPage: initPage, init: init, SEARCH_ICON: SEARCH_ICON };
 })();
 
 
@@ -559,6 +593,7 @@ window.BTGHeader = (function () {
     safely(function () { window.BTGInit.injectSchemaAndMeta(document, window); });
     safely(function () { window.BTGHeader.init(document, window); });
     safely(function () { window.BTGSearch.init(document, window); });
+    safely(function () { window.BTGSearch.initPage(document, window); });
   }
   if (document.readyState !== 'loading') {
     run();
