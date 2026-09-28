@@ -247,6 +247,48 @@ window.BTGInit = (function () {
   };
 })();
 
+/* 06-search.js */
+window.BTGSearch = (function () {
+  /* search-data:start */
+  var PAGES = [];
+  /* search-data:end */
+
+  function norm(s) {
+    return String(s).toLowerCase().replace(/&amp;/g, '&')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9& ]+/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; });
+  }
+
+  // Per query word: title word starts with it (3) > title contains it (2) > a keyword starts with it (1).
+  function score(words, page) {
+    var title = norm(page.title), tw = title.split(' '), kw = (page.keywords || []).map(norm), total = 0;
+    words.forEach(function (q) {
+      if (tw.some(function (w) { return w.indexOf(q) === 0; })) total += 3;
+      else if (title.indexOf(q) !== -1) total += 2;
+      else if (kw.some(function (k) { return k.indexOf(q) === 0; })) total += 1;
+    });
+    return total;
+  }
+
+  function rank(query, pages, limit) {
+    var q = norm(query);
+    if (q.length < 2) return [];
+    var words = q.split(' ');
+    return pages.map(function (p, i) { return { p: p, s: score(words, p), i: i }; })
+      .filter(function (x) { return x.s > 0; })
+      .sort(function (a, b) { return b.s - a.s || a.i - b.i; })
+      .slice(0, limit || 5)
+      .map(function (x) { return x.p; });
+  }
+
+  return { PAGES: PAGES, norm: norm, esc: esc, rank: rank };
+})();
+
+
 (function () {
   // Guards against the Node test environment's minimal `document` stub,
   // which has no querySelector/readyState/addEventListener — this file is
