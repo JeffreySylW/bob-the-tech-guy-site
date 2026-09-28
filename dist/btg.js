@@ -250,7 +250,37 @@ window.BTGInit = (function () {
 /* 06-search.js */
 window.BTGSearch = (function () {
   /* search-data:start */
-  var PAGES = [];
+  var PAGES = [
+    {"title":"Networking","url":"https://bobthetechguy.com/networking/","type":"SERVICE","icon":"wifi","keywords":["wifi","router","internet","wireless","network","modem"]},
+    {"title":"Computer Set Up","url":"https://bobthetechguy.com/computer-set-up/","type":"SERVICE","icon":"laptop","keywords":["new","setup","install","accounts","office"]},
+    {"title":"Computer Tune Up","url":"https://bobthetechguy.com/computer-tune-up/","type":"SERVICE","icon":"gauge","keywords":["slow","speed","cleanup","maintenance","sluggish","dust"]},
+    {"title":"Anti-Virus","url":"https://bobthetechguy.com/anti-virus/","type":"SERVICE","icon":"shield","keywords":["virus","malware","spyware","ransomware","infected","hacked"]},
+    {"title":"Backup Solutions","url":"https://bobthetechguy.com/backup-solutions/","type":"SERVICE","icon":"cloud","keywords":["backup","cloud","files","restore"]},
+    {"title":"Data Recovery Service","url":"https://bobthetechguy.com/data-recovery-service/","type":"SERVICE","icon":"drive","keywords":["recover","lost","deleted","files","crashed","drive"]},
+    {"title":"Software Installation and Configuration","url":"https://bobthetechguy.com/software-installation-and-configuration/","type":"SERVICE","icon":"box","keywords":["software","programs","apps","office","install"]},
+    {"title":"Screen Replacement","url":"https://bobthetechguy.com/screen-replacement/","type":"SERVICE","icon":"screen","keywords":["screen","cracked","broken","laptop","display"]},
+    {"title":"Parental Controls","url":"https://bobthetechguy.com/parental-controls/","type":"SERVICE","icon":"lock","keywords":["kids","children","parental","filter","safety"]},
+    {"title":"Printer Solutions","url":"https://bobthetechguy.com/printer-solutions/","type":"SERVICE","icon":"printer","keywords":["printer","printing","scanner"]},
+    {"title":"Operating System Install","url":"https://bobthetechguy.com/operating-system-install/","type":"SERVICE","icon":"window","keywords":["windows","mac","linux","os","reinstall","upgrade"]},
+    {"title":"Hardware Repair & Upgrades","url":"https://bobthetechguy.com/hardware-repair-upgrades/","type":"SERVICE","icon":"tool","keywords":["repair","fix","broken","upgrade","diagnostics"]},
+    {"title":"Hardware Install","url":"https://bobthetechguy.com/hardware-install/","type":"SERVICE","icon":"plug","keywords":["graphics","card","drive","webcam","install"]},
+    {"title":"Memory Install","url":"https://bobthetechguy.com/memory-install/","type":"SERVICE","icon":"chip","keywords":["ram","memory","slow","upgrade","speed"]},
+    {"title":"Email Setup","url":"https://bobthetechguy.com/email-setup/","type":"SERVICE","icon":"mail","keywords":["email","outlook","mail","gmail"]},
+    {"title":"Best Computer Repair Chesterfield VA","url":"https://bobthetechguy.com/best-computer-repair-chesterfield-va/","type":"AREA","icon":"pin","keywords":["repair","computer","pc","near"]},
+    {"title":"PC Repair Service Bon Air Virginia","url":"https://bobthetechguy.com/pc-repair-service-bon-air-virginia/","type":"AREA","icon":"pin","keywords":["repair","computer","pc","near"]},
+    {"title":"PC Repair Service Brandermill Virginia","url":"https://bobthetechguy.com/pc-repair-service-brandermill-virginia/","type":"AREA","icon":"pin","keywords":["repair","computer","pc","near"]},
+    {"title":"PC Repair Service Chester Virginia","url":"https://bobthetechguy.com/pc-repair-service-chester-virginia/","type":"AREA","icon":"pin","keywords":["repair","computer","pc","near"]},
+    {"title":"PC Repair Service Colonial Heights Virginia","url":"https://bobthetechguy.com/pc-repair-service-colonial-heights-virginia/","type":"AREA","icon":"pin","keywords":["repair","computer","pc","near"]},
+    {"title":"PC Repair Service Midlothian Virginia","url":"https://bobthetechguy.com/pc-repair-service-midlothian-virginia/","type":"AREA","icon":"pin","keywords":["repair","computer","pc","near"]},
+    {"title":"PC Repair Service Moseley Virginia","url":"https://bobthetechguy.com/pc-repair-service-moseley-virginia/","type":"AREA","icon":"pin","keywords":["repair","computer","pc","near"]},
+    {"title":"PC Repair Service Richmond Virginia","url":"https://bobthetechguy.com/pc-repair-service-richmond-virginia/","type":"AREA","icon":"pin","keywords":["repair","computer","pc","near"]},
+    {"title":"PC Repair Service Woodlake Virginia","url":"https://bobthetechguy.com/pc-repair-service-woodlake-virginia/","type":"AREA","icon":"pin","keywords":["repair","computer","pc","near"]},
+    {"title":"Home","url":"https://bobthetechguy.com/","type":"PAGE","icon":"page","keywords":["home","bob"]},
+    {"title":"About","url":"https://bobthetechguy.com/about/","type":"PAGE","icon":"page","keywords":["bob","veteran","story","experience"]},
+    {"title":"Reviews","url":"https://bobthetechguy.com/reviews/","type":"PAGE","icon":"page","keywords":["reviews","rating","stars"]},
+    {"title":"Testimonials","url":"https://bobthetechguy.com/testimonials/","type":"PAGE","icon":"page","keywords":["customers","reviews"]},
+    {"title":"Contact","url":"https://bobthetechguy.com/contact-2/","type":"PAGE","icon":"page","keywords":["contact","email","phone","call","quote"]}
+  ];
   /* search-data:end */
 
   function norm(s) {

@@ -43,3 +43,41 @@ test('rank() keeps list order on ties and respects the limit', () => {
 test('esc() escapes HTML', () => {
   assert.strictEqual(S.esc('<a href="x">&\'</a>'), '&lt;a href=&quot;x&quot;&gt;&amp;&#39;&lt;/a&gt;');
 });
+const fs = require('node:fs');
+const path = require('node:path');
+const PAGES = require('../tools/search-pages.js');
+const I = require('../tools/services-index.js');
+const menu = I.parseServicesMenu(fs.readFileSync(path.join(__dirname, 'fixtures', 'menu.html'), 'utf8'));
+const TOWNS = ['best-computer-repair-chesterfield-va', 'pc-repair-service-bon-air-virginia', 'pc-repair-service-brandermill-virginia', 'pc-repair-service-chester-virginia', 'pc-repair-service-colonial-heights-virginia', 'pc-repair-service-midlothian-virginia', 'pc-repair-service-moseley-virginia', 'pc-repair-service-richmond-virginia', 'pc-repair-service-woodlake-virginia'];
+
+test('search pages: 15 services from the live menu, 9 towns, 5 pages', () => {
+  const by = (t) => PAGES.filter((p) => p.type === t);
+  assert.deepStrictEqual(by('SERVICE').map((p) => p.url).sort(), menu.map((m) => m.url).sort());
+  assert.deepStrictEqual(by('AREA').map((p) => p.url).sort(), TOWNS.map((s) => 'https://bobthetechguy.com/' + s + '/').sort());
+  assert.deepStrictEqual(by('PAGE').map((p) => p.title), ['Home', 'About', 'Reviews', 'Testimonials', 'Contact']);
+});
+
+test('search pages: service titles match the menu, icons match the index groups', () => {
+  const icons = Object.fromEntries(I.GROUPS.flatMap((g) => g.items));
+  for (const p of PAGES.filter((x) => x.type === 'SERVICE')) {
+    const m = menu.find((x) => x.url === p.url);
+    assert.strictEqual(p.title, m.title.replace(/&amp;/g, '&'), p.url);
+    assert.strictEqual(p.icon, icons[p.url.split('/')[3]], p.url);
+  }
+});
+
+test('search pages: keywords are lowercase single words, at most 8 per page', () => {
+  for (const p of PAGES) {
+    assert.ok(p.keywords.length <= 8, p.title);
+    for (const k of p.keywords) assert.match(k, /^[a-z0-9]+$/, p.title + ': ' + k);
+  }
+});
+
+test('dist/btg.js carries the current page list (run tools/build-search-data.js)', () => {
+  assert.deepStrictEqual(window.BTGSearch.PAGES, PAGES);
+});
+
+test('the real list: "slow computer" suggests Tune Up first; "wifi" suggests Networking', () => {
+  assert.strictEqual(window.BTGSearch.rank('slow computer', PAGES)[0].title, 'Computer Tune Up');
+  assert.strictEqual(window.BTGSearch.rank('wifi', PAGES)[0].title, 'Networking');
+});
