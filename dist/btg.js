@@ -571,6 +571,39 @@ window.BTGHeader = (function () {
   return { LOGO_SVG: LOGO_SVG, ICON_SVG: ICON_SVG, GROUPS: GROUPS, groupLinks: groupLinks, panelsHtml: panelsHtml, init: init };
 })();
 
+/* 08-account.js */
+window.BTGAccount = (function () {
+  var esc = window.BTGSearch.esc;
+  function loginHtml(redirect) {
+    return '<div class="btg-acct-grid"><section class="btg-acct-card"><h2 class="btg-acct-h">Sign in</h2>' +
+      '<form class="btg-acct-form" action="/wp-login.php" method="post">' +
+      '<label for="btg-log">Username or email</label><input id="btg-log" name="log" type="text" autocomplete="username" required>' +
+      '<label for="btg-pwd">Password</label><input id="btg-pwd" name="pwd" type="password" autocomplete="current-password" required>' +
+      '<label class="btg-acct-check"><input name="rememberme" type="checkbox" value="forever"> Keep me signed in</label>' +
+      '<input type="hidden" name="redirect_to" value="' + esc(redirect) + '">' +
+      '<button class="btg-acct-go" type="submit">Log in</button></form>' +
+      '<p class="btg-acct-links"><a href="/wp-login.php?action=lostpassword">Forgot your password?</a></p></section>' +
+      '<aside class="btg-acct-card btg-acct-side"><h2 class="btg-acct-h">New here?</h2><p>Don\u2019t have an account yet? Creating one only takes a minute.</p>' +
+      '<a class="btg-acct-alt" href="/register/">Create an account</a>' +
+      '<p class="btg-acct-help">Trouble signing in? Call <a href="tel:8448354890">844-TEKGUY-0</a>.</p></aside></div>';
+  }
+  function hubHtml() {
+    var items = [['/members/me/profile/', 'Your profile', 'View your public profile.', 'page'], ['/members/me/profile/edit/', 'Edit profile', 'Update your name and details.', 'tool'],
+      ['/members/me/settings/', 'Account settings', 'Email, password and notifications.', 'gauge'], ['/wp-login.php?action=logout', 'Log out', 'Sign out on this device.', 'lock']];
+    return '<p class="btg-acct-in">You are signed in.</p><ul class="btg-sr-list">' + items.map(function (i) {
+      return '<li><a class="btg-sr-item btg-acct-tile" href="' + i[0] + '"><span class="btg-search-ico btg-card--' + i[3] + '" aria-hidden="true"></span><span class="btg-acct-t"><strong>' + i[1] + '</strong><small>' + i[2] + '</small></span></a></li>';
+    }).join('') + '</ul>';
+  }
+  function init(doc, win) {
+    var box = doc.querySelector('.btg-account');
+    if (!box || box.getAttribute('data-btg')) return false;
+    box.setAttribute('data-btg', '1');
+    box.innerHTML = /(^|\s)logged-in(\s|$)/.test(doc.body.className) ? hubHtml() : loginHtml(win.location.pathname || '/');
+    return true;
+  }
+  return { loginHtml: loginHtml, hubHtml: hubHtml, init: init };
+})();
+
 
 (function () {
   // Guards against the Node test environment's minimal `document` stub,
@@ -594,6 +627,7 @@ window.BTGHeader = (function () {
     safely(function () { window.BTGHeader.init(document, window); });
     safely(function () { window.BTGSearch.init(document, window); });
     safely(function () { window.BTGSearch.initPage(document, window); });
+    safely(function () { window.BTGAccount.init(document, window); });
   }
   if (document.readyState !== 'loading') {
     run();
