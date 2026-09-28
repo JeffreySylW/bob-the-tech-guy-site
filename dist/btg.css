@@ -356,3 +356,94 @@ body.has-sidebar #content { float: none !important; margin-left: auto !important
 .btg-card--window::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338792f' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='16' rx='2'/%3E%3Cpath d='M3 9h18M7 6.5h.01M10 6.5h.01'/%3E%3C/svg%3E"); }
 .btg-card--box::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338792f' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v8'/%3E%3C/svg%3E"); }
 .btg-card--printer::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338792f' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9V3h12v6M6 18H4v-7h16v7h-2M6 14h12v7H6z'/%3E%3C/svg%3E"); }
+
+/* v1.3.0 — consistent top bar, one-row header, Services dropdown, search.
+   Spec: docs/superpowers/specs/2026-09-27-header-logo-search-design.md */
+html .fusion-header-wrapper::before,
+html .fusion-header-wrapper:before { display: none !important; }
+.fusion-secondary-header { background: #20241f !important; border: 0 !important; padding: 0 !important; }
+.fusion-secondary-header .fusion-row { display: flex !important; align-items: center; justify-content: space-between; gap: 16px; max-width: 1180px; margin: 0 auto; padding: 7px 24px !important; }
+.fusion-secondary-header .fusion-row::before { content: "NOW SERVING CHESTERFIELD \00B7 MIDLOTHIAN \00B7 CHESTER \00B7 BON AIR \00B7 COLONIAL HEIGHTS \00B7 GREATER RICHMOND, VA"; display: block; color: #e8efe6; font-family: var(--btg-font-body); font-size: 12.5px; font-weight: 700; letter-spacing: .04em; line-height: 1.4; }
+.fusion-secondary-header .fusion-row::after { display: none !important; }
+.fusion-secondary-header .fusion-alignleft { float: none !important; margin: 0 !important; }
+.fusion-secondary-header .fusion-contact-info,
+.fusion-secondary-header .fusion-contact-info a { font-family: var(--btg-font-body) !important; font-size: 12.5px !important; font-weight: 700 !important; letter-spacing: .04em !important; line-height: 1.4 !important; color: #e8efe6 !important; }
+@media (max-width: 900px) {
+  .fusion-secondary-header .fusion-row { justify-content: center; }
+  .fusion-secondary-header .fusion-row::before { display: none; }
+}
+
+.btg-header-on .fusion-header-wrapper { position: sticky; z-index: 60; }
+.btg-header-on .fusion-header { position: relative; background: rgba(255, 255, 255, .97) !important; border-bottom: 1px solid var(--btg-card-border); transition: box-shadow .25s ease; }
+.btg-header-on .fusion-header .fusion-row { display: flex !important; align-items: center; gap: 24px; max-width: 1180px; margin: 0 auto; padding: 14px 24px !important; transition: padding .25s ease; }
+.btg-header-on .fusion-header .fusion-row::before,
+.btg-header-on .fusion-header .fusion-row::after { display: none !important; }
+.btg-header-on .fusion-logo { float: none !important; margin: 0 !important; flex: none; }
+.btg-header-on .fusion-logo-link { display: block; line-height: 0; }
+.btg-logo { display: block; width: 176px; height: auto; transition: width .25s ease; }
+.btg-logo-top { fill: #4a5046; }
+.btg-logo-main { fill: var(--btg-text); }
+.btg-logo-accent { fill: #38792f; }
+.btg-logo-pad { animation: btg-pulse 2.4s ease-in-out infinite; }
+@keyframes btg-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+.btg-header-on .fusion-secondary-main-menu { display: none !important; }
+.btg-header-on .fusion-header .fusion-main-menu { float: none !important; flex: 1; display: flex; justify-content: center; }
+.btg-header-on .fusion-main-menu > ul { display: flex !important; gap: 4px; }
+.btg-header-on .fusion-main-menu > ul > li { position: static; padding: 0 !important; }
+.btg-header-on .fusion-main-menu > ul > li > a { position: relative; display: block; padding: 10px 12px !important; height: auto !important; line-height: 1.4 !important; border: 0 !important; color: var(--btg-text) !important; font-size: 15.5px !important; background: none !important; border-radius: 6px; }
+.btg-header-on .fusion-main-menu > ul > li > a::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: 4px; height: 2px; border-radius: 2px; background: var(--btg-green); transform: scaleX(0); transform-origin: left; transition: transform .28s ease; }
+.btg-header-on .fusion-main-menu > ul > li > a:hover::after,
+.btg-header-on .fusion-main-menu > ul > li > a:focus-visible::after { transform: scaleX(1); }
+.btg-header-on .fusion-main-menu > ul > li.current-menu-item > a,
+.btg-header-on .fusion-main-menu > ul > li.current-menu-ancestor > a { color: #38792f !important; font-weight: 700 !important; }
+.btg-header-on .fusion-main-menu > ul > li.current-menu-item > a::after,
+.btg-header-on .fusion-main-menu > ul > li.current-menu-ancestor > a::after { transform: scaleX(1); height: 3px; box-shadow: 0 0 10px rgba(84, 170, 71, .75); }
+.btg-header-on .fusion-main-menu > ul > li.menu-item-11810 > a { background: none !important; color: var(--btg-text) !important; margin: 0 !important; box-shadow: none !important; }
+.btg-header-on .fusion-main-menu > ul > li.menu-item-11810 > a .menu-text { color: inherit !important; }
+.btg-header-on .fusion-main-menu-search { display: none !important; }
+.btg-header-on li.btg-has-panel > .sub-menu { display: none !important; }
+.btg-header-tools { display: flex; align-items: center; gap: 12px; margin-left: auto; flex: none; }
+.btg-search-btn { width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid var(--btg-card-border); background: #fff; display: grid; place-items: center; cursor: pointer; transition: border-color .2s, box-shadow .2s; padding: 0; }
+.btg-search-btn:hover,
+.btg-search-btn:focus-visible { border-color: var(--btg-green); box-shadow: 0 0 0 4px var(--btg-green-tint); outline: none; }
+.btg-call { display: flex; flex-direction: column; align-items: center; background: #3a7f30; color: #fff !important; text-decoration: none !important; border-radius: 8px; padding: 7px 16px; font-family: var(--btg-font-body); font-weight: 700; font-size: 14.5px; line-height: 1.2; transition: transform .18s, box-shadow .18s; }
+.btg-call small { font-weight: 400; font-size: 11.5px; opacity: .85; }
+.btg-call:hover,
+.btg-call:focus-visible { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(84, 170, 71, .45); }
+.btg-dropdown { position: absolute; left: 0; right: 0; top: 100%; background: #fff; border-bottom: 1px solid var(--btg-card-border); box-shadow: 0 18px 30px rgba(20, 30, 20, .10); padding: 18px 24px 22px; }
+.btg-dropdown[hidden] { display: none; }
+.btg-dropdown .btg-panels { max-width: 1132px; margin: 0 auto; }
+.btg-scrolled .fusion-header { box-shadow: 0 6px 20px rgba(20, 30, 20, .08); }
+.btg-scrolled .fusion-header .fusion-row { padding-top: 8px !important; padding-bottom: 8px !important; }
+.btg-scrolled .btg-logo { width: 148px; }
+.btg-search { position: absolute; left: 0; right: 0; top: 100%; background: #fff; border-bottom: 1px solid var(--btg-card-border); box-shadow: 0 18px 30px rgba(20, 30, 20, .10); padding: 18px 24px 22px; }
+.btg-search[hidden] { display: none; }
+.btg-search-form { max-width: 720px; margin: 0 auto; }
+.btg-search-input { width: 100%; box-sizing: border-box; font: inherit; font-size: 18px !important; padding: 12px 16px 12px 44px !important; border: 2px solid var(--btg-green) !important; border-radius: 10px !important; outline: none; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338792f' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E") 14px center / 20px no-repeat !important; box-shadow: 0 0 0 4px var(--btg-green-tint); height: auto !important; }
+.btg-search-list { list-style: none; margin: 10px 0 0 !important; padding: 0 !important; border: 1px solid var(--btg-card-border); border-radius: 10px; overflow: hidden; }
+.btg-search-list[hidden] { display: none; }
+.btg-search-list li { display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin: 0 !important; border-bottom: 1px solid var(--btg-card-border); font-size: 15.5px; cursor: pointer; }
+.btg-search-list li:last-child { border-bottom: 0; }
+.btg-search-opt.is-active,
+.btg-search-all.is-active,
+.btg-search-list li:hover { background: var(--btg-green-tint); }
+.btg-search-type { margin-left: auto; font-size: 11px; letter-spacing: .12em; color: #6b736a; }
+.btg-search-all { color: #38792f; font-weight: 700; }
+.btg-search-empty { color: var(--btg-text-muted); cursor: default !important; }
+.btg-search-ico { width: 28px; height: 28px; border-radius: 6px; background: var(--btg-green-tint); flex: none; }
+.btg-search-ico::before { content: ""; display: block; width: 28px; height: 28px; background-position: center; background-size: 16px; background-repeat: no-repeat; }
+.btg-card--pin::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338792f' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z'/%3E%3Ccircle cx='12' cy='10' r='2.5'/%3E%3C/svg%3E"); }
+.btg-card--page::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338792f' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 3h9l4 4v14H6z'/%3E%3Cpath d='M9 12h7M9 16h7'/%3E%3C/svg%3E"); }
+@media (max-width: 900px) {
+  .btg-header-on .fusion-header .fusion-main-menu { display: none !important; }
+  .btg-header-on .fusion-header .fusion-row { gap: 12px; padding: 10px 16px !important; }
+  .btg-logo { width: 150px; }
+  .btg-call { padding: 7px 12px; font-size: 14px; }
+  .btg-call small { display: none; }
+  .btg-header-on .fusion-mobile-menu-icons { display: flex !important; float: none !important; margin: 0 !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btg-logo-pad { animation: none; }
+  .btg-logo, .btg-header-on .fusion-header, .btg-header-on .fusion-header .fusion-row,
+  .btg-header-on .fusion-main-menu > ul > li > a::after, .btg-call, .btg-search-btn { transition: none; }
+}
