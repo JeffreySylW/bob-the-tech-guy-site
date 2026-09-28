@@ -457,10 +457,12 @@ window.BTGHeader = (function () {
     function later(fn) { clearTimeout(t); t = setTimeout(fn, 150); }
     li.addEventListener('mouseenter', function () { later(open); });
     li.addEventListener('mouseleave', function () { later(close); });
-    svc.addEventListener('focus', open);
+    // Returning focus to Services after Escape must not reopen the panel.
+    var returning = false;
+    svc.addEventListener('focus', function () { if (!returning) open(); });
     li.addEventListener('focusout', function (e) { if (!li.contains(e.relatedTarget)) close(); });
     li.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && !panel.hidden) { e.preventDefault(); close(); svc.focus(); }
+      if (e.key === 'Escape' && !panel.hidden) { e.preventDefault(); close(); returning = true; svc.focus(); returning = false; }
     });
   }
 

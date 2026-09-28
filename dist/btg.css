@@ -468,3 +468,25 @@ html .fusion-header-wrapper:before { display: none !important; }
   .btg-header-tools { gap: 8px; }
   .btg-header-on .fusion-mobile-menu-icons a { display: block; margin: 0 !important; }
 }
+
+/* The per-page style block hides Contact's ::after; keep the hover trace the same on every page. */
+.btg-header-on .fusion-main-menu > ul > li.menu-item-11810 > a::after,
+.btg-header-on .fusion-main-menu > ul > li.menu-item-11810 > a:after { display: block !important; }
+/* 901-1180px (small laptops, tablets in landscape): tighten the row so logo, menu and tools stay on one line. */
+@media (min-width: 901px) and (max-width: 1180px) {
+  .btg-header-on .fusion-header .fusion-row { gap: 10px; padding-left: 16px !important; padding-right: 16px !important; }
+  .btg-logo { width: 138px; }
+  .btg-header-on .fusion-main-menu > ul { gap: 0; }
+  .btg-header-on .fusion-main-menu > ul > li > a { padding: 10px 7px !important; font-size: 14px !important; }
+  .btg-header-on .fusion-main-menu > ul > li > a::after { left: 7px; right: 7px; }
+  .btg-header-tools { gap: 8px; }
+  .btg-call { padding: 7px 11px; font-size: 13.5px; }
+  .btg-call small { display: none; }
+}
+/* The theme's small dropdowns (About, Customer Log In): anchored under their own item, restyled as small cards. */
+.btg-header-on .fusion-main-menu > ul > li:not(.btg-has-panel) { position: relative !important; }
+.btg-header-on .fusion-main-menu > ul > li:not(.btg-has-panel) > .sub-menu { top: 100% !important; left: 0 !important; right: auto !important; margin: 0 !important; min-width: 210px; padding: 6px !important; background: #fff !important; border: 1px solid var(--btg-card-border) !important; border-top: 3px solid var(--btg-green) !important; border-radius: var(--btg-radius-md); box-shadow: 0 14px 28px rgba(20, 30, 20, .12) !important; }
+.btg-header-on .fusion-main-menu > ul > li:not(.btg-has-panel) > .sub-menu li { border: 0 !important; background: none !important; padding: 0 !important; }
+.btg-header-on .fusion-main-menu > ul > li:not(.btg-has-panel) > .sub-menu a { display: block; padding: 9px 12px !important; border: 0 !important; border-radius: var(--btg-radius-sm); background: none !important; color: var(--btg-text) !important; font-family: var(--btg-font-body) !important; font-size: 15px !important; line-height: 1.3 !important; }
+.btg-header-on .fusion-main-menu > ul > li:not(.btg-has-panel) > .sub-menu a:hover,
+.btg-header-on .fusion-main-menu > ul > li:not(.btg-has-panel) > .sub-menu a:focus-visible { background: var(--btg-green-tint) !important; color: #38792f !important; }

@@ -22,6 +22,8 @@ export async function launch({ width = 1440, height = 900, mobile = false } = {}
     await send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 2, mobile: true });
     await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
   }
+  // Behave like a focused window so focus/blur events fire in the headless tab.
+  await send('Emulation.setFocusEmulationEnabled', { enabled: true });
   await send('Page.enable');
   const evalJs = async (x) => { const r = await send('Runtime.evaluate', { expression: x, awaitPromise: true, returnByValue: true }); return r.result && r.result.result ? r.result.result.value : undefined; };
   const key = async (k, code, vk, text) => { await send('Input.dispatchKeyEvent', { type: 'keyDown', key: k, code, windowsVirtualKeyCode: vk, text }); await send('Input.dispatchKeyEvent', { type: 'keyUp', key: k, code, windowsVirtualKeyCode: vk }); };

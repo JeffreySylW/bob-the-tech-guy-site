@@ -28,6 +28,26 @@ await b.evalJs(`document.querySelector('li.btg-has-panel > a').focus()`); await 
 check('keyboard focus opens the panel', await b.evalJs(`!document.querySelector('.btg-dropdown').hidden && document.querySelector('li.btg-has-panel > a').getAttribute('aria-expanded') === 'true'`));
 await b.key('Escape', 'Escape', 27); await b.sleep(200);
 check('Escape closes the panel and keeps focus on Services', await b.evalJs(`document.querySelector('.btg-dropdown').hidden && document.activeElement === document.querySelector('li.btg-has-panel > a')`));
+// Escape from a link inside the panel closes it (focus returns to Services without reopening).
+await b.evalJs(`document.activeElement.blur()`); await b.sleep(100);
+await b.evalJs(`document.querySelector('li.btg-has-panel > a').focus()`); await b.sleep(200);
+await b.key('Tab', 'Tab', 9); await b.sleep(200);
+await b.key('Escape', 'Escape', 27); await b.sleep(250);
+check('Escape from a panel link closes the panel', await b.evalJs(`document.querySelector('.btg-dropdown').hidden && document.activeElement === document.querySelector('li.btg-has-panel > a')`));
+// The theme's small dropdowns (About → Reviews, Customer Log In → Register/Log In) open under their own item and stay reachable.
+for (const label of ['About', 'Customer Log In']) {
+  const at = await b.evalJs(`(() => { const a = [...document.querySelectorAll('.fusion-main-menu > ul > li > a')].find((x) => x.textContent.trim().startsWith('${label}')); const r = a.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2, r.left]; })()`);
+  await b.move(at[0], at[1]); await b.sleep(500);
+  const sub = await b.evalJs(`(() => { const a = [...document.querySelectorAll('.fusion-main-menu > ul > li > a')].find((x) => x.textContent.trim().startsWith('${label}')); const u = a.parentElement.querySelector(':scope > .sub-menu'); const r = u.getBoundingClientRect(); const cs = getComputedStyle(u); return { left: Math.round(r.left), top: Math.round(r.top), aBottom: Math.round(a.getBoundingClientRect().bottom), visible: cs.visibility !== 'hidden' && cs.display !== 'none' && +cs.opacity > 0.5 && r.height > 20, first: u.querySelector('a').getBoundingClientRect().toJSON() }; })()`);
+  check(label + ' dropdown opens under its own item', sub.visible && Math.abs(sub.left - at[2]) < 40 && sub.top >= sub.aBottom - 4 && sub.top - sub.aBottom < 30, JSON.stringify({ left: sub.left, itemLeft: Math.round(at[2]), top: sub.top, itemBottom: sub.aBottom }));
+  for (let y = at[1] + 5; y <= sub.top + 12; y += 5) { await b.move(at[0], y); await b.sleep(40); }
+  await b.move(sub.first.x + sub.first.width / 2, sub.first.y + sub.first.height / 2); await b.sleep(400);
+  check(label + ' dropdown stays open while moving into it', await b.evalJs(`(() => { const a = [...document.querySelectorAll('.fusion-main-menu > ul > li > a')].find((x) => x.textContent.trim().startsWith('${label}')); const u = a.parentElement.querySelector(':scope > .sub-menu'); const cs = getComputedStyle(u); return cs.visibility !== 'hidden' && cs.display !== 'none' && +cs.opacity > 0.5; })()`));
+  await b.shot(out + '/sub-' + label.split(' ')[0].toLowerCase() + '.png');
+  await b.move(700, 800); await b.sleep(400);
+}
+// Contact gets the same hover trace on pages with the old per-page style block (Memory Install has one).
+check('Contact hover trace not suppressed by per-page styles', await b.evalJs(`getComputedStyle(document.querySelector('.fusion-main-menu > ul > li.menu-item-11810 > a'), '::after').display !== 'none'`));
 await b.evalJs(`document.activeElement.blur()`);
 await b.key('/', 'Slash', 191, '/'); await b.sleep(200);
 check('"/" opens search with focus in the field', await b.evalJs(`!document.querySelector('.btg-search').hidden && document.activeElement === document.querySelector('.btg-search-input')`));
@@ -49,6 +69,15 @@ check('only one visible header row', await b.evalJs(`[...document.querySelectorA
 await b.shot(out + '/scrolled.png');
 check('no horizontal scroll (desktop)', !(await b.evalJs(`document.documentElement.scrollWidth > innerWidth`)));
 await b.evalJs(`scrollTo(0, 0)`); await b.sleep(300); await b.shot(out + '/desktop.png');
+await b.close();
+
+// Small laptop / tablet landscape: one header row, no wrapping.
+b = await launch({ width: 1024, height: 768 });
+await b.goto('http://localhost:4410/memory-install/');
+check('1024px: logo and tools share one row', await b.evalJs(`(() => { const t = (s) => Math.round(document.querySelector(s).getBoundingClientRect().top / 20); return t('.fusion-logo') === t('.btg-header-tools'); })()`), await b.evalJs(`Math.round(document.querySelector('.fusion-header').getBoundingClientRect().height) + 'px tall'`));
+check('1024px: header at most 100px tall', await b.evalJs(`document.querySelector('.fusion-header').getBoundingClientRect().height <= 100`));
+check('1024px: no horizontal scroll', !(await b.evalJs(`document.documentElement.scrollWidth > innerWidth`)));
+await b.shot(out + '/tablet.png');
 await b.close();
 
 // Phone
