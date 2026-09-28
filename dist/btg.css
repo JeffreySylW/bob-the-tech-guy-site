@@ -581,3 +581,24 @@ html .post-content { font-size: 16.5px; line-height: 1.72; color: var(--btg-text
 /* v1.5.1: search status line (read by screen readers, visible only as a quiet note) and search above the Services panel. */
 .btg-search-status { margin: 8px 2px 0 !important; font-size: 13px; color: var(--btg-text-muted); min-height: 1em; }
 .btg-search { z-index: 80; }
+
+/* v1.5.2 — gallery: modern photo grid, button-style slideshow link and page numbers. */
+.ngg-galleryoverview { display: grid !important; grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr)); gap: 12px; margin: 8px 0 24px !important; }
+.ngg-galleryoverview > .ngg-clear, .ngg-galleryoverview > br { display: none !important; }
+.ngg-galleryoverview > .slideshowlink,
+.ngg-galleryoverview > .ngg-navigation { grid-column: 1 / -1; }
+.ngg-gallery-thumbnail-box { float: none !important; width: auto !important; margin: 0 !important; }
+.ngg-gallery-thumbnail { border: 0 !important; padding: 0 !important; margin: 0 !important; background: none !important; box-shadow: none !important; }
+.ngg-gallery-thumbnail a { display: block; aspect-ratio: 3 / 2; overflow: hidden; border-radius: var(--btg-radius-md); background: var(--btg-card-bg); }
+.ngg-gallery-thumbnail img { display: block; width: 100% !important; height: 100% !important; max-width: none !important; object-fit: cover; border: 0 !important; padding: 0 !important; margin: 0 !important; background: none !important; transition: transform .3s ease; }
+.ngg-gallery-thumbnail a:hover img, .ngg-gallery-thumbnail a:focus-visible img { transform: scale(1.05); }
+.ngg-gallery-thumbnail a:focus-visible { outline: 3px solid var(--btg-green); outline-offset: 2px; }
+.slideshowlink { text-align: right; }
+.slideshowlink a { display: inline-block; border: 1px solid #38792f; color: #38792f !important; border-radius: 6px; padding: 5px 12px; font-weight: 700; text-decoration: none !important; }
+.slideshowlink a:hover { background: var(--btg-green-tint); }
+.ngg-navigation { display: flex !important; justify-content: center; gap: 6px; padding: 8px 0 0 !important; }
+.ngg-navigation span, .ngg-navigation a { display: inline-grid !important; place-items: center; min-width: 34px; height: 34px; padding: 0 8px !important; border-radius: 8px !important; border: 1px solid var(--btg-card-border) !important; background: #fff !important; color: var(--btg-text) !important; font-weight: 700; text-decoration: none !important; margin: 0 !important; }
+.ngg-navigation span.current { background: #38792f !important; border-color: #38792f !important; color: #fff !important; }
+@media (prefers-reduced-motion: reduce) {
+  .ngg-gallery-thumbnail img { transition: none; transform: none !important; }
+}
