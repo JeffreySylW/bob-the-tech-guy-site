@@ -37,3 +37,8 @@ test('split-layout pages get the photo inside the text column, not a third colum
   assert.match(css, /\.btg-split-text \.btg-photo-fig \{/);
   assert.match(css, /\.btg-photo-fig--wrap \{[^}]*float: right;/);
 });
+
+test('on the two-column pages the photo floats inside the intro text (placed first so the text wraps)', () => {
+  assert.match(js, /text\.insertBefore\(fig, text\.firstChild\)/);
+  assert.match(css, /\.btg-split:not\(\.btg-split--stacked\) \.btg-split-text \.btg-photo-fig \{[^}]*float: right;[^}]*width: 160px;/);
+});

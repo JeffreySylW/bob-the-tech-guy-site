@@ -649,7 +649,7 @@ window.BTGBob = (function () {
     if (text) {
       // Split layouts: the photo goes in the empty space under (or beside) the intro text.
       if (/btg-split--stacked/.test(next.className)) fig.className += ' btg-photo-fig--wrap';
-      text.appendChild(fig);
+      if (/btg-split--stacked/.test(next.className)) text.appendChild(fig); else text.insertBefore(fig, text.firstChild);
       return true;
     }
     var row = doc.createElement('div');
