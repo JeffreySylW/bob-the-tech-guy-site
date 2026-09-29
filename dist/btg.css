@@ -660,3 +660,14 @@ html .post-content { font-size: 16.5px; line-height: 1.72; color: var(--btg-text
 .btg-bob-photo { margin: 0 auto !important; width: 100%; max-width: 240px; }
 .btg-bob-photo img { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; border-radius: var(--btg-radius-md); box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--btg-green), 0 14px 30px rgba(20, 30, 20, .18); }
 .btg-bob-story > p:first-child { margin-top: 0 !important; }
+
+/* v1.5.10 — a real photo beside the first card on four service pages. */
+.btg-photo-row { display: grid; grid-template-columns: 1fr; gap: 20px; align-items: start; margin: 8px 0 24px; }
+@media (min-width: 720px) { .btg-photo-row { grid-template-columns: 1fr 240px; gap: 28px; } }
+.btg-photo-row > :first-child { margin-top: 0 !important; margin-bottom: 0 !important; }
+.btg-photo-fig { margin: 0 auto !important; width: 100%; max-width: 240px; }
+.btg-photo-fig img { display: block; width: 100%; height: auto; border-radius: var(--btg-radius-md); box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--btg-green), 0 14px 30px rgba(20, 30, 20, .18); }
+.btg-split-text .btg-photo-fig { margin: 18px 0 0 !important; }
+.btg-photo-fig--wrap { float: right; width: 200px; margin: 4px 0 12px 24px !important; }
+.btg-split--stacked .btg-split-text::after { content: ""; display: block; clear: both; }
+@media (max-width: 600px) { .btg-photo-fig--wrap { float: none; width: 100%; max-width: 240px; margin: 16px auto 0 !important; } }

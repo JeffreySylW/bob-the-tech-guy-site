@@ -625,7 +625,41 @@ window.BTGBob = (function () {
     hero.insertAdjacentHTML('afterbegin', faceHtml());
     return true;
   }
-  return { PORTRAIT: PORTRAIT, faceHtml: faceHtml, initHero: initHero };
+  // A real photo beside the first card on four service pages (hand-picked; dated or off-topic shots are left out).
+  var PHOTO_BASE = 'https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@v1.5.10/dist/brand/photos/';
+  var PHOTOS = {
+    '/hardware-repair-upgrades/': ['bob-repairing-pc.jpg', 'Bob Dyer repairing a computer', 476, 635],
+    '/hardware-install/': ['graphics-card.jpg', 'A graphics card ready to be installed', 600, 800],
+    '/memory-install/': ['motherboard-memory.jpg', 'A motherboard with its memory slots', 847, 635],
+    '/operating-system-install/': ['os-install.jpg', 'A laptop starting from a system recovery disk', 600, 800]
+  };
+  function photoFor(path) {
+    if (path.charAt(path.length - 1) !== '/') path += '/';
+    var p = PHOTOS[path];
+    return p ? { src: PHOTO_BASE + p[0], alt: p[1], width: p[2], height: p[3] } : null;
+  }
+  function initPhoto(doc, win) {
+    var photo = photoFor(win.location.pathname || '/');
+    var hero = doc.querySelector('.btg-hero'), next = hero && hero.nextElementSibling;
+    if (!photo || !next || doc.querySelector('.btg-photo-fig')) return false;
+    var fig = doc.createElement('figure');
+    fig.className = 'btg-photo-fig';
+    fig.innerHTML = '<img src="' + photo.src + '" alt="' + photo.alt + '" width="' + photo.width + '" height="' + photo.height + '">';
+    var text = /(^|s)btg-split(s|$)/.test(next.className) && next.querySelector('.btg-split-text');
+    if (text) {
+      // Split layouts: the photo goes in the empty space under (or beside) the intro text.
+      if (/btg-split--stacked/.test(next.className)) fig.className += ' btg-photo-fig--wrap';
+      text.appendChild(fig);
+      return true;
+    }
+    var row = doc.createElement('div');
+    row.className = 'btg-photo-row';
+    next.parentNode.insertBefore(row, next);
+    row.appendChild(next);
+    row.appendChild(fig);
+    return true;
+  }
+  return { PORTRAIT: PORTRAIT, faceHtml: faceHtml, initHero: initHero, photoFor: photoFor, initPhoto: initPhoto };
 })();
 
 
@@ -653,6 +687,7 @@ window.BTGBob = (function () {
     safely(function () { window.BTGSearch.initPage(document, window); });
     safely(function () { window.BTGAccount.init(document, window); });
     safely(function () { window.BTGBob.initHero(document, window); });
+    safely(function () { window.BTGBob.initPhoto(document, window); });
     // Reveals the header and page area the loader's inline style kept hidden until now.
     document.documentElement.classList.add('btg-ready');
   }
