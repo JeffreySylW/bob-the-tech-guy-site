@@ -671,3 +671,6 @@ html .post-content { font-size: 16.5px; line-height: 1.72; color: var(--btg-text
 .btg-photo-fig--wrap { float: right; width: 200px; margin: 4px 0 12px 24px !important; }
 .btg-split--stacked .btg-split-text::after { content: ""; display: block; clear: both; }
 @media (max-width: 600px) { .btg-photo-fig--wrap { float: none; width: 100%; max-width: 240px; margin: 16px auto 0 !important; } }
+.btg-split:not(.btg-split--stacked) .btg-split-text .btg-photo-fig { float: right; width: 160px; margin: 6px 0 10px 20px !important; }
+.btg-split:not(.btg-split--stacked) .btg-split-text::after { content: ""; display: block; clear: both; }
+@media (max-width: 600px) { .btg-split:not(.btg-split--stacked) .btg-split-text .btg-photo-fig { float: none; width: 100%; max-width: 240px; margin: 0 auto 16px !important; } }
