@@ -31,3 +31,9 @@ test('bundle runs it and styles the photo row', () => {
   assert.match(css, /\.btg-photo-row \{[^}]*display: grid;/);
   assert.match(css, /\.btg-photo-fig img \{/);
 });
+
+test('split-layout pages get the photo inside the text column, not a third column', () => {
+  assert.match(js, /btg-split-text/);
+  assert.match(css, /\.btg-split-text \.btg-photo-fig \{/);
+  assert.match(css, /\.btg-photo-fig--wrap \{[^}]*float: right;/);
+});

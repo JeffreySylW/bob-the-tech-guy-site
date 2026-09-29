@@ -640,14 +640,22 @@ window.BTGBob = (function () {
   }
   function initPhoto(doc, win) {
     var photo = photoFor(win.location.pathname || '/');
-    var hero = doc.querySelector('.btg-hero'), card = hero && hero.nextElementSibling;
-    if (!photo || !card || card.parentNode.className.indexOf('btg-photo-row') !== -1) return false;
-    var row = doc.createElement('div'), fig = doc.createElement('figure');
-    row.className = 'btg-photo-row';
+    var hero = doc.querySelector('.btg-hero'), next = hero && hero.nextElementSibling;
+    if (!photo || !next || doc.querySelector('.btg-photo-fig')) return false;
+    var fig = doc.createElement('figure');
     fig.className = 'btg-photo-fig';
     fig.innerHTML = '<img src="' + photo.src + '" alt="' + photo.alt + '" width="' + photo.width + '" height="' + photo.height + '">';
-    card.parentNode.insertBefore(row, card);
-    row.appendChild(card);
+    var text = /(^|s)btg-split(s|$)/.test(next.className) && next.querySelector('.btg-split-text');
+    if (text) {
+      // Split layouts: the photo goes in the empty space under (or beside) the intro text.
+      if (/btg-split--stacked/.test(next.className)) fig.className += ' btg-photo-fig--wrap';
+      text.appendChild(fig);
+      return true;
+    }
+    var row = doc.createElement('div');
+    row.className = 'btg-photo-row';
+    next.parentNode.insertBefore(row, next);
+    row.appendChild(next);
     row.appendChild(fig);
     return true;
   }
