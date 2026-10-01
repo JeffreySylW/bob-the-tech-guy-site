@@ -83,3 +83,10 @@ test('styles: reviews band, request button, old share buttons hidden', () => {
 test('home section titles become h2 but keep their old 34px look', () => {
   assert.match(css, /\.home \.fusion-title-size-two h2\.title-heading-left \{ font-size: 34px !important; line-height: 48px !important; font-weight: 300 !important;/);
 });
+
+test('v1.6.1: Google listing details are filled in (5.0 from 28 reviews) and drive the summary', () => {
+  assert.deepStrictEqual(R.GOOGLE, { url: 'https://maps.google.com/?cid=12486145650775343960', rating: 5, count: 28 });
+  const h = R.summaryHtml(R.GOOGLE);
+  assert.match(h, /5\.0<\/b> from 28 Google reviews/);
+  assert.match(h, /href="https:\/\/maps\.google\.com\/\?cid=12486145650775343960"[^>]*>Review us on Google/);
+});

@@ -758,9 +758,9 @@ window.BTGBob = (function () {
 /* 10-reviews.js */
 window.BTGReviews = (function () {
   var esc = window.BTGSearch.esc;
-  // STAGED: fill in when Bob sends his Google Business Profile review link, rating and review count.
+  // Bob's Google listing (rating and count as of 30 Sep 2026; update them when they change).
   // While url is empty the summary shows the on-site numbers and never mentions Google.
-  var GOOGLE = { url: '', rating: 0, count: 0 };
+  var GOOGLE = { url: 'https://maps.google.com/?cid=12486145650775343960', rating: 5, count: 28 };
   // Real reviews from the Reviews, Testimonials and home pages (rating 0 = written testimonial, no stars given).
   var REVIEWS = [
    {
