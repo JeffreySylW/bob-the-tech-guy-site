@@ -674,3 +674,39 @@ html .post-content { font-size: 16.5px; line-height: 1.72; color: var(--btg-text
 .btg-split:not(.btg-split--stacked) .btg-split-text .btg-photo-fig { float: right; width: 160px; margin: 6px 0 10px 20px !important; }
 .btg-split:not(.btg-split--stacked) .btg-split-text::after { content: ""; display: block; clear: both; }
 @media (max-width: 600px) { .btg-split:not(.btg-split--stacked) .btg-split-text .btg-photo-fig { float: none; width: 100%; max-width: 240px; margin: 0 auto 16px !important; } }
+
+/* v1.6.0 — reviews band, request-a-visit button, old post share buttons hidden. */
+.btg-rv { display: grid; grid-template-columns: 1fr; gap: 20px; align-items: center; margin: 28px 0 32px; }
+@media (min-width: 900px) { .btg-rv { grid-template-columns: 210px minmax(0, 1fr); gap: 28px; } }
+.btg-rv-sum { display: grid; justify-items: center; gap: 6px; text-align: center; }
+.btg-rv-word { margin: 0 !important; font: 700 20px/1 var(--btg-font-head); letter-spacing: .08em; text-transform: uppercase; color: var(--btg-text); }
+.btg-rv-stars { display: inline-flex; gap: 2px; }
+.btg-rv-sum .btg-rv-stars svg { width: 26px; height: 26px; }
+.btg-rv-score { margin: 0 !important; color: var(--btg-text); } .btg-rv-score b { font-size: 18px; }
+.btg-rv-count { margin: 0 !important; font-size: 13.5px; color: var(--btg-text-muted); }
+.btg-rv-all, .btg-rv-google { margin-top: 4px; display: inline-block; border: 1px solid #38792f; color: #38792f !important; border-radius: 8px; padding: 7px 14px; font-weight: 700; font-size: 14px; text-decoration: none !important; }
+.btg-rv-all:hover, .btg-rv-all:focus-visible, .btg-rv-google:hover, .btg-rv-google:focus-visible { background: var(--btg-green-tint); }
+.btg-rv-slider { position: relative; min-width: 0; }
+.btg-rv-track { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(260px, calc((100% - 32px) / 3)); gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: thin; padding: 2px 2px 12px; }
+.btg-rv-track:focus-visible { outline: 3px solid var(--btg-green); outline-offset: 2px; }
+.btg-rv-card { scroll-snap-align: start; background: var(--btg-card-bg); border: 1px solid var(--btg-card-border); border-radius: 12px; padding: 16px 18px; display: grid; align-content: start; gap: 8px; }
+.btg-rv-head { display: flex; gap: 10px; align-items: center; }
+.btg-rv-avatar { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: #38792f; color: #fff; font-weight: 700; flex: none; }
+.btg-rv-name { display: block; font-size: 15px; color: var(--btg-text); }
+.btg-rv-sub { display: block; font-size: 12.5px; color: var(--btg-text-muted); }
+.btg-rv-text { margin: 0 !important; font-size: 15px !important; line-height: 1.55 !important; color: #2b3029; }
+.btg-rv-text.is-clamped { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.btg-rv-more { justify-self: start; background: none !important; border: 0 !important; padding: 0 !important; color: #38792f !important; font: 700 14px var(--btg-font-body) !important; cursor: pointer; text-decoration: underline; }
+.btg-rv-nav { display: flex; justify-content: flex-end; gap: 8px; }
+.btg-rv-prev, .btg-rv-next { width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid var(--btg-card-border) !important; background: #fff !important; color: #38792f !important; font: 700 22px/1 var(--btg-font-body) !important; cursor: pointer; padding: 0 !important; }
+.btg-rv-prev:hover, .btg-rv-next:hover, .btg-rv-prev:focus-visible, .btg-rv-next:focus-visible { border-color: var(--btg-green) !important; }
+.btg-cta-request { margin: 14px 0 0 !important; }
+.btg-request-btn { display: inline-block; background: #3a7f30; color: #fff !important; text-decoration: none !important; border-radius: 8px; padding: 11px 22px; font-weight: 700; transition: transform .18s, box-shadow .18s; }
+.btg-request-btn:hover, .btg-request-btn:focus-visible { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(84, 170, 71, .45); }
+.fusion-sharing-box { display: none !important; }
+@media (prefers-reduced-motion: reduce) { .btg-request-btn { transition: none; transform: none !important; } .btg-rv-track { scroll-behavior: auto; } }
+.btg-nj-intro p { font-size: 17px !important; max-width: 70ch; }
+.btg-nj-h { font-size: 24px !important; margin: 32px 0 12px !important; }
+.btg-nj-towns { list-style: none; margin: 0 !important; padding: 0 !important; display: flex; flex-wrap: wrap; gap: 8px; }
+.btg-nj-towns li { margin: 0 !important; padding: 6px 12px; border-radius: 99px; background: var(--btg-green-tint); color: #2b4a26; font-weight: 700; font-size: 14px; }
+.home .fusion-title-size-two h2.title-heading-left { font-size: 34px !important; line-height: 48px !important; font-weight: 300 !important; margin: 0 !important; color: #333; }
