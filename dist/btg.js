@@ -189,8 +189,8 @@ window.BTGInit = (function () {
       });
     }
     if (win.BTGMeta) {
-      var lede = doc.querySelector('.btg-hero-lede');
-      var desc = (lede && lede.textContent && lede.textContent.trim())
+      var lede = doc.querySelector('.btg-hero-lede'), here = (win.location && win.location.pathname) || '/';
+      var desc = DESCRIPTIONS[here] || (lede && lede.textContent && lede.textContent.trim())
         || (doc.title ? doc.title + ' — Bob The Tech Guy computer repair.' : 'Computer repair and networking services from Bob The Tech Guy.');
       win.BTGMeta.setDescription(desc);
     }
@@ -237,7 +237,99 @@ window.BTGInit = (function () {
     cta.parentNode.insertBefore(p, cta.nextSibling);
   }
 
+  // Page descriptions (110-160 characters) for search results; the hero lede is only the fallback.
+  var DESCRIPTIONS = {
+    '/': 'Bob The Tech Guy: on-site computer repair, virus removal and networking for homes and small businesses in Chesterfield, Midlothian and greater Richmond, VA.',
+    '/about/': 'Meet Bob Dyer, the Marine Corps veteran behind Bob The Tech Guy, with 25 years of hands-on IT experience, now serving Chesterfield and Richmond, VA.',
+    '/services-2/': 'Computer repair, virus removal, data recovery, networking, setup and upgrades. Browse every service Bob The Tech Guy offers homes and small businesses.',
+    '/contact-2/': 'Call 844-TEKGUY-0 or send a message to book on-site computer repair in Chesterfield and greater Richmond, VA, or service in northern New Jersey.',
+    '/testimonials/': 'Read what customers say about Bob The Tech Guy: honest, on-time computer repair and support that is done right the first time, at a fair price.',
+    '/reviews/': 'Customer reviews of Bob The Tech Guy computer repair. Every rated review is five stars, for friendly, knowledgeable service at reasonable rates.',
+    '/gallery/': 'Photos from real Bob The Tech Guy jobs: PC builds, upgrades, virus cleanups, data recovery and network installs for homes and small businesses.',
+    '/northern-new-jersey/': 'Bob The Tech Guy still serves northern New Jersey: on-site computer repair, virus removal and networking in Pompton Lakes, Wyckoff, Ramsey and nearby.',
+    '/customer-log-in/': 'Sign in to your Bob The Tech Guy customer account to view your profile and update your settings, or create a new account in about a minute.',
+    '/search/': 'Search Bob The Tech Guy services and pages to find the right help for a slow computer, a virus, Wi-Fi trouble, lost files, a new PC and more.',
+    '/networking/': 'Home and small-business networking from Bob The Tech Guy: Wi-Fi setup, wired networks and routers installed and secured on-site in Chesterfield, VA.',
+    '/anti-virus/': 'Virus, spyware and malware removal from Bob The Tech Guy. Bob cleans infected computers, installs current protection and explains what he found.',
+    '/computer-tune-up/': 'Slow computer? A Bob The Tech Guy tune-up clears junk, fixes slow start-ups, installs critical updates and gets your PC running quickly again.',
+    '/computer-set-up/': 'New computer setup by Bob The Tech Guy: updates, user accounts, email, Microsoft Office and printers set up so the computer is ready from day one.',
+    '/data-recovery-service/': 'Lost files after a crash, deletion or failing drive? Bob The Tech Guy recovers photos, documents and other files from damaged or failed hard drives.',
+    '/backup-solutions/': 'Backup solutions from Bob The Tech Guy: automatic local and cloud backups set up so your photos, documents and business files survive a failure.',
+    '/software-installation-and-configuration/': 'Software installation and configuration by Bob The Tech Guy: Microsoft Office, security tools, drivers and business programs installed properly.',
+    '/screen-replacement/': 'Cracked or dead laptop screen? Bob The Tech Guy replaces it with the right part and tests the display before your laptop comes back to you.',
+    '/parental-controls/': 'Parental controls set up by Bob The Tech Guy: content filters, time limits and safer browsing configured on the computers your family uses.',
+    '/printer-solutions/': 'Printer and scanner setup and troubleshooting from Bob The Tech Guy: wired and wireless printers installed, shared on your network and working.',
+    '/operating-system-install/': 'Windows, Mac OS and Linux installs and reinstalls from Bob The Tech Guy, with drivers, critical updates and your software set up afterwards.',
+    '/hardware-repair-upgrades/': 'Computer hardware repair and upgrades from Bob The Tech Guy: diagnostics, failed parts replaced, and upgrades that make an older PC fast again.',
+    '/hardware-install/': 'Hardware installation by Bob The Tech Guy: graphics cards, hard drives, power supplies, webcams and more installed, configured and tested together.',
+    '/memory-install/': 'RAM upgrades from Bob The Tech Guy: the right memory installed, verified in BIOS and the operating system, and tested so your computer runs faster.',
+    '/email-setup/': 'Email setup by Bob The Tech Guy: Outlook, Gmail and business email accounts configured on your computers so mail arrives, sends and syncs properly.'
+  };
+
+  // The ~375 New Jersey area posts were merged into one page; old links to them go there.
+  var NJ_PAGE = '/northern-new-jersey/';
+  var NJ_SLUG = /(-nj|new-jersey|pompton|pompon|passaic|bergen|pequannock|saddle-river|wanaque|butler|wyckoff|ramsey|mahwah|oakland|allendale|riverdale|totowa|montville|wayne|midland-park|waldwick|ridgewood|glen-rock|fair-lawn|paramus)/;
+  function njTarget(path) {
+    var m = /^\/([a-z0-9-]+)\/?$/.exec(path || '');
+    if (!m || path === NJ_PAGE || !NJ_SLUG.test(m[1])) return null;
+    return NJ_PAGE;
+  }
+  function rewriteNjLinks(doc) {
+    var host = 'bobthetechguy.com', seen = {};
+    Array.prototype.forEach.call(doc.querySelectorAll('a[href]'), function (a) {
+      if (a.hostname && a.hostname.replace(/^www\./, '') !== host) return;
+      var t = njTarget(a.pathname);
+      if (!t) return;
+      a.setAttribute('href', 'https://' + host + t);
+      // In footer link lists, keep one "Northern New Jersey" entry.
+      var li = a.closest && a.closest('.fusion-footer li');
+      if (!li) return;
+      if (seen[t]) li.parentNode.removeChild(li); else { seen[t] = true; a.textContent = 'Northern New Jersey'; }
+    });
+  }
+
+  // The footer holds an old cryptocurrency price widget (admin-only to delete). Stop its script and remove it.
+  function isBlockedScript(src) { return /coinmarketcap\.com/i.test(src || ''); }
+  function blockCrypto(doc) {
+    Array.prototype.forEach.call(doc.querySelectorAll('.coinmarketcap-currency-widget'), function (w) { w.parentNode.removeChild(w); });
+  }
+
+  // Service pages: a "Request a visit" button in the closing call box, pre-filling the contact form.
+  function requestHref(service) { return '/contact-2/?service=' + encodeURIComponent(service) + '#btg-request'; }
+  function addRequestButton(doc, win) {
+    var path = (win.location && win.location.pathname) || '/', page = null;
+    (window.BTGSearch ? window.BTGSearch.PAGES : []).forEach(function (p) { if (p.type === 'SERVICE' && p.url.replace('https://bobthetechguy.com', '') === path) page = p; });
+    var box = doc.querySelector('.btg-cta-block');
+    if (!page || !box || box.querySelector('.btg-request-btn')) return false;
+    var p = doc.createElement('p');
+    p.className = 'btg-cta-request';
+    p.innerHTML = '<a class="btg-request-btn" href="' + requestHref(page.title).replace(/&/g, '&amp;') + '">Request a visit</a>';
+    box.appendChild(p);
+    return true;
+  }
+  function prefillContact(doc, win) {
+    var form = doc.querySelector('.wpcf7');
+    if (!form) return false;
+    form.id = 'btg-request';
+    var m = /[?&]service=([^&#]*)/.exec(win.location.search || '');
+    if (!m) return false;
+    var service = '';
+    try { service = decodeURIComponent(m[1].replace(/\+/g, ' ')).slice(0, 80); } catch (e) { return false; }
+    var msg = form.querySelector('[name="your-message"]'), subj = form.querySelector('[name="your-subject"]');
+    if (subj && !subj.value) subj.value = 'Request a visit: ' + service;
+    if (msg && !msg.value) msg.value = 'I would like to request a visit for ' + service + '.\n\n';
+    return true;
+  }
+
   return {
+    DESCRIPTIONS: DESCRIPTIONS,
+    njTarget: njTarget,
+    rewriteNjLinks: rewriteNjLinks,
+    isBlockedScript: isBlockedScript,
+    blockCrypto: blockCrypto,
+    requestHref: requestHref,
+    addRequestButton: addRequestButton,
+    prefillContact: prefillContact,
     addHeroTrust: addHeroTrust,
     addCtaDigits: addCtaDigits,
     fixTelLinks: fixTelLinks,
@@ -663,6 +755,164 @@ window.BTGBob = (function () {
 })();
 
 
+/* 10-reviews.js */
+window.BTGReviews = (function () {
+  var esc = window.BTGSearch.esc;
+  // STAGED: fill in when Bob sends his Google Business Profile review link, rating and review count.
+  // While url is empty the summary shows the on-site numbers and never mentions Google.
+  var GOOGLE = { url: '', rating: 0, count: 0 };
+  // Real reviews from the Reviews, Testimonials and home pages (rating 0 = written testimonial, no stars given).
+  var REVIEWS = [
+   {
+    "name": "Patty Kapr",
+    "place": "",
+    "date": "Jun 8, 2018",
+    "rating": 5,
+    "text": "I have been so pleased with the prompt service and excellent work I have received over the past several months from Bob. My church also used Bob and was extremely pleased. I would highly recommend!"
+   },
+   {
+    "name": "Bill D",
+    "place": "",
+    "date": "Jun 8, 2018",
+    "rating": 5,
+    "text": "Thanks Bob for the work you did to get my computer up & running. Going from an old system I was really having problems until you saved the day. In a short a period of time you had things running and we were able to communicate in a language that I could understand. It was easy working with someone like you on site. Thanks again for a great job. I will definitely call you again and would recommend you to my friends!"
+   },
+   {
+    "name": "Rich F.",
+    "place": "",
+    "date": "Dec 19, 2017",
+    "rating": 5,
+    "text": "I used Bob The Tech Guy to simplify my business invoicing. Bob created custom excel documents to aid in making the invoicing of my customers quicker. I've also used them to speed up my small business network. They do it all! He's got me as a customer for life! Thanks Bob!!"
+   },
+   {
+    "name": "Robert Papa",
+    "place": "",
+    "date": "Oct 11, 2016",
+    "rating": 5,
+    "text": "Very knowledgeable, great service, did a lot of extra work for no additional fees, will definitely use in the future."
+   },
+   {
+    "name": "Abbe Keslinger",
+    "place": "Westwood, NJ",
+    "date": "Oct 11, 2016",
+    "rating": 5,
+    "text": "I have been using BobtheTechGuy to repair my laptops. He is really good. He is honest. He knows his stuff. If you are having computer problems I would highly recommend calling him to help you out."
+   },
+   {
+    "name": "Mauricio",
+    "place": "",
+    "date": "Jul 18, 2016",
+    "rating": 5,
+    "text": "Thank you BTTG!!!"
+   },
+   {
+    "name": "Mary and Dave Codispoti",
+    "place": "",
+    "date": "Mar 28, 2016",
+    "rating": 5,
+    "text": "Bob the Tech Guy is just what you and your computer need. A friendly, on time, guy who knows his way around any computer, printer, fax machine, etc. He will explain the problem(s) and fix them properly. He is honest and his fees are reasonable. We have been customers of his for years and have never been disappointed. Get repairs done right the first time, call Bob!"
+   },
+   {
+    "name": "Drew C.",
+    "place": "Pompton Lakes, NJ",
+    "date": "",
+    "rating": 0,
+    "text": "Was having multiple problems with my home PC. Bob the Tech Guy picked it up and within days had it running like new. Cleaned up all the glitches and viruses. Run like new. Thanks Bob, feeling safe online again. If your having problems with your home or office computer system give Bob a call. Have him check it out. Very friendly and professional."
+   },
+   {
+    "name": "Mark M.",
+    "place": "Little Falls, NJ",
+    "date": "",
+    "rating": 0,
+    "text": "If you want someone for all your computer needs...Bob the Tech Guy is the Man!! Very reliable with reasonable rates.Your computer doesn't have to be broken to call Bob.....he offers maintenance and management to keep your computer running fast and secure!!! Simply The Best!!!"
+   },
+   {
+    "name": "Ray F.",
+    "place": "Riverdale, NJ",
+    "date": "",
+    "rating": 0,
+    "text": "Bob has been fixing my computers for a year now. I have had no problems when they come back; everything was fixed right the first time and at a fair rate. I had computers that crashed and he retrieved the data that I thought was lost. Great work at a great price. Thanks Bob!"
+   },
+   {
+    "name": "Michelle P.",
+    "place": "Little Falls, NJ",
+    "date": "",
+    "rating": 0,
+    "text": "If you need any computer repair or you're just looking to do some upgrades, these guys are the ones for the job! My computer was really slow and acting weird, so I called Bob The Tech Guy to come see what was going on. They arrived, diagnosed the issue as malware infecting my PC, and had my PC running smoothly before they left. Prices are very reasonable also, especially when you compare them to other big chain services. I will definitely use them again for any of my future computer needs!"
+   },
+   {
+    "name": "Cassie F.",
+    "place": "Pompton Lakes, NJ",
+    "date": "",
+    "rating": 0,
+    "text": "Bob the Tech Guy is very reasonably priced and very patient. He not only repaired my laptops, my daughters and nieces laptops ... but he also helped my 80 yr old father who barely knew how to turn his pc on. Just an overall great experience. Yes I will use his service again for sure."
+   }
+  ];
+  var STAR = '<svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false"><path d="M10 1.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L10 14.8l-5.2 2.8 1-5.8L1.5 7.7l5.9-.8z" fill="#f5b301"/></svg>';
+  function stars(n) { var h = ''; for (var i = 0; i < 5; i++) h += STAR; return '<span class="btg-rv-stars" role="img" aria-label="' + n + ' out of 5 stars">' + h + '</span>'; }
+  function summaryHtml(g) {
+    var rated = REVIEWS.filter(function (r) { return r.rating; });
+    if (g && g.url && g.count) {
+      return '<div class="btg-rv-sum"><p class="btg-rv-word">Excellent</p>' + stars(5) + '<p class="btg-rv-score"><b>' + Number(g.rating).toFixed(1) + '</b> from ' + g.count + ' Google reviews</p>' +
+        '<a class="btg-rv-google" href="' + esc(g.url) + '" rel="noopener">Review us on Google</a></div>';
+    }
+    var avg = rated.reduce(function (a, r) { return a + r.rating; }, 0) / rated.length;
+    return '<div class="btg-rv-sum"><p class="btg-rv-word">Excellent</p>' + stars(5) + '<p class="btg-rv-score"><b>' + avg.toFixed(1) + '</b> out of 5</p>' +
+      '<p class="btg-rv-count">' + rated.length + ' star ratings · ' + REVIEWS.length + ' written reviews</p><a class="btg-rv-all" href="/reviews/">Read all reviews</a></div>';
+  }
+  function cardHtml(r, i) {
+    var sub = [r.place, r.date].filter(Boolean).join(' · ');
+    var long = r.text.length > 170;
+    return '<article class="btg-rv-card" id="btg-rv-' + i + '"><header class="btg-rv-head"><span class="btg-rv-avatar" aria-hidden="true">' + esc(r.name.charAt(0)) + '</span>' +
+      '<span><b class="btg-rv-name">' + esc(r.name) + '</b>' + (sub ? '<span class="btg-rv-sub">' + esc(sub) + '</span>' : '') + '</span></header>' +
+      (r.rating ? stars(r.rating) : '') + '<p class="btg-rv-text' + (long ? ' is-clamped' : '') + '" id="btg-rv-text-' + i + '">' + esc(r.text) + '</p>' +
+      (long ? '<button type="button" class="btg-rv-more" aria-expanded="false" aria-controls="btg-rv-text-' + i + '">Read more</button>' : '') + '</article>';
+  }
+  function bandHtml(g) {
+    return '<section class="btg-rv" aria-label="Customer reviews">' + summaryHtml(g) +
+      '<div class="btg-rv-slider"><div class="btg-rv-track" tabindex="0" aria-label="Reviews, scroll sideways for more">' + REVIEWS.map(cardHtml).join('') + '</div>' +
+      '<div class="btg-rv-nav"><button type="button" class="btg-rv-prev" aria-label="Previous reviews">&#8249;</button><button type="button" class="btg-rv-next" aria-label="Next reviews">&#8250;</button></div></div></section>';
+  }
+  // Where the band goes: home (in place of the old testimonial slider), contact, service pages, Northern New Jersey.
+  function spot(doc, path) {
+    var slot = doc.querySelector('.btg-rv-slot');
+    if (slot) return { el: slot, how: 'inside' };
+    if (path === '/') { var old = doc.querySelector('.fusion-testimonials'); if (old) return { el: old, how: 'replace' }; }
+    if (path === '/contact-2/') { var loc = doc.querySelector('.btg-locations'); if (loc) return { el: loc, how: 'after' }; }
+    var cta = doc.querySelector('.btg-cta-block');
+    var isService = (window.BTGSearch ? window.BTGSearch.PAGES : []).some(function (p) { return p.type === 'SERVICE' && p.url.replace('https://bobthetechguy.com', '') === path; });
+    if (isService && cta) return { el: cta, how: 'before' };
+    return null;
+  }
+  function init(doc, win) {
+    if (doc.querySelector('.btg-rv')) return false;
+    var s = spot(doc, (win.location && win.location.pathname) || '/');
+    if (!s) return false;
+    var wrap = doc.createElement('div');
+    wrap.innerHTML = bandHtml(GOOGLE);
+    var band = wrap.firstChild;
+    if (s.how === 'inside') s.el.appendChild(band);
+    else if (s.how === 'after') s.el.parentNode.insertBefore(band, s.el.nextSibling);
+    else s.el.parentNode.insertBefore(band, s.el);
+    if (s.how === 'replace') s.el.parentNode.removeChild(s.el);
+    var track = band.querySelector('.btg-rv-track');
+    function page(dir) { track.scrollBy({ left: dir * track.clientWidth * 0.9, behavior: 'smooth' }); }
+    band.querySelector('.btg-rv-prev').addEventListener('click', function () { page(-1); });
+    band.querySelector('.btg-rv-next').addEventListener('click', function () { page(1); });
+    band.addEventListener('click', function (e) {
+      var b = e.target.closest && e.target.closest('.btg-rv-more');
+      if (!b) return;
+      var open = b.getAttribute('aria-expanded') !== 'true';
+      b.setAttribute('aria-expanded', String(open));
+      doc.getElementById(b.getAttribute('aria-controls')).classList.toggle('is-clamped', !open);
+      b.textContent = open ? 'Show less' : 'Read more';
+    });
+    return true;
+  }
+  return { GOOGLE: GOOGLE, REVIEWS: REVIEWS, summaryHtml: summaryHtml, cardHtml: cardHtml, bandHtml: bandHtml, init: init };
+})();
+
+
 (function () {
   // Guards against the Node test environment's minimal `document` stub,
   // which has no querySelector/readyState/addEventListener — this file is
@@ -670,6 +920,19 @@ window.BTGBob = (function () {
   // BTGInit functions above without wanting this auto-run to fire.
   if (typeof document === 'undefined' || typeof document.querySelector !== 'function' || typeof document.addEventListener !== 'function') {
     return;
+  }
+
+  // Block the footer's cryptocurrency widget script before the parser reaches it.
+  if (typeof MutationObserver === 'function') {
+    var cryptoWatch = new MutationObserver(function (list) {
+      list.forEach(function (m) {
+        Array.prototype.forEach.call(m.addedNodes, function (n) {
+          if (n.tagName === 'SCRIPT' && window.BTGInit.isBlockedScript(n.src)) { n.type = 'javascript/blocked'; if (n.parentNode) n.parentNode.removeChild(n); }
+        });
+      });
+    });
+    cryptoWatch.observe(document.documentElement, { childList: true, subtree: true });
+    window.addEventListener('load', function () { cryptoWatch.disconnect(); });
   }
 
   // Each enhancement runs on its own, so one failing (e.g. after a theme update)
@@ -688,6 +951,11 @@ window.BTGBob = (function () {
     safely(function () { window.BTGAccount.init(document, window); });
     safely(function () { window.BTGBob.initHero(document, window); });
     safely(function () { window.BTGBob.initPhoto(document, window); });
+    safely(function () { window.BTGInit.rewriteNjLinks(document); });
+    safely(function () { window.BTGInit.blockCrypto(document); });
+    safely(function () { window.BTGInit.addRequestButton(document, window); });
+    safely(function () { window.BTGInit.prefillContact(document, window); });
+    safely(function () { window.BTGReviews.init(document, window); });
     // Reveals the header and page area the loader's inline style kept hidden until now.
     document.documentElement.classList.add('btg-ready');
   }
