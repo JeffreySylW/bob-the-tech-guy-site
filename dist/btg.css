@@ -710,3 +710,10 @@ html .post-content { font-size: 16.5px; line-height: 1.72; color: var(--btg-text
 .btg-nj-towns { list-style: none; margin: 0 !important; padding: 0 !important; display: flex; flex-wrap: wrap; gap: 8px; }
 .btg-nj-towns li { margin: 0 !important; padding: 6px 12px; border-radius: 99px; background: var(--btg-green-tint); color: #2b4a26; font-weight: 700; font-size: 14px; }
 .home .fusion-title-size-two h2.title-heading-left { font-size: 34px !important; line-height: 48px !important; font-weight: 300 !important; margin: 0 !important; color: #333; }
+
+/* v1.6.2 */
+.btg-privacy-note { margin-top: 10px; font-size: 14px; color: var(--btg-text-muted); }
+.btg-privacy-note a { color: #38792f; }
+.btg-hero-alt { margin: 10px 0 0 !important; font-size: 14px; }
+.btg-hero-alt a { color: #8bd17c !important; text-decoration: none; }
+.btg-hero-alt a:hover, .btg-hero-alt a:focus-visible { text-decoration: underline; }
