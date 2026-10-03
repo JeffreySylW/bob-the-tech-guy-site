@@ -321,8 +321,64 @@ window.BTGInit = (function () {
     return true;
   }
 
+  // "Customer Log In" is a plain link to the login page (the old Register / Log In drop-down is gone).
+  // Runs on the main, mobile and sticky copies; Avada builds the mobile clone late, so run() calls it again on load.
+  function fixLoginMenu(doc) {
+    Array.prototype.forEach.call(doc.querySelectorAll('li'), function (li) {
+      var a = null, i, k;
+      for (i = 0; i < li.children.length; i++) if (li.children[i].tagName === 'A') { a = li.children[i]; break; }
+      if (!a || a.textContent.trim() !== 'Customer Log In') return;
+      a.setAttribute('href', 'https://bobthetechguy.com/customer-log-in/');
+      a.removeAttribute('aria-haspopup');
+      a.removeAttribute('aria-expanded');
+      for (k = li.children.length - 1; k >= 0; k--) {
+        if (li.children[k].tagName === 'UL' && li.children[k].classList.contains('sub-menu')) li.removeChild(li.children[k]);
+      }
+      li.classList.remove('menu-item-has-children');
+      li.classList.remove('fusion-dropdown-menu');
+    });
+  }
+
+  // Privacy note under the contact form.
+  var PRIVACY_NOTE = '<p class="btg-privacy-note">We use your name, email and message only to reply about your repair. We don\'t sell this information. Email <a href="mailto:info@bobthetechguy.com">info@bobthetechguy.com</a> to ask us to delete it.</p>';
+  function addPrivacyNote(doc) {
+    var form = doc.querySelector('.wpcf7');
+    if (!form || doc.querySelector('.btg-privacy-note')) return false;
+    form.insertAdjacentHTML('afterend', PRIVACY_NOTE);
+    return true;
+  }
+
+  // Footer: drop the empty Instagram widget and the dead Twitter timeline. The Twitter script may add its iframe late.
+  function quietFooter(doc) {
+    Array.prototype.forEach.call(doc.querySelectorAll('.fusion-footer .fusion-footer-widget-column'), function (col) {
+      var h = col.querySelector('h1, h2, h3, h4, h5, h6, .widget-title');
+      var insta = h && /instagram/i.test(h.textContent) && !col.querySelector('img, iframe');
+      var tw = /Tweets by/.test(col.textContent) || !!col.querySelector('a.twitter-timeline') ||
+        Array.prototype.some.call(col.querySelectorAll('iframe'), function (f) { return (f.getAttribute('src') || '').indexOf('twitter') !== -1; });
+      if ((insta || tw) && col.parentNode) col.parentNode.removeChild(col);
+    });
+  }
+
+  // Home hero: a way back to the New Jersey page, after the trust line (so run() calls this after addHeroTrust).
+  function addNjLine(doc, win) {
+    if (!win.location || win.location.pathname !== '/') return false;
+    var hero = doc.querySelector('section.btg-hero');
+    if (!hero || hero.querySelector('.btg-hero-alt')) return false;
+    var p = doc.createElement('p');
+    p.className = 'btg-hero-alt';
+    p.innerHTML = '<a href="https://bobthetechguy.com/northern-new-jersey/">Still serving northern New Jersey &rarr;</a>';
+    var trust = hero.querySelector('.btg-hero-trust');
+    if (trust) trust.parentNode.insertBefore(p, trust.nextSibling); else hero.appendChild(p);
+    return true;
+  }
+
   return {
     DESCRIPTIONS: DESCRIPTIONS,
+    fixLoginMenu: fixLoginMenu,
+    PRIVACY_NOTE: PRIVACY_NOTE,
+    addPrivacyNote: addPrivacyNote,
+    quietFooter: quietFooter,
+    addNjLine: addNjLine,
     njTarget: njTarget,
     rewriteNjLinks: rewriteNjLinks,
     isBlockedScript: isBlockedScript,
@@ -942,6 +998,9 @@ window.BTGReviews = (function () {
     safely(function () { window.BTGInit.fixTelLinks(document); });
     safely(function () { window.BTGInit.addCtaDigits(document); });
     safely(function () { window.BTGInit.addHeroTrust(document); });
+    safely(function () { window.BTGInit.addNjLine(document, window); });
+    safely(function () { window.BTGInit.fixLoginMenu(document); });
+    safely(function () { window.BTGInit.quietFooter(document); });
     safely(function () { window.BTGInit.removeDuplicateTitleBar(document); });
     safely(function () { window.BTGInit.removeHomeSlider(document); });
     safely(function () { window.BTGInit.injectSchemaAndMeta(document, window); });
@@ -955,9 +1014,15 @@ window.BTGReviews = (function () {
     safely(function () { window.BTGInit.blockCrypto(document); });
     safely(function () { window.BTGInit.addRequestButton(document, window); });
     safely(function () { window.BTGInit.prefillContact(document, window); });
+    safely(function () { window.BTGInit.addPrivacyNote(document); });
     safely(function () { window.BTGReviews.init(document, window); });
     // Reveals the header and page area the loader's inline style kept hidden until now.
     document.documentElement.classList.add('btg-ready');
+    // Avada builds its mobile menu clone and the Twitter script adds its iframe after DOMContentLoaded.
+    window.addEventListener('load', function () {
+      safely(function () { window.BTGInit.fixLoginMenu(document); });
+      safely(function () { window.BTGInit.quietFooter(document); });
+    });
   }
   if (document.readyState !== 'loading') {
     run();

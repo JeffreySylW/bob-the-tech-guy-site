@@ -34,8 +34,8 @@ await b.evalJs(`document.querySelector('li.btg-has-panel > a').focus()`); await 
 await b.key('Tab', 'Tab', 9); await b.sleep(200);
 await b.key('Escape', 'Escape', 27); await b.sleep(250);
 check('Escape from a panel link closes the panel', await b.evalJs(`document.querySelector('.btg-dropdown').hidden && document.activeElement === document.querySelector('li.btg-has-panel > a')`));
-// The theme's small dropdowns (About → Reviews, Customer Log In → Register/Log In) open under their own item and stay reachable.
-for (const label of ['About', 'Customer Log In']) {
+// The theme's small dropdowns (About → Reviews; Customer Log In is a plain link since v1.6.2) open under their own item and stay reachable.
+for (const label of ['About']) {
   const at = await b.evalJs(`(() => { const a = [...document.querySelectorAll('.fusion-main-menu > ul > li > a')].find((x) => x.textContent.trim().startsWith('${label}')); const r = a.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2, r.left]; })()`);
   await b.move(at[0], at[1]); await b.sleep(500);
   const sub = await b.evalJs(`(() => { const a = [...document.querySelectorAll('.fusion-main-menu > ul > li > a')].find((x) => x.textContent.trim().startsWith('${label}')); const u = a.parentElement.querySelector(':scope > .sub-menu'); const r = u.getBoundingClientRect(); const cs = getComputedStyle(u); return { left: Math.round(r.left), top: Math.round(r.top), aBottom: Math.round(a.getBoundingClientRect().bottom), visible: cs.visibility !== 'hidden' && cs.display !== 'none' && +cs.opacity > 0.5 && r.height > 20, first: u.querySelector('a').getBoundingClientRect().toJSON() }; })()`);
@@ -46,6 +46,7 @@ for (const label of ['About', 'Customer Log In']) {
   await b.shot(out + '/sub-' + label.split(' ')[0].toLowerCase() + '.png');
   await b.move(700, 800); await b.sleep(400);
 }
+check('Customer Log In is a plain link (no dropdown)', await b.evalJs(`(() => { const a = [...document.querySelectorAll('.fusion-main-menu > ul > li > a')].find((x) => x.textContent.trim() === 'Customer Log In'); return !!a && !a.parentElement.querySelector('.sub-menu') && a.pathname === '/customer-log-in/'; })()`));
 // Contact gets the same hover trace on pages with the old per-page style block (Memory Install has one).
 check('Contact hover trace not suppressed by per-page styles', await b.evalJs(`getComputedStyle(document.querySelector('.fusion-main-menu > ul > li.menu-item-11810 > a'), '::after').display !== 'none'`));
 await b.evalJs(`document.activeElement.blur()`);
