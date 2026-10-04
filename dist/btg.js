@@ -812,6 +812,76 @@ window.BTGReviews = (function () {
   // Real reviews from the Reviews, Testimonials and home pages (rating 0 = written testimonial, no stars given).
   var REVIEWS = [
    {
+    "name": "Frank Abate",
+    "place": "",
+    "date": "Apr 28, 2022",
+    "rating": 5,
+    "text": "I had Bob come over and clean up my computer that was clogged with spyware. I decided to upgrade and got confused on what to buy. I turned this over to Bob and he built me a great computer that really moves fast at a great price. He's been very helpful on all things related to keeping my computer going top notch and he is extremely fair and trustworthy. I highly recommend him and am thankful to have him on my support team."
+   },
+   {
+    "name": "Lauren",
+    "place": "",
+    "date": "Feb 24, 2022",
+    "rating": 5,
+    "text": "I had an external hard drive that had stopped working, I went to a computer repair store(out of the county) and they told me the drive could not be saved. All of my life’s pictures were on there and I knew I had to find someone else to try to save my drive, I asked a few neighbors and found Bob! He saved my files and photos from my failed hard drive and was able to get them onto a new external drive! If you have an issue with an external drive definitely bring it to Bob to check it out!"
+   },
+   {
+    "name": "George Courter",
+    "place": "",
+    "date": "Jan 16, 2022",
+    "rating": 5,
+    "text": "I called Bob about an issue with my Toshiba laptop and he promptly got back to me. I was unable to get on the laptop at all. I had restored it to its new condition by wiping it entirely after it froze up on me. Bob was able to quickly gain access to the computer for me and install several programs so that I could use it once again. Bob is extremely knowledgeable and was able to answer all of my computer related questions with ease. His explanations are easy to follow and he helped me access my photos through Google/Gmail on all my devices. I would highly recommend Bob The Tech Guy for any computer repair or technical installation. Thank you, George Courter"
+   },
+   {
+    "name": "Daniel F. Deraney, Esq.",
+    "place": "",
+    "date": "Jan 12, 2022",
+    "rating": 5,
+    "text": "Contacted Bob after the Screen went on my HP G6 Pavilion Laptop. I purchased the Laptop in 2011 when in my 2nd Year of Law School Finals, my previous Laptop crapped out. Something I think that is so so important for Businesses, and something that I practice myself, is trying to save the Customer money, even if it means the Business will not get your Business. Bob did just that by discussing with me the Cost of a New Laptop as an alternative and inquiring why I wanted to repair it. I still decided to move forward for various reasons but I appreciate that move so so much. After agreeing on a reasonable priced quote to repair the issue, vs. quotes I had received elsewhere, Bob was very patient with me in working through my busy schedule AND not being able to part with the Laptop for a very long time because it is my main Computer for my Law Firm. When we hit a time crunch, having the laptop operation on a short deadline, he was responsive, scheduled the drop-off, took care of the repair faster than expected, and coordinated the pick-up after hours. I couldn't be more pleased with his service and am delighted to highly recommend him for your Computer Needs."
+   },
+   {
+    "name": "Selena",
+    "place": "",
+    "date": "Jan 4, 2021",
+    "rating": 5,
+    "text": "Bob helped me out with a computer set up for my son. I got an appointment quickly and he was so helpful and kind. He had us up and running in no time and was very reasonably priced. Highly recommend!"
+   },
+   {
+    "name": "Larry Bertola",
+    "place": "",
+    "date": "May 14, 2020",
+    "rating": 5,
+    "text": "Great job in a timely manner, thanks"
+   },
+   {
+    "name": "John Penek, MD",
+    "place": "",
+    "date": "Oct 28, 2019",
+    "rating": 5,
+    "text": "Bob was very professional. He got the job done in a quick and efficient manor. He was very professional and pleasant. I would definitely call him again."
+   },
+   {
+    "name": "Dianne S.",
+    "place": "",
+    "date": "Aug 7, 2019",
+    "rating": 5,
+    "text": "Great job! Saved my computer! Thank you, Bob"
+   },
+   {
+    "name": "jerry hurley",
+    "place": "",
+    "date": "Dec 28, 2018",
+    "rating": 5,
+    "text": "I have used the services of Bob the Tech Guy at least 5 or 6 times for a variety of computer and note book and cell phone situations that were from the not so simple to ones that were complex. Each one was handled professionally and tells you why I have used him more than once. When you find gold you don't throw it away."
+   },
+   {
+    "name": "Pete",
+    "place": "",
+    "date": "Dec 21, 2018",
+    "rating": 5,
+    "text": "Fast service. Got my lap top working again FAST! Highly recommended."
+   },
+   {
     "name": "Patty Kapr",
     "place": "",
     "date": "Jun 8, 2018",
@@ -957,7 +1027,7 @@ window.BTGReviews = (function () {
 window.BTGFooter = (function () {
   'use strict';
   var SITE = 'https://bobthetechguy.com';
-  var HOURS = []; // staged: [['Mon–Fri', '9am–6pm'], ...] once Bob confirms his hours
+  var HOURS = [['Tue', '9:30 AM–7 PM'], ['Wed–Fri', '9:30 AM–5 PM'], ['Sat', '12–3 PM'], ['Sun–Mon', 'Closed']]; // from the Google listing, 2026-10-04
   var LINKS = [['Services', '/services-2/'], ['About Bob', '/about/'], ['Gallery', '/gallery/'], ['Testimonials', '/testimonials/'], ['Contact', '/contact-2/']];
   function contactHtml() {
     return '<ul class="btg-foot-contact-list">' +
@@ -977,7 +1047,7 @@ window.BTGFooter = (function () {
   }
   function hoursHtml(rows) {
     if (!rows.length) return '';
-    return '<dl class="btg-foot-hours">' + rows.map(function (r) { return '<dt>' + r[0] + '</dt><dd>' + r[1] + '</dd>'; }).join('') + '</dl>';
+    return '<h4 class="widget-title btg-foot-hours-h">Hours</h4><dl class="btg-foot-hours">' + rows.map(function (r) { return '<dt>' + r[0] + '</dt><dd>' + r[1] + '</dd>'; }).join('') + '</dl>';
   }
   function widget(doc, title, html) {
     var w = doc.createElement('div');

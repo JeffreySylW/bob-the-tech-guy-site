@@ -11,17 +11,17 @@ const css = fs.readFileSync(path.join(__dirname, '../dist/btg.css'), 'utf8');
 const js = fs.readFileSync(path.join(__dirname, '../dist/btg.js'), 'utf8');
 
 test('REVIEWS are the 12 real reviewers, each with a name and text; 7 carry a 5-star rating', () => {
-  assert.strictEqual(R.REVIEWS.length, 12);
+  assert.strictEqual(R.REVIEWS.length, 22); // 12 originals + 10 approved 2026-10-04 (v1.6.8)
   assert.ok(R.REVIEWS.every((r) => r.name && r.text.length > 10));
-  assert.strictEqual(R.REVIEWS.filter((r) => r.rating === 5).length, 7);
+  assert.strictEqual(R.REVIEWS.filter((r) => r.rating === 5).length, 17);
   assert.ok(R.REVIEWS.some((r) => r.name === 'Drew C.' && r.place === 'Pompton Lakes, NJ'));
 });
 
 test('summary without Google details: on-site numbers, no Google claim, link to all reviews', () => {
   const h = R.summaryHtml({ url: '', rating: 0, count: 0 });
   assert.match(h, /5\.0/);
-  assert.match(h, /7 star ratings/);
-  assert.match(h, /12 written reviews/);
+  assert.match(h, /17 star ratings/);
+  assert.match(h, /22 written reviews/);
   assert.doesNotMatch(h, /Google/);
   assert.match(h, /href="\/reviews\/"/);
 });
