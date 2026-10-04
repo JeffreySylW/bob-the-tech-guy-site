@@ -15,8 +15,8 @@ test('links every service page and lists the towns served', () => {
   assert.strictEqual((html.match(/class="btg-sr-item /g) || []).length, 15);
   for (const t of ['Pompton Lakes', 'Wyckoff', 'Ramsey', 'Mahwah', 'Wayne', 'Ridgewood', 'Bergen County', 'Passaic County']) assert.ok(html.includes('<li>' + t + '</li>'), t);
 });
-test('has the reviews slot, a call box with both numbers, and ends with the standard loader', () => {
-  assert.match(html, /<div class="btg-rv-slot"><\/div>/);
+test('has no reviews band (home page only), a call box with both numbers, and ends with the standard loader', () => {
+  assert.doesNotMatch(html, /btg-rv-slot|What customers say/);
   assert.match(html, /<div class="btg-cta-block">[\s\S]*844-TEKGUY-0[\s\S]*\(862\) 210-5656/);
   assert.ok(html.endsWith(require('../tools/loader.js').loaderBlock('v1.6.0')));
 });

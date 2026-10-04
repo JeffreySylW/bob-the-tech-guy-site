@@ -717,6 +717,3 @@ html .post-content { font-size: 16.5px; line-height: 1.72; color: var(--btg-text
 .btg-hero-alt { margin: 10px 0 0 !important; font-size: 14px; }
 .btg-hero-alt a { color: #8bd17c !important; text-decoration: none; }
 .btg-hero-alt a:hover, .btg-hero-alt a:focus-visible { text-decoration: underline; }
-/* v1.6.3 — contact page: more room between the location cards and the reviews band. */
-.btg-locations + .btg-rv { margin-top: 56px; }
-@media (max-width: 600px) { .btg-locations + .btg-rv { margin-top: 44px; } }
