@@ -23,7 +23,7 @@ await b.shot(out + '/home-reviews.png');
 await b.goto('http://localhost:4430/northern-new-jersey/');
 await b.sleep(1000);
 check('NJ page: no reviews band', await b.evalJs(`!document.querySelector('.btg-rv')`));
-check('footer NJ links point to the new page, one entry left', await b.evalJs(`(() => { const a = [...document.querySelectorAll('.fusion-footer a')].filter((x) => /new-jersey|-nj\\//.test(x.href)); return a.length >= 1 && a.every((x) => x.pathname === '/northern-new-jersey/') && a.filter((x) => x.closest('li')).length === 1; })()`), await b.evalJs(`JSON.stringify([...document.querySelectorAll('.fusion-footer a')].filter((x) => /new-jersey|-nj/.test(x.href)).map((x) => x.pathname + ' ' + x.textContent.trim()))`));
+check('footer NJ links point to the new page, one entry left', await b.evalJs(`(() => { const a = [...document.querySelectorAll('.fusion-footer a')].filter((x) => /new-jersey|-nj\\//.test(x.href)); return a.length >= 1 && a.every((x) => x.pathname === '/northern-new-jersey/') && a.filter((x) => x.closest('li') && !x.closest('.btg-foot-contact-list')).length === 1; })()`), await b.evalJs(`JSON.stringify([...document.querySelectorAll('.fusion-footer a')].filter((x) => /new-jersey|-nj/.test(x.href)).map((x) => x.pathname + ' ' + x.textContent.trim()))`));
 check('15 service links and towns listed', await b.evalJs(`document.querySelectorAll('.btg-sr-item').length === 15 && document.querySelectorAll('.btg-nj-towns li').length === 23`));
 check('no horizontal scroll', !(await b.evalJs(`document.documentElement.scrollWidth > innerWidth`)));
 await b.evalJs(`scrollTo(0, 420)`); await b.sleep(500);

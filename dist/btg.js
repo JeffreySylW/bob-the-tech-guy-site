@@ -959,6 +959,55 @@ window.BTGReviews = (function () {
   return { GOOGLE: GOOGLE, REVIEWS: REVIEWS, summaryHtml: summaryHtml, cardHtml: cardHtml, bandHtml: bandHtml, init: init };
 })();
 
+// Footer additions (the widgets themselves are admin-only): the first widget becomes a contact block in place of the old
+// Pompton Lakes address and map, quick links fill the column the Instagram/Twitter widgets left empty, and a Google
+// rating badge (plus hours, once Bob sends them) goes under the veteran badge.
+window.BTGFooter = (function () {
+  'use strict';
+  var SITE = 'https://bobthetechguy.com';
+  var HOURS = []; // staged: [['Mon–Fri', '9am–6pm'], ...] once Bob confirms his hours
+  var LINKS = [['Services', '/services-2/'], ['About Bob', '/about/'], ['Gallery', '/gallery/'], ['Testimonials', '/testimonials/'], ['Contact', '/contact-2/'], ['Customer Log In', '/customer-log-in/']];
+  function contactHtml() {
+    return '<ul class="btg-foot-contact-list">' +
+      '<li>Serving Chesterfield &amp; Greater Richmond, VA</li>' +
+      '<li><a href="tel:8448354890">844-TEKGUY-0</a> <span>(844) 835-4890</span></li>' +
+      '<li><a href="mailto:info@bobthetechguy.com">info@bobthetechguy.com</a></li>' +
+      '<li>Northern NJ: <a href="tel:8622105656">(862) 210-5656</a> &middot; <a href="' + SITE + '/northern-new-jersey/">NJ service area</a></li></ul>';
+  }
+  function linksHtml() {
+    return '<ul class="btg-foot-links">' + LINKS.map(function (l) { return '<li><a href="' + SITE + l[1] + '">' + l[0] + '</a></li>'; }).join('') + '</ul>';
+  }
+  function ratingHtml(g) {
+    return '<a class="btg-foot-rating" href="' + g.url + '" target="_blank" rel="noopener"><span class="btg-foot-stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>' +
+      '<span><b>' + g.rating.toFixed(1) + '</b> from ' + g.count + ' Google reviews</span></a>';
+  }
+  function hoursHtml(rows) {
+    if (!rows.length) return '';
+    return '<dl class="btg-foot-hours">' + rows.map(function (r) { return '<dt>' + r[0] + '</dt><dd>' + r[1] + '</dd>'; }).join('') + '</dl>';
+  }
+  function widget(doc, title, html) {
+    var w = doc.createElement('div');
+    w.className = 'fusion-footer-widget-column widget btg-foot';
+    w.innerHTML = '<h4 class="widget-title">' + title + '</h4>' + html + '<div style="clear:both;"></div>';
+    return w;
+  }
+  function init(doc) {
+    var t3 = doc.querySelector('.fusion-footer #text-3');
+    if (!t3 || doc.querySelector('.btg-foot-contact-list')) return false;
+    var h = t3.querySelector('.widget-title');
+    t3.innerHTML = (h ? h.outerHTML : '<h4 class="widget-title">Bob the Tech Guy</h4>') + contactHtml();
+    var cols = Array.prototype.slice.call(doc.querySelectorAll('.fusion-footer .fusion-footer-widget-area .fusion-column'));
+    var empty = cols.filter(function (c) { return !c.querySelector('.fusion-footer-widget-column'); })[0];
+    var links = widget(doc, 'Quick Links', linksHtml());
+    if (empty) empty.appendChild(links); else t3.parentNode.insertBefore(links, t3.nextSibling);
+    var badge = doc.querySelector('.fusion-footer #text-16');
+    var rating = widget(doc, 'Customer Reviews', ratingHtml(window.BTGReviews.GOOGLE) + hoursHtml(HOURS));
+    if (badge) badge.parentNode.insertBefore(rating, badge.nextSibling); else links.parentNode.appendChild(rating);
+    return true;
+  }
+  return { HOURS: HOURS, contactHtml: contactHtml, linksHtml: linksHtml, ratingHtml: ratingHtml, hoursHtml: hoursHtml, init: init };
+})();
+
 
 (function () {
   // Guards against the Node test environment's minimal `document` stub,
@@ -1007,6 +1056,7 @@ window.BTGReviews = (function () {
     safely(function () { window.BTGInit.prefillContact(document, window); });
     safely(function () { window.BTGInit.addPrivacyNote(document); });
     safely(function () { window.BTGReviews.init(document, window); });
+    safely(function () { window.BTGFooter.init(document); });
     // Reveals the header and page area the loader's inline style kept hidden until now.
     document.documentElement.classList.add('btg-ready');
     // Avada builds its mobile menu clone and the Twitter script adds its iframe after DOMContentLoaded.
