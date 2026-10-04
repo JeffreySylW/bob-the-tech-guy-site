@@ -1209,6 +1209,33 @@ window.BTGZone = (function () {
   return { TOWNS: TOWNS, LEAFLET: LEAFLET, zone: zone, sectionHtml: sectionHtml, init: init };
 })();
 
+// Veteran-owned badge: replaces the old flag image in the footer and sits under the About banner's Marine Corps line.
+// It carries the VeteranOwnedBusiness.com logo and links to Bob's listing there, as the old image did.
+window.BTGVet = (function () {
+  'use strict';
+  var VOB = 'https://www.veteranownedbusiness.com/business/24505/bob-the-tech-guy';
+  var LOGO = 'https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@v1.7.2/dist/brand/vob-logo.png';
+  var STAR = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 2.5l2.9 6.1 6.6.8-4.9 4.5 1.3 6.6L12 17.3l-5.9 3.2 1.3-6.6L2.5 9.4l6.6-.8z"/></svg>';
+  function badgeHtml(dark) {
+    return '<a class="btg-vet' + (dark ? ' btg-vet--dark' : '') + '" href="' + VOB + '" target="_blank" rel="noopener" aria-label="Veteran-owned business: Bob The Tech Guy on VeteranOwnedBusiness.com">' +
+      '<span class="btg-vet-ico">' + STAR + '</span><span class="btg-vet-txt"><b>Veteran-Owned Business</b><small>U.S. Marine Corps veteran</small>' +
+      '<span class="btg-vet-vob"><img src="' + LOGO + '" alt="VeteranOwnedBusiness.com" width="150" height="32" loading="lazy"><em>Verified member &rarr;</em></span></span></a>';
+  }
+  function init(doc, win) {
+    var foot = doc.querySelector('.fusion-footer #text-16 .textwidget');
+    if (foot && !foot.querySelector('.btg-vet')) foot.innerHTML = badgeHtml(true);
+    var lede = win.location.pathname === '/about/' && doc.querySelector('section.btg-hero .btg-hero-lede');
+    if (lede && !doc.querySelector('section.btg-hero .btg-vet')) {
+      var p = doc.createElement('p');
+      p.className = 'btg-vet-wrap';
+      p.innerHTML = badgeHtml(false);
+      lede.parentNode.insertBefore(p, lede.nextSibling);
+    }
+    return !!(foot || lede);
+  }
+  return { VOB: VOB, LOGO: LOGO, badgeHtml: badgeHtml, init: init };
+})();
+
 
 (function () {
   // Guards against the Node test environment's minimal `document` stub,
@@ -1260,6 +1287,7 @@ window.BTGZone = (function () {
     safely(function () { window.BTGFooter.init(document); });
     safely(function () { window.BTGHours.initPill(document, window); });
     safely(function () { window.BTGZone.init(document, window); });
+    safely(function () { window.BTGVet.init(document, window); });
     // Reveals the header and page area the loader's inline style kept hidden until now.
     document.documentElement.classList.add('btg-ready');
     // Avada builds its mobile menu clone and the Twitter script adds its iframe after DOMContentLoaded.
