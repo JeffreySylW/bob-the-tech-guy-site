@@ -1209,7 +1209,7 @@ window.BTGZone = (function () {
   return { TOWNS: TOWNS, LEAFLET: LEAFLET, zone: zone, sectionHtml: sectionHtml, init: init };
 })();
 
-// Veteran-owned badge: replaces the old flag image in the footer and sits under the About banner's Marine Corps line.
+// Veteran-owned badge: replaces the old flag image in the footer and sits under Bob's photo on the About page.
 // It carries the VeteranOwnedBusiness.com logo and links to Bob's listing there, as the old image did.
 window.BTGVet = (function () {
   'use strict';
@@ -1224,16 +1224,39 @@ window.BTGVet = (function () {
   function init(doc, win) {
     var foot = doc.querySelector('.fusion-footer #text-16 .textwidget');
     if (foot && !foot.querySelector('.btg-vet')) foot.innerHTML = badgeHtml(true);
-    var lede = win.location.pathname === '/about/' && doc.querySelector('section.btg-hero .btg-hero-lede');
-    if (lede && !doc.querySelector('section.btg-hero .btg-vet')) {
-      var p = doc.createElement('p');
-      p.className = 'btg-vet-wrap';
-      p.innerHTML = badgeHtml(false);
-      lede.parentNode.insertBefore(p, lede.nextSibling);
-    }
-    return !!(foot || lede);
+    var photo = win.location.pathname === '/about/' && doc.querySelector('.btg-bob-photo');
+    if (photo && !photo.querySelector('.btg-vet')) photo.insertAdjacentHTML('beforeend', '<figcaption class="btg-vet-wrap">' + badgeHtml(false) + '</figcaption>');
+    return !!(foot || photo);
   }
   return { VOB: VOB, LOGO: LOGO, badgeHtml: badgeHtml, init: init };
+})();
+
+// Content-box rows (e.g. home "Why Choose Bob?"): the theme animates each card when that card's bottom scrolls into
+// view, so a taller card arrives late. Start every card in the row together as soon as the row comes into view.
+window.BTGCards = (function () {
+  'use strict';
+  function start(el) {
+    if (el.classList.contains('animated')) return;
+    var type = el.getAttribute('data-animationType'), dur = el.getAttribute('data-animationDuration');
+    if (dur) el.style.animationDuration = dur + 's';
+    el.classList.add('animated');
+    if (type) el.classList.add(type);
+    el.style.visibility = 'visible';
+  }
+  function init(doc, win) {
+    var rows = Array.prototype.slice.call(doc.querySelectorAll('.fusion-content-boxes'));
+    if (!rows.length || typeof win.IntersectionObserver !== 'function') return false;
+    var io = new win.IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        io.unobserve(e.target);
+        Array.prototype.forEach.call(e.target.querySelectorAll('.fusion-animated'), start);
+      });
+    }, { rootMargin: '0px 0px -80px 0px' });
+    rows.forEach(function (r) { io.observe(r); });
+    return true;
+  }
+  return { init: init };
 })();
 
 
@@ -1288,6 +1311,7 @@ window.BTGVet = (function () {
     safely(function () { window.BTGHours.initPill(document, window); });
     safely(function () { window.BTGZone.init(document, window); });
     safely(function () { window.BTGVet.init(document, window); });
+    safely(function () { window.BTGCards.init(document, window); });
     // Reveals the header and page area the loader's inline style kept hidden until now.
     document.documentElement.classList.add('btg-ready');
     // Avada builds its mobile menu clone and the Twitter script adds its iframe after DOMContentLoaded.
