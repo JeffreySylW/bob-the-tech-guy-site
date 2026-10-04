@@ -1021,20 +1021,87 @@ window.BTGReviews = (function () {
   return { GOOGLE: GOOGLE, REVIEWS: REVIEWS, summaryHtml: summaryHtml, cardHtml: cardHtml, bandHtml: bandHtml, init: init };
 })();
 
-// Footer additions (the widgets themselves are admin-only): the first widget becomes a contact block in place of the old
-// Pompton Lakes address and map, quick links fill the column the Instagram/Twitter widgets left empty, and a Google
-// rating badge (plus hours, once Bob sends them) goes under the veteran badge.
+// Opening hours (from the Google listing, 2026-10-04; Bob to confirm they also apply in Virginia). One weekly schedule,
+// in minutes after midnight Eastern Time, drives the home status pill, the contact hours card and the footer list.
+window.BTGHours = (function () {
+  'use strict';
+  var WEEK = [null, null, [570, 1140], [570, 1020], [570, 1020], [570, 1020], [720, 900]]; // Sun..Sat
+  var SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  var LONG = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  function fmt(min) {
+    var h = Math.floor(min / 60), m = min % 60, h12 = h % 12 || 12;
+    return h12 + (m ? ':' + (m < 10 ? '0' : '') + m : '') + (h < 12 ? ' AM' : ' PM');
+  }
+  function range(r, sep) {
+    var a = fmt(r[0]), b = fmt(r[1]);
+    if (a.slice(-2) === b.slice(-2)) a = a.slice(0, -3);
+    return a + sep + b;
+  }
+  function et(d) {
+    var p = {};
+    new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short', hour: 'numeric', minute: 'numeric', hourCycle: 'h23' })
+      .formatToParts(d).forEach(function (x) { p[x.type] = x.value; });
+    return { day: SHORT.indexOf(p.weekday), min: (Number(p.hour) % 24) * 60 + Number(p.minute) };
+  }
+  function isOpen(d) { var t = et(d), r = WEEK[t.day]; return !!r && t.min >= r[0] && t.min < r[1]; }
+  function status(d) {
+    var t = et(d), r = WEEK[t.day], k, n;
+    if (r && t.min >= r[0] && t.min < r[1]) return 'Open now · until ' + fmt(r[1]);
+    if (r && t.min < r[0]) return 'Opens today at ' + fmt(r[0]);
+    for (k = 1; k <= 7; k++) {
+      n = (t.day + k) % 7;
+      if (WEEK[n]) return (r ? 'Closed now' : 'Closed today') + ' · Opens ' + (k === 1 ? 'tomorrow' : LONG[n]) + ' ' + fmt(WEEK[n][0]);
+    }
+    return 'By appointment';
+  }
+  // Consecutive days with the same hours share a row, starting from the first open day after a closed one.
+  function footerRows() {
+    var label = function (i) { return WEEK[i] ? range(WEEK[i], '–') : 'Closed'; };
+    var start = 0, i, rows = [];
+    for (i = 0; i < 7; i++) if (WEEK[i] && !WEEK[(i + 6) % 7]) { start = i; break; }
+    for (i = 0; i < 7; i++) {
+      var d = (start + i) % 7, last = rows[rows.length - 1];
+      if (last && last.v === label(d)) last.to = d; else rows.push({ from: d, to: d, v: label(d) });
+    }
+    return rows.map(function (g) { return [SHORT[g.from] + (g.to !== g.from ? '–' + SHORT[g.to] : ''), g.v]; });
+  }
+  function weekHtml(d) {
+    var today = et(d).day;
+    return '<dl class="btg-hours-week">' + [1, 2, 3, 4, 5, 6, 0].map(function (i) {
+      var c = i === today ? ' class="is-today"' : '';
+      return '<dt' + c + '>' + SHORT[i] + '</dt><dd' + c + '>' + (WEEK[i] ? range(WEEK[i], ' – ') : 'Closed') + '</dd>';
+    }).join('') + '</dl>';
+  }
+  // Home hero: a live open/closed pill under the hero lines.
+  function initPill(doc, win) {
+    var hero = win.location.pathname === '/' && doc.querySelector('section.btg-hero');
+    if (!hero || hero.querySelector('.btg-hours-pill')) return false;
+    var now = new Date(), p = doc.createElement('p');
+    p.className = 'btg-hours-pill-wrap';
+    p.innerHTML = '<span class="btg-hours-pill ' + (isOpen(now) ? 'is-open' : 'is-closed') + '"><span class="btg-hours-now"><span class="btg-hours-dot" aria-hidden="true"></span>' +
+      status(now).replace(/ (AM|PM)/g, ' $1') + '</span><a href="/contact-2/#btg-hours">All hours</a></span>';
+    var after = hero.querySelector('.btg-hero-alt') || hero.querySelector('.btg-hero-trust');
+    if (after) after.parentNode.insertBefore(p, after.nextSibling); else hero.appendChild(p);
+    return true;
+  }
+  return { WEEK: WEEK, status: status, isOpen: isOpen, footerRows: footerRows, weekHtml: weekHtml, initPill: initPill };
+})();
+
+// Footer additions (the widgets themselves are admin-only): the first widget becomes a contact block (Virginia details
+// with the service-zone map, then the NJ line with Bob's Google pin), quick links fill the column the Instagram/Twitter
+// widgets left empty, and a Google rating badge plus hours go under the veteran badge.
 window.BTGFooter = (function () {
   'use strict';
   var SITE = 'https://bobthetechguy.com';
-  var HOURS = [['Tue', '9:30 AM–7 PM'], ['Wed–Fri', '9:30 AM–5 PM'], ['Sat', '12–3 PM'], ['Sun–Mon', 'Closed']]; // from the Google listing, 2026-10-04
+  var HOURS = window.BTGHours.footerRows();
   var LINKS = [['Services', '/services-2/'], ['About Bob', '/about/'], ['Gallery', '/gallery/'], ['Testimonials', '/testimonials/'], ['Contact', '/contact-2/']];
   function contactHtml() {
     return '<ul class="btg-foot-contact-list">' +
       '<li>Serving Chesterfield &amp; Greater Richmond, VA</li>' +
       '<li><a href="tel:8448354890">844-TEKGUY-0</a> <span>(844) 835-4890</span></li>' +
-      '<li><a href="mailto:info@bobthetechguy.com">info@bobthetechguy.com</a></li>' +
-      '<li>Northern NJ: <a href="tel:8622105656">(862) 210-5656</a> &middot; <a href="' + SITE + '/northern-new-jersey/">NJ service area</a></li></ul>' +
+      '<li><a href="mailto:info@bobthetechguy.com">info@bobthetechguy.com</a></li></ul>' +
+      '<div class="btg-foot-zone btg-zone-map" role="img" aria-label="Map of the Virginia service area"></div>' +
+      '<ul class="btg-foot-contact-list btg-foot-nj"><li>Northern NJ: <a href="tel:8622105656">(862) 210-5656</a> &middot; <a href="' + SITE + '/northern-new-jersey/">NJ service area</a></li></ul>' +
       // Bob's Google listing pin. Its card shows the NJ address, which is fine; the Virginia address is never shown.
       '<iframe class="btg-foot-map" src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d12042.5344460568!2d-74.288835!3d41.0113919!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0xad47b350a040c358!2sBob+The+Tech+Guy!5e0!3m2!1sen!2sus!4v1453449210878" title="Bob The Tech Guy on Google Maps" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>';
   }
@@ -1070,6 +1137,76 @@ window.BTGFooter = (function () {
     return true;
   }
   return { HOURS: HOURS, contactHtml: contactHtml, linksHtml: linksHtml, ratingHtml: ratingHtml, hoursHtml: hoursHtml, init: init };
+})();
+
+// Virginia service zone: Bob's location is not shared, so the map shows a rounded area around the towns he covers
+// (OpenStreetMap via Leaflet, no key). Contact page: map + weekly hours card under the location cards. Footer: a small
+// map in the contact block. Leaflet loads from cdnjs only when a map is about to scroll into view.
+window.BTGZone = (function () {
+  'use strict';
+  var TOWNS = [['Richmond', 37.5407, -77.436], ['Bon Air', 37.5246, -77.5578], ['Midlothian', 37.5057, -77.6494], ['Brandermill', 37.4329, -77.6522],
+    ['Woodlake', 37.4196, -77.6739], ['Moseley', 37.406, -77.77], ['Chesterfield', 37.3771, -77.5047], ['Chester', 37.3568, -77.4416], ['Colonial Heights', 37.2681, -77.4072]];
+  var LEAFLET = {
+    js: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js',
+    jsSri: 'sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g==',
+    css: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css',
+    cssSri: 'sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw=='
+  };
+  // Convex hull of a ~5 km circle around each town: one smooth outline that covers them all.
+  function zone() {
+    var pts = [], i, k, a;
+    TOWNS.forEach(function (t) { for (k = 0; k < 36; k++) { a = (k / 36) * 2 * Math.PI; pts.push([t[1] + 0.045 * Math.sin(a), t[2] + 0.057 * Math.cos(a)]); } });
+    pts.sort(function (p, q) { return p[0] - q[0] || p[1] - q[1]; });
+    var cross = function (o, p, q) { return (p[0] - o[0]) * (q[1] - o[1]) - (p[1] - o[1]) * (q[0] - o[0]); };
+    var lower = [], upper = [];
+    for (i = 0; i < pts.length; i++) { while (lower.length > 1 && cross(lower[lower.length - 2], lower[lower.length - 1], pts[i]) <= 0) lower.pop(); lower.push(pts[i]); }
+    for (i = pts.length - 1; i >= 0; i--) { while (upper.length > 1 && cross(upper[upper.length - 2], upper[upper.length - 1], pts[i]) <= 0) upper.pop(); upper.push(pts[i]); }
+    return lower.slice(0, -1).concat(upper.slice(0, -1));
+  }
+  var loading = null;
+  function loadLeaflet(doc, win) {
+    if (win.L) return Promise.resolve(win.L);
+    if (loading) return loading;
+    loading = new Promise(function (ok, fail) {
+      var css = doc.createElement('link');
+      css.rel = 'stylesheet'; css.href = LEAFLET.css; css.integrity = LEAFLET.cssSri; css.crossOrigin = 'anonymous';
+      doc.head.appendChild(css);
+      var s = doc.createElement('script');
+      s.src = LEAFLET.js; s.integrity = LEAFLET.jsSri; s.crossOrigin = 'anonymous';
+      s.onload = function () { ok(win.L); }; s.onerror = fail;
+      doc.head.appendChild(s);
+    });
+    return loading;
+  }
+  function draw(L, el) {
+    var small = el.clientWidth < 400;
+    var map = L.map(el, { scrollWheelZoom: false, zoomControl: !small, attributionControl: true });
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 15, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(map);
+    var area = L.polygon(zone(), { color: '#38792f', weight: 2, dashArray: '6 6', fillColor: '#54aa47', fillOpacity: 0.18 }).addTo(map);
+    TOWNS.forEach(function (t) {
+      var m = L.circleMarker([t[1], t[2]], { radius: small ? 3 : 5, color: '#fff', weight: 2, fillColor: '#38792f', fillOpacity: 1 }).addTo(map);
+      m.bindTooltip(t[0], small ? {} : { permanent: true, direction: 'right', offset: [6, 0], className: 'btg-zone-lbl' });
+    });
+    map.fitBounds(area.getBounds(), { padding: small ? [4, 4] : [12, 12] });
+  }
+  function sectionHtml(now) {
+    return '<section class="btg-zone" id="btg-hours"><h2 class="btg-zone-h">Our Virginia service area</h2>' +
+      '<p class="btg-zone-sub">Bob comes to you anywhere in the shaded area. Not sure if you’re covered? Just call.</p>' +
+      '<div class="btg-zone-grid"><div class="btg-zone-map btg-zone-big" role="img" aria-label="Map of the Virginia service area: ' + TOWNS.map(function (t) { return t[0]; }).join(', ') + '"></div>' +
+      '<aside class="btg-hours-card"><h3>Hours</h3><p class="btg-hours-note">Eastern Time</p>' + window.BTGHours.weekHtml(now) + '</aside></div></section>';
+  }
+  function init(doc, win) {
+    var loc = win.location.pathname === '/contact-2/' && doc.querySelector('.btg-locations');
+    if (loc && !doc.querySelector('.btg-zone')) loc.insertAdjacentHTML('afterend', sectionHtml(new Date()));
+    var els = Array.prototype.slice.call(doc.querySelectorAll('.btg-zone-map'));
+    if (!els.length) return false;
+    var show = function (el) { if (el.getAttribute('data-drawn')) return; el.setAttribute('data-drawn', '1'); loadLeaflet(doc, win).then(function (L) { draw(L, el); }).catch(function () { el.style.display = 'none'; }); };
+    if (typeof win.IntersectionObserver !== 'function') { els.forEach(show); return true; }
+    var io = new win.IntersectionObserver(function (entries) { entries.forEach(function (e) { if (e.isIntersecting) { io.unobserve(e.target); show(e.target); } }); }, { rootMargin: '300px' });
+    els.forEach(function (el) { io.observe(el); });
+    return true;
+  }
+  return { TOWNS: TOWNS, LEAFLET: LEAFLET, zone: zone, sectionHtml: sectionHtml, init: init };
 })();
 
 
@@ -1121,6 +1258,8 @@ window.BTGFooter = (function () {
     safely(function () { window.BTGInit.addPrivacyNote(document); });
     safely(function () { window.BTGReviews.init(document, window); });
     safely(function () { window.BTGFooter.init(document); });
+    safely(function () { window.BTGHours.initPill(document, window); });
+    safely(function () { window.BTGZone.init(document, window); });
     // Reveals the header and page area the loader's inline style kept hidden until now.
     document.documentElement.classList.add('btg-ready');
     // Avada builds its mobile menu clone and the Twitter script adds its iframe after DOMContentLoaded.
