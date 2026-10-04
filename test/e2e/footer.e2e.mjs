@@ -14,6 +14,7 @@ for (const [w, h, m] of [[1440, 900, false], [390, 844, true]]) {
   check(w + ': quick links in a footer column, 6 links', await b.evalJs(`document.querySelectorAll('.fusion-footer .fusion-column .btg-foot-links a').length === 6`));
   check(w + ': rating badge right after the veteran badge', await b.evalJs(`!!document.querySelector('#text-16 + .btg-foot .btg-foot-rating')`));
   check(w + ': no empty footer column', await b.evalJs(`[...document.querySelectorAll('.fusion-footer .fusion-footer-widget-area .fusion-column')].every((c) => c.querySelector('.fusion-footer-widget-column'))`));
+  check(w + ': NJ link dedupe leaves the contact block alone', await b.evalJs(`(() => { BTGInit.rewriteNjLinks(document); return /\\(862\\) 210-5656/.test(document.querySelector('.btg-foot-contact-list').innerText) && document.querySelectorAll('#recent-posts-6 a[href*="northern-new-jersey"]').length === 1; })()`));
   check(w + ': no horizontal scroll', !(await b.evalJs(`document.documentElement.scrollWidth > innerWidth`)));
   await b.evalJs(`document.querySelector('.fusion-footer').scrollIntoView()`); await b.sleep(600);
   await b.shot(`${out}/footer-new-${w}.png`);
