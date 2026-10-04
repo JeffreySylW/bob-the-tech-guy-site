@@ -12,7 +12,9 @@ for (const [w, h, m] of [[1440, 900, false], [390, 844, true]]) {
   await b.goto('http://localhost:4470/'); await b.sleep(1500);
   check(w + ' home: hours pill in the hero with a link to all hours', await b.evalJs(`(() => { const p = document.querySelector('section.btg-hero .btg-hours-pill'); return !!p && /^(Open now|Opens today|Closed (today|now))/.test(p.innerText) && !/00a0/.test(p.innerText) && p.querySelector('a').getAttribute('href') === '/contact-2/#btg-hours'; })()`),
     await b.evalJs(`(document.querySelector('.btg-hours-pill') || {}).innerText`));
-  check(w + ' home: no horizontal scroll', !(await b.evalJs(`document.documentElement.scrollWidth > innerWidth`)));
+  check(w + ' home: healthy gap between the NJ line and the hours pill', await b.evalJs(`document.querySelector('.btg-hours-pill').getBoundingClientRect().top - document.querySelector('.btg-hero-alt').getBoundingClientRect().bottom >= 24`),
+    await b.evalJs(`Math.round(document.querySelector('.btg-hours-pill').getBoundingClientRect().top - document.querySelector('.btg-hero-alt').getBoundingClientRect().bottom) + 'px'`));
+  check(w + ' home: no horizontal scroll',!(await b.evalJs(`document.documentElement.scrollWidth > innerWidth`)));
   await b.evalJs(`document.querySelector('.btg-hours-pill').scrollIntoView({ block: 'center' })`); await b.sleep(400);
   await b.shot(`${out}/hz-home-${w}.png`);
   await b.close();

@@ -50,7 +50,7 @@ test('bundle runs it and styles the face and the About block', () => {
   assert.match(js, /window\.BTGBob\.initHero\(document, window\)/);
   assert.match(css, /\.btg-hero-face \{[^}]*border-radius: 50%;/);
   assert.match(css, /\.btg-bob-intro \{/);
-  assert.match(css, /\.btg-bob-photo img \{[^}]*aspect-ratio: 1;/);
+  assert.match(css, /\.btg-bob-photo > img \{[^}]*aspect-ratio: 1;/);
 });
 
 const hero = '<section class="btg-hero">\n  <p class="btg-hero-eyebrow">About Bob</p>\n</section>\n';
