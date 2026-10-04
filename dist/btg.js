@@ -100,6 +100,8 @@ window.BTGSchema = (function () {
       '@type': 'LocalBusiness',
       name: opts.name,
       telephone: opts.telephone,
+      url: opts.url,
+      openingHoursSpecification: opts.openingHoursSpecification,
       areaServed: opts.areaServed,
       priceRange: opts.priceRange,
       sameAs: opts.sameAs,
@@ -174,20 +176,22 @@ window.BTGInit = (function () {
   }
 
 
+  var SCHEMA = {
+    name: 'Bob The Tech Guy',
+    telephone: '+18448354890',
+    url: 'https://bobthetechguy.com/',
+    get openingHoursSpecification() { return window.BTGHours ? window.BTGHours.schemaHours() : undefined; },
+    areaServed: [
+      'Chesterfield VA', 'Midlothian VA', 'Chester VA', 'Bon Air VA',
+      'Brandermill VA', 'Woodlake VA', 'Moseley VA', 'Colonial Heights VA',
+      'Richmond VA', 'Pompton Lakes NJ',
+    ],
+    priceRange: '$$',
+    sameAs: ['https://maps.google.com/?cid=12486145650775343960', 'https://www.facebook.com/BobTheTechGuy',
+      'https://www.veteranownedbusiness.com/business/24505/bob-the-tech-guy'],
+  };
   function injectSchemaAndMeta(doc, win) {
-    if (win.BTGSchema) {
-      win.BTGSchema.inject({
-        name: 'Bob The Tech Guy',
-        telephone: '+18448354890',
-        areaServed: [
-          'Chesterfield VA', 'Midlothian VA', 'Chester VA', 'Bon Air VA',
-          'Brandermill VA', 'Woodlake VA', 'Moseley VA', 'Colonial Heights VA',
-          'Richmond VA', 'Pompton Lakes NJ',
-        ],
-        priceRange: '$$',
-        sameAs: [],
-      });
-    }
+    if (win.BTGSchema) win.BTGSchema.inject(SCHEMA);
     if (win.BTGMeta) {
       var lede = doc.querySelector('.btg-hero-lede'), here = (win.location && win.location.pathname) || '/';
       var desc = DESCRIPTIONS[here] || (lede && lede.textContent && lede.textContent.trim())
@@ -289,7 +293,13 @@ window.BTGInit = (function () {
   }
 
   // The footer holds an old cryptocurrency price widget (admin-only to delete). Stop its script and remove it.
-  function isBlockedScript(src) { return /coinmarketcap\.com/i.test(src || ''); }
+  // Also stops scripts for widgets nobody sees (hidden Facebook sidebar box, removed Twitter column, empty Instagram
+  // feed) and, on pages with no slider, the slider's code: ~600KB the visitor never needed.
+  var DEAD_SCRIPTS = /coinmarketcap\.com|platform\.twitter\.com|connect\.facebook\.net|easy-twitter-feed-widget|instagram-feed\/js/i;
+  function isBlockedScript(src, doc) {
+    if (DEAD_SCRIPTS.test(src || '')) return true;
+    return /plugins\/revslider\/.*\/(rs6|rbtools)\.min\.js/i.test(src || '') && !!doc && !doc.querySelector('rs-module');
+  }
   function blockCrypto(doc) {
     Array.prototype.forEach.call(doc.querySelectorAll('.coinmarketcap-currency-widget'), function (w) { w.parentNode.removeChild(w); });
   }
@@ -341,6 +351,51 @@ window.BTGInit = (function () {
   }
 
   // Footer: drop the empty Instagram widget and the dead Twitter timeline. The Twitter script may add its iframe late.
+  // Footer social icons: drop the ones that go nowhere ("#"), and name the rest for screen readers and search engines.
+  function tidySocial(doc) {
+    Array.prototype.forEach.call(doc.querySelectorAll('.fusion-social-networks a.fusion-social-network-icon'), function (a) {
+      if (a.getAttribute('href') === '#') { if (a.parentNode) a.parentNode.removeChild(a); return; }
+      a.setAttribute('aria-label', 'Bob The Tech Guy on ' + (a.getAttribute('data-title') || a.getAttribute('title') || 'social media'));
+    });
+  }
+  // Theme buttons that only say "Learn More": say where they go instead.
+  var BUTTON_TEXT = { '/best-computer-repair-chesterfield-va/': 'See Chesterfield service' };
+  function describeButtons(doc) {
+    Array.prototype.forEach.call(doc.querySelectorAll('a.fusion-button'), function (a) {
+      var label = /^learn more$/i.test(a.textContent.trim()) && BUTTON_TEXT[a.pathname];
+      if (!label) return;
+      var span = a.querySelector('span') || a;
+      span.textContent = label;
+    });
+  }
+
+  // Page titles with the city in them (the WordPress title is "Page – long site name", and the home one still names
+  // Pompton Lakes; the site name and an SEO plugin are admin-only). Google reads the title after rendering.
+  var TITLES = {
+    '/': 'Computer Repair in Chesterfield, VA | Bob The Tech Guy',
+    '/about/': 'About Bob Dyer, Marine Veteran Tech | Bob The Tech Guy',
+    '/services-2/': 'Computer & IT Services in Chesterfield, VA | Bob The Tech Guy',
+    '/contact-2/': 'Contact Bob The Tech Guy | Chesterfield & Richmond, VA',
+    '/reviews/': 'Customer Reviews | Bob The Tech Guy, Chesterfield VA',
+    '/testimonials/': 'Customer Testimonials | Bob The Tech Guy, Chesterfield VA',
+    '/gallery/': 'Photo Gallery | Bob The Tech Guy, Chesterfield VA',
+    '/northern-new-jersey/': 'Computer Repair in Northern New Jersey | Bob The Tech Guy'
+  };
+  var SHORT_SERVICE = { '/software-installation-and-configuration/': 'Software Setup' };
+  function pageTitle(path) {
+    if (TITLES[path]) return TITLES[path];
+    var page = (window.BTGSearch ? window.BTGSearch.PAGES : []).filter(function (p) { return p.type === 'SERVICE' && p.url.replace('https://bobthetechguy.com', '') === path; })[0];
+    return page ? (SHORT_SERVICE[path] || page.title) + ' in Chesterfield, VA | Bob The Tech Guy' : null;
+  }
+  function setTitle(doc, win) {
+    var t = pageTitle((win.location && win.location.pathname) || '/');
+    if (!t) return false;
+    doc.title = t;
+    var og = doc.querySelector('meta[property="og:title"]');
+    if (og) og.setAttribute('content', t);
+    return true;
+  }
+
   function quietFooter(doc) {
     Array.prototype.forEach.call(doc.querySelectorAll('.fusion-footer .fusion-footer-widget-column'), function (col) {
       var h = col.querySelector('h1, h2, h3, h4, h5, h6, .widget-title');
@@ -384,6 +439,11 @@ window.BTGInit = (function () {
     removeDuplicateTitleBar: removeDuplicateTitleBar,
     removeHomeSlider: removeHomeSlider,
     injectSchemaAndMeta: injectSchemaAndMeta,
+    SCHEMA: SCHEMA,
+    tidySocial: tidySocial,
+    describeButtons: describeButtons,
+    pageTitle: pageTitle,
+    setTitle: setTitle,
   };
 })();
 
@@ -1084,7 +1144,19 @@ window.BTGHours = (function () {
     if (after) after.parentNode.insertBefore(p, after.nextSibling); else hero.appendChild(p);
     return true;
   }
-  return { WEEK: WEEK, status: status, isOpen: isOpen, footerRows: footerRows, weekHtml: weekHtml, initPill: initPill };
+  // schema.org OpeningHoursSpecification, consecutive days with the same hours grouped (Mon..Sun order).
+  function schemaHours() {
+    var hhmm = function (m) { var h = Math.floor(m / 60), n = m % 60; return (h < 10 ? '0' : '') + h + ':' + (n < 10 ? '0' : '') + n; };
+    var out = [];
+    [1, 2, 3, 4, 5, 6, 0].forEach(function (d) {
+      var r = WEEK[d], last = out[out.length - 1];
+      if (!r) return;
+      if (last && last.opens === hhmm(r[0]) && last.closes === hhmm(r[1]) && last.next === d) { last.dayOfWeek.push(LONG[d]); last.next = (d + 1) % 7; return; }
+      out.push({ '@type': 'OpeningHoursSpecification', dayOfWeek: [LONG[d]], opens: hhmm(r[0]), closes: hhmm(r[1]), next: (d + 1) % 7 });
+    });
+    return out.map(function (s) { delete s.next; return s; });
+  }
+  return { WEEK: WEEK, status: status, isOpen: isOpen, footerRows: footerRows, weekHtml: weekHtml, schemaHours: schemaHours, initPill: initPill };
 })();
 
 // Footer additions (the widgets themselves are admin-only): the first widget becomes a contact block (Virginia details
@@ -1274,7 +1346,8 @@ window.BTGCards = (function () {
     var cryptoWatch = new MutationObserver(function (list) {
       list.forEach(function (m) {
         Array.prototype.forEach.call(m.addedNodes, function (n) {
-          if (n.tagName === 'SCRIPT' && window.BTGInit.isBlockedScript(n.src)) { n.type = 'javascript/blocked'; if (n.parentNode) n.parentNode.removeChild(n); }
+          // Inline loaders (e.g. Twitter's) insert their script themselves, so catch the loader before it runs too.
+          if (n.tagName === 'SCRIPT' && (window.BTGInit.isBlockedScript(n.src, document) || (!n.src && window.BTGInit.isBlockedScript(n.textContent, document)))) { n.type = 'javascript/blocked'; if (n.parentNode) n.parentNode.removeChild(n); }
         });
       });
     });
@@ -1292,9 +1365,12 @@ window.BTGCards = (function () {
     safely(function () { window.BTGInit.addNjLine(document, window); });
     safely(function () { window.BTGInit.fixLoginMenu(document); });
     safely(function () { window.BTGInit.quietFooter(document); });
+    safely(function () { window.BTGInit.tidySocial(document); });
+    safely(function () { window.BTGInit.describeButtons(document); });
     safely(function () { window.BTGInit.removeDuplicateTitleBar(document); });
     safely(function () { window.BTGInit.removeHomeSlider(document); });
     safely(function () { window.BTGInit.injectSchemaAndMeta(document, window); });
+    safely(function () { window.BTGInit.setTitle(document, window); });
     safely(function () { window.BTGHeader.init(document, window); });
     safely(function () { window.BTGSearch.init(document, window); });
     safely(function () { window.BTGSearch.initPage(document, window); });
