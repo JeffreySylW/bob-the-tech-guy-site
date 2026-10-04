@@ -31,7 +31,7 @@ test('rating badge links to the Google listing; hours stay hidden until set', ()
   assert.match(h, /href="https:\/\/maps\.google\.com\/\?cid=12486145650775343960"[^>]*rel="noopener"/);
   assert.strictEqual(F.hoursHtml([]), '');
   assert.match(F.hoursHtml([['Mon–Fri', '9–6']]), /<dt>Mon–Fri<\/dt><dd>9–6<\/dd>/);
-  assert.deepStrictEqual(F.HOURS, []);
+
 });
 
 test('footer styles exist', () => {

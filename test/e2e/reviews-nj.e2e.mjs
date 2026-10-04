@@ -14,7 +14,7 @@ await b.goto('http://localhost:4430/');
 await b.sleep(1500);
 check('crypto widget script never runs', parsed.some((u) => /btg.js/.test(u)) && !parsed.some((u) => /coinmarketcap/.test(u)), parsed.filter((u) => /coinmarketcap|btg/.test(u)).join(' '));
 check('crypto widget element removed', await b.evalJs(`!document.querySelector('.coinmarketcap-currency-widget')`));
-check('home: reviews band replaces the old slider, 12 cards', await b.evalJs(`!document.querySelector('.fusion-testimonials') && document.querySelectorAll('.btg-rv-card').length === 12`));
+check('home: reviews band replaces the old slider, 22 cards', await b.evalJs(`!document.querySelector('.fusion-testimonials') && document.querySelectorAll('.btg-rv-card').length === 22`));
 check('summary shows the Google rating and a review link', await b.evalJs(`(() => { const t = document.querySelector('.btg-rv-sum').innerText; return /5.0/.test(t) && /28 Google reviews/.test(t) && !!document.querySelector('.btg-rv-google[href*="cid=12486145650775343960"]'); })()`));
 check('Read more expands a clamped review', await b.evalJs(`(() => { const btn = document.querySelector('.btg-rv-more'); const p = document.getElementById(btn.getAttribute('aria-controls')); const h1 = p.getBoundingClientRect().height; btn.click(); return btn.getAttribute('aria-expanded') === 'true' && p.getBoundingClientRect().height > h1; })()`));
 check('Next button scrolls the cards', await b.evalJs(`new Promise((ok) => { const t = document.querySelector('.btg-rv-track'); const x = t.scrollLeft; document.querySelector('.btg-rv-next').click(); setTimeout(() => ok(t.scrollLeft > x), 900); })`));
