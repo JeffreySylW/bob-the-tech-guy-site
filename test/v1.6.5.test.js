@@ -20,7 +20,8 @@ test('contact block: both numbers, email, Virginia service area, NJ link, no str
 
 test('quick links match the main menu pages', () => {
   const h = F.linksHtml();
-  for (const p of ['/services-2/', '/about/', '/gallery/', '/testimonials/', '/contact-2/', '/customer-log-in/']) assert.ok(h.includes('href="https://bobthetechguy.com' + p + '"'), p);
+  assert.doesNotMatch(h, /customer-log-in|Log In/);
+  for (const p of ['/services-2/', '/about/', '/gallery/', '/testimonials/', '/contact-2/']) assert.ok(h.includes('href="https://bobthetechguy.com' + p + '"'), p);
 });
 
 test('rating badge links to the Google listing; hours stay hidden until set', () => {

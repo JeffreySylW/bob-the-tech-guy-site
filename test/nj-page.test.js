@@ -23,7 +23,7 @@ test('has no reviews band (home page only), a call box with both numbers, and en
 test('body markup stays inside the safe allowlist', () => {
   const body = html.slice(html.indexOf('</section>') + 10, html.indexOf('<!-- btg-loader'));
   // The one allowed embed: the Google Maps area view (v1.6.6).
-  const rest = body.replace(/<iframe class="btg-nj-map" src="https:\/\/maps\.google\.com\/maps\?[^"]*" [^>]*><\/iframe>/, '');
+  const rest = body.replace(/<iframe class="btg-nj-map" src="https:\/\/www\.google\.com\/maps\/embed\?pb=[^"]*" [^>]*><\/iframe>/, '');
   assert.strictEqual((body.match(/<iframe/g) || []).length, 1);
   assert.deepStrictEqual(G.markupProblems(rest), []);
 });
