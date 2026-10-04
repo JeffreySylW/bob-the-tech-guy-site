@@ -1,0 +1,29 @@
+# Daily Google sync: refresh dist/google-reviews.json (rating, review count, latest reviews) for the site.
+# Needs the repository secret GOOGLE_PLACES_KEY (Places API (New), restricted to that API).
+name: google-reviews
+on:
+  schedule:
+    - cron: '17 11 * * *'   # daily, 7:17am Eastern (EDT)
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Fetch from Google (skipped until the secret exists)
+        run: if [ -z "$GOOGLE_PLACES_KEY" ]; then echo "GOOGLE_PLACES_KEY not set yet, skipping"; exit 0; fi; node tools/google-reviews.js
+        env:
+          GOOGLE_PLACES_KEY: ${{ secrets.GOOGLE_PLACES_KEY }}
+      - name: Commit if changed and refresh the CDN copy
+        run: |
+          [ -f dist/google-reviews.json ] || { echo "nothing synced yet"; exit 0; }
+          git add dist/google-reviews.json
+          if git diff --cached --quiet; then echo "no change"; exit 0; fi
+          git -c user.name="google-reviews bot" -c user.email="actions@users.noreply.github.com" commit -m "chore: daily Google reviews sync"
+          git push
+          curl -fsS "https://purge.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@main/dist/google-reviews.json" || true

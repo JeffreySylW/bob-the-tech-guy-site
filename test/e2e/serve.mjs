@@ -10,10 +10,10 @@ export default function serve(port = 4410) {
   const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, 'http://x');
     try {
-      if (url.pathname.startsWith('/dist/')) {
+      if (url.pathname.startsWith('/dist/') || url.pathname.startsWith('/test/e2e/fixtures/')) {
         if (process.env.BTG_DELAY) await new Promise((r) => setTimeout(r, Number(process.env.BTG_DELAY)));
         const f = await readFile(path.join(root, url.pathname));
-        res.writeHead(200, { 'content-type': url.pathname.endsWith('.css') ? 'text/css' : 'application/javascript' });
+        res.writeHead(200, { 'content-type': url.pathname.endsWith('.css') ? 'text/css' : url.pathname.endsWith('.json') ? 'application/json' : 'application/javascript' });
         return res.end(f);
       }
       const name = (url.pathname.replace(/^\/|\/$/g, '') || 'home') + '.html';
