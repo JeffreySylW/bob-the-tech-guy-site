@@ -29,7 +29,7 @@ test('bundle marks the page ready once the header, search and page modules have 
 test('addPrehide() upgrades an existing loader in place and only that', () => {
   const old = 'Body text.\n\n<!-- btg-loader v1 -->\n<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@v1.5.7/dist/btg.css">\n<script src="https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@v1.5.7/dist/btg.js"></script>';
   const up = L.upgrade(old, 'v1.5.7', 'v1.5.8');
-  assert.ok(up.startsWith('Body text.\n\n'));
+  assert.ok(up.startsWith(L.EARLY + 'Body text.\n\n'));
   assert.ok(up.endsWith(L.loaderBlock('v1.5.8')));
   assert.strictEqual(L.upgrade(up, 'v1.5.8', 'v1.5.8'), up, 'idempotent');
   assert.throws(() => L.upgrade('no loader here', 'v1.5.7', 'v1.5.8'), /loader/);

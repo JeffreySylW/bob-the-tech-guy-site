@@ -929,16 +929,10 @@ window.BTGReviews = (function () {
       '<div class="btg-rv-slider"><div class="btg-rv-track" tabindex="0" aria-label="Reviews, scroll sideways for more">' + REVIEWS.map(cardHtml).join('') + '</div>' +
       '<div class="btg-rv-nav"><button type="button" class="btg-rv-prev" aria-label="Previous reviews">&#8249;</button><button type="button" class="btg-rv-next" aria-label="Next reviews">&#8250;</button></div></div></section>';
   }
-  // Where the band goes: home (in place of the old testimonial slider), contact, service pages, Northern New Jersey.
+  // The band goes on the home page only, in place of the old testimonial slider (the Reviews page lists them all).
   function spot(doc, path) {
-    var slot = doc.querySelector('.btg-rv-slot');
-    if (slot) return { el: slot, how: 'inside' };
-    if (path === '/') { var old = doc.querySelector('.fusion-testimonials'); if (old) return { el: old, how: 'replace' }; }
-    if (path === '/contact-2/') { var loc = doc.querySelector('.btg-locations'); if (loc) return { el: loc, how: 'after' }; }
-    var cta = doc.querySelector('.btg-cta-block');
-    var isService = (window.BTGSearch ? window.BTGSearch.PAGES : []).some(function (p) { return p.type === 'SERVICE' && p.url.replace('https://bobthetechguy.com', '') === path; });
-    if (isService && cta) return { el: cta, how: 'before' };
-    return null;
+    var old = path === '/' && doc.querySelector('.fusion-testimonials');
+    return old || null;
   }
   function init(doc, win) {
     if (doc.querySelector('.btg-rv')) return false;
@@ -947,10 +941,7 @@ window.BTGReviews = (function () {
     var wrap = doc.createElement('div');
     wrap.innerHTML = bandHtml(GOOGLE);
     var band = wrap.firstChild;
-    if (s.how === 'inside') s.el.appendChild(band);
-    else if (s.how === 'after') s.el.parentNode.insertBefore(band, s.el.nextSibling);
-    else s.el.parentNode.insertBefore(band, s.el);
-    if (s.how === 'replace') s.el.parentNode.removeChild(s.el);
+    s.parentNode.replaceChild(band, s);
     var track = band.querySelector('.btg-rv-track');
     function page(dir) { track.scrollBy({ left: dir * track.clientWidth * 0.9, behavior: 'smooth' }); }
     band.querySelector('.btg-rv-prev').addEventListener('click', function () { page(-1); });

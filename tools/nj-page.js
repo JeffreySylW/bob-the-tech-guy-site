@@ -1,5 +1,5 @@
 // tools/nj-page.js — the one "Northern New Jersey" page that replaces ~375 near-identical NJ area posts.
-// Bob's own lines come from the Contact and About pages; the reviews band is filled in by btg.js (.btg-rv-slot).
+// Bob's own lines come from the Contact and About pages.
 const L = require('./loader.js');
 const SERVICES = require('./search-pages.js').filter((p) => p.type === 'SERVICE');
 const TOWNS = ['Pompton Lakes', 'Wayne', 'Wyckoff', 'Ramsey', 'Mahwah', 'Oakland', 'Allendale', 'Upper Saddle River', 'Saddle River', 'Waldwick',
@@ -19,8 +19,6 @@ module.exports = function njPageContent(version) {
     '<ul class="btg-sr-list">' + SERVICES.map((p) => '<li><a class="btg-sr-item btg-card--' + p.icon + '" href="' + p.url + '"><span class="btg-search-ico btg-card--' + p.icon + '"></span><span class="btg-sr-title">' + esc(p.title) + '</span></a></li>').join('') + '</ul>\n\n' +
     '<h2 class="btg-nj-h">Towns we serve</h2>\n' +
     '<ul class="btg-nj-towns">' + TOWNS.map((t) => '<li>' + t + '</li>').join('') + '</ul>\n\n' +
-    '<h2 class="btg-nj-h">What customers say</h2>\n' +
-    '<div class="btg-rv-slot"></div>\n\n' +
     '<div class="btg-cta-block"><p><strong>Have any questions? Need a quote? Call Today!</strong></p><p><strong><a href="tel:8448354890">844-TEKGUY-0</a> / <a href="tel:8622105656">(862) 210-5656</a></strong></p></div>' +
     L.loaderBlock(version);
 };
