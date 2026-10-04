@@ -17,7 +17,8 @@ test('loginHtml(): a real WordPress login form with the right field names', () =
   assert.match(h, /name="rememberme" type="checkbox" value="forever"/);
   assert.match(h, /name="redirect_to" value="\/customer-log-in\/"/);
   assert.match(h, /href="\/wp-login\.php\?action=lostpassword"/);
-  assert.match(h, /href="\/register\/"/);
+  assert.doesNotMatch(h, /register|Create an account/i); // v1.6.6: no new accounts; customers just call or request a visit
+  assert.match(h, /href="\/contact-2\/#btg-request"/);
   assert.match(h, /href="tel:8448354890"/);
 });
 
