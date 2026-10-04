@@ -741,3 +741,34 @@ html .post-content { font-size: 16.5px; line-height: 1.72; color: var(--btg-text
 .btg-foot-map { display: block; width: 100%; height: 170px; margin-top: 14px; border: 0; border-radius: 8px; }
 .btg-nj-map { display: block; width: 100%; height: 380px; margin: 8px 0 40px; border: 0; border-radius: 12px; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08); }
 @media (max-width: 600px) { .btg-nj-map { height: 280px; } }
+
+/* v1.7.1 — hours: home hero status pill; contact hours card. */
+.btg-hours-pill-wrap { text-align: center; margin: 16px 0 0; }
+.btg-hours-pill { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.18); color: #e6e8ea; font-size: 14px; }
+.btg-hours-dot { width: 9px; height: 9px; border-radius: 50%; background: #e0a33a; flex: none; }
+.btg-hours-pill.is-open .btg-hours-dot { background: #6ec95f; }
+.btg-hours-pill a { color: var(--btg-green-lighter); text-decoration: underline; margin-left: 4px; }
+.btg-hours-card { background: #f5f6f4; border: 1px solid #e3e6e8; border-top: 3px solid var(--btg-green); border-radius: 10px; padding: 18px 20px; }
+.btg-hours-card h3 { margin: 0; }
+.btg-hours-note { margin: 2px 0 10px; color: #777; font-size: 0.9em; }
+.btg-hours-week { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; margin: 0; }
+.btg-hours-week dt { font-weight: 600; }
+.btg-hours-week dd { margin: 0; }
+.btg-hours-week .is-today { color: var(--btg-green-link); font-weight: 700; }
+
+/* v1.7.1 — Virginia service zone (Leaflet + OpenStreetMap): contact page and footer. */
+.btg-zone { margin: 36px 0 12px; scroll-margin-top: 110px; }
+.btg-zone-h { margin: 0 0 4px; font-size: 26px; }
+.btg-zone-sub { margin: 0 0 14px; color: #666; }
+.btg-zone-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; align-items: stretch; }
+.btg-zone-big { min-height: 380px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08); background: #eef1ec; }
+.btg-foot-zone { height: 170px; margin: 14px 0 18px; border-radius: 8px; background: #2c2e2f; }
+.btg-zone-map.leaflet-container { font-family: inherit; font-size: 12px; z-index: 0; }
+.leaflet-tooltip.btg-zone-lbl { background: none; border: 0; box-shadow: none; padding: 0; font-weight: 700; font-size: 12px; color: #1d3b17; text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff; }
+.leaflet-tooltip.btg-zone-lbl::before { display: none; }
+@media (max-width: 760px) { .btg-zone-grid { grid-template-columns: 1fr; } .btg-zone-big { min-height: 300px; } }
+.btg-hours-pill { flex-wrap: wrap; justify-content: center; max-width: calc(100% - 32px); }
+.btg-hours-pill a { white-space: nowrap; }
+@media (max-width: 600px) { .btg-hours-pill { border-radius: 16px; font-size: 13px; padding: 7px 12px; column-gap: 6px; row-gap: 2px; } }
+.btg-hours-now { display: inline; }
+.btg-hours-now .btg-hours-dot { display: inline-block; vertical-align: 1px; margin-right: 8px; }
