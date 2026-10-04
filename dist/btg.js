@@ -1072,58 +1072,6 @@ window.BTGFooter = (function () {
   return { HOURS: HOURS, contactHtml: contactHtml, linksHtml: linksHtml, ratingHtml: ratingHtml, hoursHtml: hoursHtml, init: init };
 })();
 
-// Live Google numbers: a daily GitHub job (tools/google-reviews.js) writes dist/google-reviews.json on main. When it is
-// fresh, the rating/count on the home band and in the footer use it, and the Reviews page gets a "Latest from Google"
-// section. Anything missing, stale or malformed leaves the hardcoded BTGReviews.GOOGLE numbers in place.
-window.BTGGoogleLive = (function () {
-  'use strict';
-  var URL = 'https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@main/dist/google-reviews.json';
-  var MAX_AGE = 30 * 864e5;
-  var esc = window.BTGSearch.esc;
-  function isHttps(u) { return typeof u === 'string' && /^https:\/\//.test(u); }
-  function accept(d, now) {
-    if (!d || typeof d.rating !== 'number' || typeof d.count !== 'number' || !isHttps(d.url) || !Array.isArray(d.reviews)) return null;
-    var t = Date.parse(d.updated);
-    if (!(now - t < MAX_AGE)) return null;
-    return {
-      rating: d.rating, count: d.count, url: d.url,
-      reviews: d.reviews.filter(function (r) { return r && typeof r.text === 'string' && r.text; }).slice(0, 5).map(function (r) {
-        return { name: String(r.name || 'Google user'), url: isHttps(r.url) ? r.url : '', rating: Math.max(0, Math.min(5, Number(r.rating) || 0)), date: String(r.date || ''), text: r.text };
-      })
-    };
-  }
-  function starsText(n) {
-    return '<span class="btg-gl-stars" role="img" aria-label="' + n + ' out of 5 stars">' + new Array(n + 1).join('&#9733;') + '<span class="btg-gl-off">' + new Array(6 - n).join('&#9733;') + '</span></span>';
-  }
-  function sectionHtml(d) {
-    return '<section class="btg-gl" aria-label="Latest Google reviews"><h2 class="btg-gl-h">Latest from Google</h2>' +
-      '<p class="btg-gl-sum">' + starsText(Math.round(d.rating)) + ' <b>' + d.rating.toFixed(1) + '</b> from ' + d.count + ' Google reviews</p>' +
-      '<div class="btg-gl-list">' + d.reviews.map(function (r) {
-        var who = r.url ? '<a href="' + esc(r.url) + '" target="_blank" rel="noopener nofollow">' + esc(r.name) + '</a>' : esc(r.name);
-        return '<article class="btg-gl-card"><header><b class="btg-gl-name">' + who + '</b><span class="btg-gl-date">' + esc(r.date) + '</span></header>' +
-          (r.rating ? starsText(r.rating) : '') + '<p>' + esc(r.text) + '</p></article>';
-      }).join('') + '</div>' +
-      '<p class="btg-gl-foot"><span>Reviews from Google</span> <a href="' + esc(d.url) + '" target="_blank" rel="noopener">See all ' + d.count + ' on Google &rarr;</a></p></section>';
-  }
-  function apply(doc, win, d) {
-    var sum = doc.querySelector('.btg-rv-sum');
-    if (sum) sum.outerHTML = window.BTGReviews.summaryHtml(d);
-    var foot = doc.querySelector('.btg-foot-rating');
-    if (foot) foot.outerHTML = window.BTGFooter.ratingHtml(d);
-    var hero = win.location.pathname === '/reviews/' && doc.querySelector('section.btg-hero');
-    if (hero && d.reviews.length && !doc.querySelector('.btg-gl')) hero.insertAdjacentHTML('afterend', sectionHtml(d));
-  }
-  function init(doc, win) {
-    if (typeof win.fetch !== 'function') return false;
-    win.fetch(win.BTG_GOOGLE_URL || URL).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
-      var d = accept(j, Date.now());
-      if (d) apply(doc, win, d);
-    }).catch(function () {});
-    return true;
-  }
-  return { URL: URL, accept: accept, sectionHtml: sectionHtml, init: init };
-})();
-
 
 (function () {
   // Guards against the Node test environment's minimal `document` stub,
@@ -1173,7 +1121,6 @@ window.BTGGoogleLive = (function () {
     safely(function () { window.BTGInit.addPrivacyNote(document); });
     safely(function () { window.BTGReviews.init(document, window); });
     safely(function () { window.BTGFooter.init(document); });
-    safely(function () { window.BTGGoogleLive.init(document, window); });
     // Reveals the header and page area the loader's inline style kept hidden until now.
     document.documentElement.classList.add('btg-ready');
     // Avada builds its mobile menu clone and the Twitter script adds its iframe after DOMContentLoaded.
