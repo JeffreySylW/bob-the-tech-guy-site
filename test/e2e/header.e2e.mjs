@@ -46,7 +46,7 @@ for (const label of ['About']) {
   await b.shot(out + '/sub-' + label.split(' ')[0].toLowerCase() + '.png');
   await b.move(700, 800); await b.sleep(400);
 }
-check('Customer Log In is a plain link (no dropdown)', await b.evalJs(`(() => { const a = [...document.querySelectorAll('.fusion-main-menu > ul > li > a')].find((x) => x.textContent.trim() === 'Customer Log In'); return !!a && !a.parentElement.querySelector('.sub-menu') && a.pathname === '/customer-log-in/'; })()`));
+check('no Customer Log In in the menu', await b.evalJs(`![...document.querySelectorAll('.fusion-main-menu a')].some((x) => x.textContent.trim() === 'Customer Log In')`));
 // Contact gets the same hover trace on pages with the old per-page style block (Memory Install has one).
 check('Contact hover trace not suppressed by per-page styles', await b.evalJs(`getComputedStyle(document.querySelector('.fusion-main-menu > ul > li.menu-item-11810 > a'), '::after').display !== 'none'`));
 await b.evalJs(`document.activeElement.blur()`);

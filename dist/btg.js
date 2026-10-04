@@ -321,21 +321,13 @@ window.BTGInit = (function () {
     return true;
   }
 
-  // "Customer Log In" is a plain link to the login page (the old Register / Log In drop-down is gone).
+  // No customer accounts (v1.6.7): drop the "Customer Log In" menu item, desktop and the mobile copy (menus are admin-only).
   // Runs on the main, mobile and sticky copies; Avada builds the mobile clone late, so run() calls it again on load.
   function fixLoginMenu(doc) {
     Array.prototype.forEach.call(doc.querySelectorAll('li'), function (li) {
-      var a = null, i, k;
+      var a = null, i;
       for (i = 0; i < li.children.length; i++) if (li.children[i].tagName === 'A') { a = li.children[i]; break; }
-      if (!a || a.textContent.trim() !== 'Customer Log In') return;
-      a.setAttribute('href', 'https://bobthetechguy.com/customer-log-in/');
-      a.removeAttribute('aria-haspopup');
-      a.removeAttribute('aria-expanded');
-      for (k = li.children.length - 1; k >= 0; k--) {
-        if (li.children[k].tagName === 'UL' && li.children[k].classList.contains('sub-menu')) li.removeChild(li.children[k]);
-      }
-      li.classList.remove('menu-item-has-children');
-      li.classList.remove('fusion-dropdown-menu');
+      if (a && a.textContent.trim() === 'Customer Log In' && li.parentNode) li.parentNode.removeChild(li);
     });
   }
 
@@ -966,15 +958,15 @@ window.BTGFooter = (function () {
   'use strict';
   var SITE = 'https://bobthetechguy.com';
   var HOURS = []; // staged: [['Mon–Fri', '9am–6pm'], ...] once Bob confirms his hours
-  var LINKS = [['Services', '/services-2/'], ['About Bob', '/about/'], ['Gallery', '/gallery/'], ['Testimonials', '/testimonials/'], ['Contact', '/contact-2/'], ['Customer Log In', '/customer-log-in/']];
+  var LINKS = [['Services', '/services-2/'], ['About Bob', '/about/'], ['Gallery', '/gallery/'], ['Testimonials', '/testimonials/'], ['Contact', '/contact-2/']];
   function contactHtml() {
     return '<ul class="btg-foot-contact-list">' +
       '<li>Serving Chesterfield &amp; Greater Richmond, VA</li>' +
       '<li><a href="tel:8448354890">844-TEKGUY-0</a> <span>(844) 835-4890</span></li>' +
       '<li><a href="mailto:info@bobthetechguy.com">info@bobthetechguy.com</a></li>' +
       '<li>Northern NJ: <a href="tel:8622105656">(862) 210-5656</a> &middot; <a href="' + SITE + '/northern-new-jersey/">NJ service area</a></li></ul>' +
-      // An area view, not the business pin: Google's place card would show the street address.
-      '<iframe class="btg-foot-map" src="https://maps.google.com/maps?q=Pompton%20Lakes%2C%20NJ&amp;z=10&amp;output=embed" title="Map of our northern New Jersey service area" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>';
+      // Bob's Google listing pin. Its card shows the NJ address, which is fine; the Virginia address is never shown.
+      '<iframe class="btg-foot-map" src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d12042.5344460568!2d-74.288835!3d41.0113919!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0xad47b350a040c358!2sBob+The+Tech+Guy!5e0!3m2!1sen!2sus!4v1453449210878" title="Bob The Tech Guy on Google Maps" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>';
   }
   function linksHtml() {
     return '<ul class="btg-foot-links">' + LINKS.map(function (l) { return '<li><a href="' + SITE + l[1] + '">' + l[0] + '</a></li>'; }).join('') + '</ul>';
