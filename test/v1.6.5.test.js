@@ -15,7 +15,7 @@ test('contact block: both numbers, email, Virginia service area, NJ link, no str
   assert.match(h, /href="mailto:info@bobthetechguy\.com"/);
   assert.match(h, /Chesterfield &amp; Greater Richmond, VA/);
   assert.match(h, /href="https:\/\/bobthetechguy\.com\/northern-new-jersey\/"/);
-  assert.doesNotMatch(h, /Broadway|Pompton Lakes, NJ|iframe/);
+  assert.doesNotMatch(h, /Broadway|Pompton Lakes, NJ/);
 });
 
 test('quick links match the main menu pages', () => {

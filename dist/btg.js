@@ -731,8 +731,8 @@ window.BTGAccount = (function () {
       '<input type="hidden" name="redirect_to" value="' + esc(redirect) + '">' +
       '<button class="btg-acct-go" type="submit">Log in</button></form>' +
       '<p class="btg-acct-links"><a href="/wp-login.php?action=lostpassword">Forgot your password?</a></p></section>' +
-      '<aside class="btg-acct-card btg-acct-side"><h2 class="btg-acct-h">New here?</h2><p>Don\u2019t have an account yet? Creating one only takes a minute.</p>' +
-      '<a class="btg-acct-alt" href="/register/">Create an account</a>' +
+      '<aside class="btg-acct-card btg-acct-side"><h2 class="btg-acct-h">New here?</h2><p>No account needed. Call Bob or send a request and he\u2019ll get back to you.</p>' +
+      '<a class="btg-acct-alt" href="/contact-2/#btg-request">Request a visit</a>' +
       '<p class="btg-acct-help">Trouble signing in? Call <a href="tel:8448354890">844-TEKGUY-0</a>.</p></aside></div>';
   }
   function hubHtml() {
@@ -972,7 +972,9 @@ window.BTGFooter = (function () {
       '<li>Serving Chesterfield &amp; Greater Richmond, VA</li>' +
       '<li><a href="tel:8448354890">844-TEKGUY-0</a> <span>(844) 835-4890</span></li>' +
       '<li><a href="mailto:info@bobthetechguy.com">info@bobthetechguy.com</a></li>' +
-      '<li>Northern NJ: <a href="tel:8622105656">(862) 210-5656</a> &middot; <a href="' + SITE + '/northern-new-jersey/">NJ service area</a></li></ul>';
+      '<li>Northern NJ: <a href="tel:8622105656">(862) 210-5656</a> &middot; <a href="' + SITE + '/northern-new-jersey/">NJ service area</a></li></ul>' +
+      // An area view, not the business pin: Google's place card would show the street address.
+      '<iframe class="btg-foot-map" src="https://maps.google.com/maps?q=Pompton%20Lakes%2C%20NJ&amp;z=10&amp;output=embed" title="Map of our northern New Jersey service area" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>';
   }
   function linksHtml() {
     return '<ul class="btg-foot-links">' + LINKS.map(function (l) { return '<li><a href="' + SITE + l[1] + '">' + l[0] + '</a></li>'; }).join('') + '</ul>';
