@@ -31,5 +31,16 @@ check('home: blocking caused no script errors', parsed.errors.length === 0, pars
 check('home: page title has the city', (await b.evalJs('document.title')) === 'Computer Repair in Chesterfield, VA | Bob The Tech Guy' && (await b.evalJs(`document.querySelector('meta[property="og:title"]').content`)) === 'Computer Repair in Chesterfield, VA | Bob The Tech Guy');
 check('home: page still finishes loading the bundle', await b.evalJs(`document.documentElement.classList.contains('btg-ready')`));
 await b.close();
+({ b, parsed } = await open('/memory-install/'));
+check('service page: related-services row before the call box, 3 links', await b.evalJs(`(() => { const r = document.querySelector('.btg-related'); return !!r && r.nextElementSibling === document.querySelector('.btg-cta-block') && r.querySelectorAll('.btg-related-link').length === 3 && !!r.querySelector('.btg-related-all'); })()`));
+check('service page: Service schema tied to the business, LocalBusiness has @id and no address', await b.evalJs(`(() => { const j = [...document.querySelectorAll('script[type="application/ld+json"]')].map((x) => JSON.parse(x.textContent)); const lb = j.find((x) => x['@type'] === 'LocalBusiness'), sv = j.find((x) => x['@type'] === 'Service'); return j.length === 2 && lb['@id'] === 'https://bobthetechguy.com/#business' && !lb.address && sv.name === 'Memory Install' && sv.provider['@id'] === lb['@id']; })()`));
+check('service page: still indexable', await b.evalJs(`!document.querySelector('meta[name="robots"][content^="noindex"]')`));
+await b.close();
+({ b, parsed } = await open('/about/'));
+check('about: no related row and no Service schema', await b.evalJs(`!document.querySelector('.btg-related') && document.querySelectorAll('script[type="application/ld+json"]').length === 1`));
+await b.close();
+({ b, parsed } = await open('/search/'));
+check('search page: asks not to be indexed', await b.evalJs(`!!document.querySelector('meta[name="robots"][content="noindex, follow"]')`));
+await b.close();
 server.close();
 const bad = results.filter((x) => !x).length; console.log(`${results.length - bad}/${results.length} passed`); process.exit(bad ? 1 : 0);
