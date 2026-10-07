@@ -1194,7 +1194,23 @@ window.BTGFooter = (function () {
     w.innerHTML = '<h4 class="widget-title">' + title + '</h4>' + html + '<div style="clear:both;"></div>';
     return w;
   }
+  // "Computer Repair Experts" is WordPress's recent-posts list, so the Northern New Jersey page (a page, not a post)
+  // never appears in it; add it right after the Chesterfield entry, copying that entry's markup.
+  function addAreaLink(doc) {
+    var list = doc.querySelector('.fusion-footer .widget_recent_entries ul');
+    if (!list) return false;
+    var links = Array.prototype.slice.call(list.querySelectorAll('li a'));
+    if (links.some(function (a) { return a.pathname === '/northern-new-jersey/'; })) return false;
+    var model = links.filter(function (a) { return a.pathname === '/best-computer-repair-chesterfield-va/'; })[0] || links[0];
+    if (!model) return false;
+    var li = model.closest('li').cloneNode(true), a = li.querySelector('a');
+    a.setAttribute('href', SITE + '/northern-new-jersey/');
+    a.textContent = 'Northern New Jersey';
+    list.insertBefore(li, model.closest('li').nextSibling);
+    return true;
+  }
   function init(doc) {
+    addAreaLink(doc);
     var t3 = doc.querySelector('.fusion-footer #text-3');
     if (!t3 || doc.querySelector('.btg-foot-contact-list')) return false;
     var h = t3.querySelector('.widget-title');
@@ -1208,7 +1224,7 @@ window.BTGFooter = (function () {
     if (badge) badge.parentNode.insertBefore(rating, badge.nextSibling); else links.parentNode.appendChild(rating);
     return true;
   }
-  return { HOURS: HOURS, contactHtml: contactHtml, linksHtml: linksHtml, ratingHtml: ratingHtml, hoursHtml: hoursHtml, init: init };
+  return { HOURS: HOURS, addAreaLink: addAreaLink, contactHtml: contactHtml, linksHtml: linksHtml, ratingHtml: ratingHtml, hoursHtml: hoursHtml, init: init };
 })();
 
 // Virginia service zone: Bob's location is not shared, so the map shows a rounded area around the towns he covers
