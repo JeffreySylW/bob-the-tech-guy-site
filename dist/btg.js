@@ -1199,6 +1199,10 @@ window.BTGFooter = (function () {
   function addAreaLink(doc) {
     var list = doc.querySelector('.fusion-footer .widget_recent_entries ul');
     if (!list) return false;
+    // The old "New Website Launch!" announcement doesn't belong in a list of service areas.
+    Array.prototype.forEach.call(list.querySelectorAll('li a'), function (a) {
+      if (a.pathname === '/new-website-launch/' && a.closest('li').parentNode) a.closest('li').parentNode.removeChild(a.closest('li'));
+    });
     var links = Array.prototype.slice.call(list.querySelectorAll('li a'));
     if (links.some(function (a) { return a.pathname === '/northern-new-jersey/'; })) return false;
     var model = links.filter(function (a) { return a.pathname === '/best-computer-repair-chesterfield-va/'; })[0] || links[0];
