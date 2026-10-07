@@ -250,6 +250,7 @@ window.BTGInit = (function () {
     '/testimonials/': 'Read what customers say about Bob The Tech Guy: honest, on-time computer repair and support that is done right the first time, at a fair price.',
     '/reviews/': 'Customer reviews of Bob The Tech Guy computer repair. Every rated review is five stars, for friendly, knowledgeable service at reasonable rates.',
     '/gallery/': 'Photos from real Bob The Tech Guy jobs: PC builds, upgrades, virus cleanups, data recovery and network installs for homes and small businesses.',
+    '/best-computer-repair-chesterfield-va/': 'Bob The Tech Guy brings on-site computer repair, virus removal and networking to Chesterfield, Richmond, Midlothian, Chester, Bon Air and nearby towns.',
     '/northern-new-jersey/': 'Bob The Tech Guy still serves northern New Jersey: on-site computer repair, virus removal and networking in Pompton Lakes, Wyckoff, Ramsey and nearby.',
     '/customer-log-in/': 'Sign in to your Bob The Tech Guy customer account to view your profile and update your settings, or create a new account in about a minute.',
     '/search/': 'Search Bob The Tech Guy services and pages to find the right help for a slow computer, a virus, Wi-Fi trouble, lost files, a new PC and more.',
@@ -278,17 +279,22 @@ window.BTGInit = (function () {
     if (!m || path === NJ_PAGE || !NJ_SLUG.test(m[1])) return null;
     return NJ_PAGE;
   }
+  // The eight Virginia town posts were near-copies of each other; they fold into the one Chesterfield page.
+  var VA_PAGE = '/best-computer-repair-chesterfield-va/';
+  function vaTarget(path) { return /^\/pc-repair-service-[a-z-]+-virginia\/?$/.test(path || '') ? VA_PAGE : null; }
   function rewriteNjLinks(doc) {
     var host = 'bobthetechguy.com', seen = {};
+    // The footer already lists the Chesterfield page itself; the town entries then simply disappear.
+    if (doc.querySelector('.fusion-footer li a[href$="' + VA_PAGE + '"]')) seen[VA_PAGE] = true;
     Array.prototype.forEach.call(doc.querySelectorAll('a[href]'), function (a) {
       if (a.hostname && a.hostname.replace(/^www\./, '') !== host) return;
-      var t = njTarget(a.pathname);
+      var t = njTarget(a.pathname) || vaTarget(a.pathname);
       if (!t) return;
       a.setAttribute('href', 'https://' + host + t);
-      // In footer link lists, keep one "Northern New Jersey" entry.
+      // In footer link lists, keep one entry per area page.
       var li = a.closest && a.closest('.fusion-footer li');
       if (!li) return;
-      if (seen[t]) li.parentNode.removeChild(li); else { seen[t] = true; a.textContent = 'Northern New Jersey'; }
+      if (seen[t]) li.parentNode.removeChild(li); else { seen[t] = true; if (t === NJ_PAGE) a.textContent = 'Northern New Jersey'; }
     });
   }
 
@@ -379,6 +385,7 @@ window.BTGInit = (function () {
     '/reviews/': 'Customer Reviews | Bob The Tech Guy, Chesterfield VA',
     '/testimonials/': 'Customer Testimonials | Bob The Tech Guy, Chesterfield VA',
     '/gallery/': 'Photo Gallery | Bob The Tech Guy, Chesterfield VA',
+    '/best-computer-repair-chesterfield-va/': 'Computer Repair in Chesterfield & Richmond, VA | Bob The Tech Guy',
     '/northern-new-jersey/': 'Computer Repair in Northern New Jersey | Bob The Tech Guy'
   };
   var SHORT_SERVICE = { '/software-installation-and-configuration/': 'Software Setup' };
@@ -427,6 +434,7 @@ window.BTGInit = (function () {
     quietFooter: quietFooter,
     addNjLine: addNjLine,
     njTarget: njTarget,
+    vaTarget: vaTarget,
     rewriteNjLinks: rewriteNjLinks,
     isBlockedScript: isBlockedScript,
     blockCrypto: blockCrypto,
@@ -466,15 +474,7 @@ window.BTGSearch = (function () {
     {"title":"Hardware Install","url":"https://bobthetechguy.com/hardware-install/","type":"SERVICE","icon":"plug","keywords":["graphics","card","drive","webcam","install"]},
     {"title":"Memory Install","url":"https://bobthetechguy.com/memory-install/","type":"SERVICE","icon":"chip","keywords":["ram","memory","slow","upgrade","speed"]},
     {"title":"Email Setup","url":"https://bobthetechguy.com/email-setup/","type":"SERVICE","icon":"mail","keywords":["email","outlook","mail","gmail"]},
-    {"title":"Best Computer Repair Chesterfield VA","url":"https://bobthetechguy.com/best-computer-repair-chesterfield-va/","type":"AREA","icon":"pin","keywords":["repair","computer","pc","near"]},
-    {"title":"PC Repair Service Bon Air Virginia","url":"https://bobthetechguy.com/pc-repair-service-bon-air-virginia/","type":"AREA","icon":"pin","keywords":["repair","computer","pc","near"]},
-    {"title":"PC Repair Service Brandermill Virginia","url":"https://bobthetechguy.com/pc-repair-service-brandermill-virginia/","type":"AREA","icon":"pin","keywords":["repair","computer","pc","near"]},
-    {"title":"PC Repair Service Chester Virginia","url":"https://bobthetechguy.com/pc-repair-service-chester-virginia/","type":"AREA","icon":"pin","keywords":["repair","computer","pc","near"]},
-    {"title":"PC Repair Service Colonial Heights Virginia","url":"https://bobthetechguy.com/pc-repair-service-colonial-heights-virginia/","type":"AREA","icon":"pin","keywords":["repair","computer","pc","near"]},
-    {"title":"PC Repair Service Midlothian Virginia","url":"https://bobthetechguy.com/pc-repair-service-midlothian-virginia/","type":"AREA","icon":"pin","keywords":["repair","computer","pc","near"]},
-    {"title":"PC Repair Service Moseley Virginia","url":"https://bobthetechguy.com/pc-repair-service-moseley-virginia/","type":"AREA","icon":"pin","keywords":["repair","computer","pc","near"]},
-    {"title":"PC Repair Service Richmond Virginia","url":"https://bobthetechguy.com/pc-repair-service-richmond-virginia/","type":"AREA","icon":"pin","keywords":["repair","computer","pc","near"]},
-    {"title":"PC Repair Service Woodlake Virginia","url":"https://bobthetechguy.com/pc-repair-service-woodlake-virginia/","type":"AREA","icon":"pin","keywords":["repair","computer","pc","near"]},
+    {"title":"Chesterfield & Richmond VA Service Area","url":"https://bobthetechguy.com/best-computer-repair-chesterfield-va/","type":"AREA","icon":"pin","keywords":["repair","computer","pc","near"]},
     {"title":"Home","url":"https://bobthetechguy.com/","type":"PAGE","icon":"page","keywords":["home","bob"]},
     {"title":"About","url":"https://bobthetechguy.com/about/","type":"PAGE","icon":"page","keywords":["bob","veteran","story","experience"]},
     {"title":"Reviews","url":"https://bobthetechguy.com/reviews/","type":"PAGE","icon":"page","keywords":["reviews","rating","stars"]},
@@ -1261,6 +1261,9 @@ window.BTGZone = (function () {
     });
     map.fitBounds(area.getBounds(), { padding: small ? [4, 4] : [12, 12] });
   }
+  function mapHtml() {
+    return '<div class="btg-zone-map btg-zone-big" role="img" aria-label="Map of the Virginia service area: ' + TOWNS.map(function (t) { return t[0]; }).join(', ') + '"></div>';
+  }
   function sectionHtml(now) {
     return '<section class="btg-zone" id="btg-hours"><h2 class="btg-zone-h">Our Virginia service area</h2>' +
       '<p class="btg-zone-sub">Bob comes to you anywhere in the shaded area. Not sure if you’re covered? Just call.</p>' +
@@ -1270,6 +1273,8 @@ window.BTGZone = (function () {
   function init(doc, win) {
     var loc = win.location.pathname === '/contact-2/' && doc.querySelector('.btg-locations');
     if (loc && !doc.querySelector('.btg-zone')) loc.insertAdjacentHTML('afterend', sectionHtml(new Date()));
+    var slot = doc.querySelector('.btg-zone-slot');
+    if (slot && !slot.querySelector('.btg-zone-map')) slot.innerHTML = mapHtml();
     var els = Array.prototype.slice.call(doc.querySelectorAll('.btg-zone-map'));
     if (!els.length) return false;
     var show = function (el) { if (el.getAttribute('data-drawn')) return; el.setAttribute('data-drawn', '1'); loadLeaflet(doc, win).then(function (L) { draw(L, el); }).catch(function () { el.style.display = 'none'; }); };
@@ -1278,7 +1283,7 @@ window.BTGZone = (function () {
     els.forEach(function (el) { io.observe(el); });
     return true;
   }
-  return { TOWNS: TOWNS, LEAFLET: LEAFLET, zone: zone, sectionHtml: sectionHtml, init: init };
+  return { TOWNS: TOWNS, LEAFLET: LEAFLET, zone: zone, mapHtml: mapHtml, sectionHtml: sectionHtml, init: init };
 })();
 
 // Veteran-owned badge: replaces the old flag image in the footer and sits under Bob's photo on the About page.
