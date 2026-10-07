@@ -16,6 +16,8 @@ for (const [w, h, m] of [[1440, 900, false], [390, 844, true]]) {
   check(w + ': rating badge right after the veteran badge', await b.evalJs(`!!document.querySelector('#text-16 + .btg-foot .btg-foot-rating')`));
   check(w + ': no empty footer column', await b.evalJs(`[...document.querySelectorAll('.fusion-footer .fusion-footer-widget-area .fusion-column')].every((c) => c.querySelector('.fusion-footer-widget-column'))`));
   check(w + ': NJ link dedupe leaves the contact block alone', await b.evalJs(`(() => { BTGInit.rewriteNjLinks(document); return /\\(862\\) 210-5656/.test(document.querySelector('#text-3').innerText) && document.querySelectorAll('#recent-posts-6 a[href*="northern-new-jersey"]').length <= 1; })()`));
+  check(w + ': Computer Repair Experts lists the NJ page once, right after the Chesterfield entry', await b.evalJs(`(() => { const a = [...document.querySelectorAll('#recent-posts-6 li a')]; const nj = a.filter((x) => x.pathname === '/northern-new-jersey/'); const i = a.findIndex((x) => x.pathname === '/best-computer-repair-chesterfield-va/'); return nj.length === 1 && nj[0].textContent.trim() === 'Northern New Jersey' && a.indexOf(nj[0]) === i + 1 && nj[0].closest('li').className === a[i].closest('li').className; })()`),
+    await b.evalJs(`JSON.stringify([...document.querySelectorAll('#recent-posts-6 li a')].map((x) => x.pathname))`));
   check(w + ': no horizontal scroll', !(await b.evalJs(`document.documentElement.scrollWidth > innerWidth`)));
   await b.evalJs(`document.querySelector('.fusion-footer').scrollIntoView()`); await b.sleep(600);
   await b.shot(`${out}/footer-new-${w}.png`);
