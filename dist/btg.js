@@ -98,7 +98,10 @@ window.BTGSchema = (function () {
     return {
       '@context': 'https://schema.org',
       '@type': 'LocalBusiness',
+      '@id': opts['@id'],
       name: opts.name,
+      image: opts.image,
+      founder: opts.founder,
       telephone: opts.telephone,
       url: opts.url,
       openingHoursSpecification: opts.openingHoursSpecification,
@@ -116,7 +119,14 @@ window.BTGSchema = (function () {
     document.head.appendChild(script);
   }
 
-  return { buildLocalBusiness: buildLocalBusiness, inject: inject };
+  function injectRaw(obj) {
+    var script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.textContent = JSON.stringify(obj);
+    document.head.appendChild(script);
+  }
+
+  return { buildLocalBusiness: buildLocalBusiness, inject: inject, injectRaw: injectRaw };
 })();
 
 window.BTGMeta = (function () {
@@ -177,7 +187,10 @@ window.BTGInit = (function () {
 
 
   var SCHEMA = {
+    '@id': 'https://bobthetechguy.com/#business',
     name: 'Bob The Tech Guy',
+    get image() { return window.BTGBob ? window.BTGBob.PORTRAIT : undefined; },
+    founder: { '@type': 'Person', name: 'Bob Dyer' },
     telephone: '+18448354890',
     url: 'https://bobthetechguy.com/',
     get openingHoursSpecification() { return window.BTGHours ? window.BTGHours.schemaHours() : undefined; },
@@ -190,8 +203,57 @@ window.BTGInit = (function () {
     sameAs: ['https://maps.google.com/?cid=12486145650775343960', 'https://www.facebook.com/BobTheTechGuy',
       'https://www.veteranownedbusiness.com/business/24505/bob-the-tech-guy'],
   };
+  // Service pages: the same Services groups as the Services index, used for "Related services" links.
+  var SERVICE_GROUPS = [
+    ['hardware-repair-upgrades', 'screen-replacement', 'memory-install', 'hardware-install', 'computer-tune-up', 'data-recovery-service'],
+    ['computer-set-up', 'operating-system-install', 'software-installation-and-configuration', 'printer-solutions', 'email-setup'],
+    ['networking', 'anti-virus', 'backup-solutions', 'parental-controls']
+  ];
+  function servicePage(slug) {
+    return (window.BTGSearch ? window.BTGSearch.PAGES : []).filter(function (p) { return p.type === 'SERVICE' && p.url === 'https://bobthetechguy.com/' + slug + '/'; })[0] || null;
+  }
+  function relatedServices(path) {
+    var m = /^\/([a-z0-9-]+)\/?$/.exec(path || ''), out = [];
+    if (!m) return out;
+    SERVICE_GROUPS.forEach(function (g) {
+      var i = g.indexOf(m[1]);
+      if (i < 0) return;
+      for (var k = 1; k <= 3; k++) { var p = servicePage(g[(i + k) % g.length]); if (p) out.push(p); }
+    });
+    return out;
+  }
+  function relatedHtml(path) {
+    var items = relatedServices(path);
+    if (!items.length) return '';
+    return '<section class="btg-related" aria-label="Related services"><h2 class="btg-related-h">Related services</h2><ul class="btg-related-list">' +
+      items.map(function (p) { return '<li><a class="btg-related-link btg-card--' + p.icon + '" href="' + p.url + '"><span class="btg-search-ico btg-card--' + p.icon + '" aria-hidden="true"></span><span>' + window.BTGSearch.esc(p.title) + '</span></a></li>'; }).join('') +
+      '</ul><a class="btg-related-all" href="https://bobthetechguy.com/services-2/">See all services &rarr;</a></section>';
+  }
+  function addRelatedServices(doc, win) {
+    var box = doc.querySelector('.btg-cta-block'), html = relatedHtml((win.location && win.location.pathname) || '/');
+    if (!box || !html || doc.querySelector('.btg-related')) return false;
+    box.insertAdjacentHTML('beforebegin', html);
+    return true;
+  }
+  function serviceSchema(path) {
+    var m = /^\/([a-z0-9-]+)\/?$/.exec(path || ''), page = m && servicePage(m[1]);
+    if (!page) return null;
+    return { '@context': 'https://schema.org', '@type': 'Service', name: page.title, serviceType: page.title, url: page.url, provider: { '@id': SCHEMA['@id'] }, areaServed: SCHEMA.areaServed };
+  }
+  // The search results page should not be a search result itself (Google honors a noindex added by script).
+  function robotsFor(path) { return path === '/search/' ? 'noindex, follow' : null; }
+  function setRobots(doc, win) {
+    var v = robotsFor((win.location && win.location.pathname) || '/');
+    if (!v || doc.querySelector('meta[name="robots"][content^="noindex"]')) return false;
+    var meta = doc.createElement('meta');
+    meta.name = 'robots'; meta.content = v;
+    doc.head.appendChild(meta);
+    return true;
+  }
   function injectSchemaAndMeta(doc, win) {
     if (win.BTGSchema) win.BTGSchema.inject(SCHEMA);
+    var svc = serviceSchema((win.location && win.location.pathname) || '/');
+    if (svc && win.BTGSchema && win.BTGSchema.injectRaw) win.BTGSchema.injectRaw(svc);
     if (win.BTGMeta) {
       var lede = doc.querySelector('.btg-hero-lede'), here = (win.location && win.location.pathname) || '/';
       var desc = DESCRIPTIONS[here] || (lede && lede.textContent && lede.textContent.trim())
@@ -250,6 +312,8 @@ window.BTGInit = (function () {
     '/testimonials/': 'Read what customers say about Bob The Tech Guy: honest, on-time computer repair and support that is done right the first time, at a fair price.',
     '/reviews/': 'Customer reviews of Bob The Tech Guy computer repair. Every rated review is five stars, for friendly, knowledgeable service at reasonable rates.',
     '/gallery/': 'Photos from real Bob The Tech Guy jobs: PC builds, upgrades, virus cleanups, data recovery and network installs for homes and small businesses.',
+    '/support/': 'Download the Bob The Tech Guy support app, with step-by-step instructions for extracting and installing it. Call 844-TEKGUY-0 if you get stuck.',
+    '/tech-certificates/': 'Give the gift of technology: Bob The Tech Guy gift certificates cover computer repair, anti-virus, malware removal, tech support and new accessories.',
     '/best-computer-repair-chesterfield-va/': 'Bob The Tech Guy brings on-site computer repair, virus removal and networking to Chesterfield, Richmond, Midlothian, Chester, Bon Air and nearby towns.',
     '/northern-new-jersey/': 'Bob The Tech Guy still serves northern New Jersey: on-site computer repair, virus removal and networking in Pompton Lakes, Wyckoff, Ramsey and nearby.',
     '/customer-log-in/': 'Sign in to your Bob The Tech Guy customer account to view your profile and update your settings, or create a new account in about a minute.',
@@ -385,6 +449,8 @@ window.BTGInit = (function () {
     '/reviews/': 'Customer Reviews | Bob The Tech Guy, Chesterfield VA',
     '/testimonials/': 'Customer Testimonials | Bob The Tech Guy, Chesterfield VA',
     '/gallery/': 'Photo Gallery | Bob The Tech Guy, Chesterfield VA',
+    '/support/': 'Support App Download | Bob The Tech Guy',
+    '/tech-certificates/': 'Tech Gift Certificates | Bob The Tech Guy',
     '/best-computer-repair-chesterfield-va/': 'Computer Repair in Chesterfield & Richmond, VA | Bob The Tech Guy',
     '/northern-new-jersey/': 'Computer Repair in Northern New Jersey | Bob The Tech Guy'
   };
@@ -451,6 +517,12 @@ window.BTGInit = (function () {
     tidySocial: tidySocial,
     describeButtons: describeButtons,
     pageTitle: pageTitle,
+    relatedServices: relatedServices,
+    relatedHtml: relatedHtml,
+    addRelatedServices: addRelatedServices,
+    serviceSchema: serviceSchema,
+    robotsFor: robotsFor,
+    setRobots: setRobots,
     setTitle: setTitle,
   };
 })();
@@ -1396,6 +1468,8 @@ window.BTGCards = (function () {
     safely(function () { window.BTGInit.removeHomeSlider(document); });
     safely(function () { window.BTGInit.injectSchemaAndMeta(document, window); });
     safely(function () { window.BTGInit.setTitle(document, window); });
+    safely(function () { window.BTGInit.setRobots(document, window); });
+    safely(function () { window.BTGInit.addRelatedServices(document, window); });
     safely(function () { window.BTGHeader.init(document, window); });
     safely(function () { window.BTGSearch.init(document, window); });
     safely(function () { window.BTGSearch.initPage(document, window); });

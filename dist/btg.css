@@ -797,3 +797,15 @@ html .post-content { font-size: 16.5px; line-height: 1.72; color: var(--btg-text
 .btg-bob-photo .btg-vet-ico { width: 34px; height: 34px; }
 .btg-bob-photo .btg-vet-vob img { height: 28px; }
 .btg-hours-pill-wrap { margin: 0 !important; padding-top: 28px; }
+
+/* v1.7.8 — "Related services" row at the foot of every service page. */
+.btg-related { margin: 36px 0 28px; }
+.btg-related-h { margin: 0 0 14px; font-size: 22px; }
+.btg-related-list { list-style: none; margin: 0 0 14px; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
+.btg-related-link { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: #f5f6f4; border: 1px solid #e3e6e8; border-radius: 10px; color: #1d3b17; font-weight: 600; text-decoration: none; }
+.btg-related-link:hover, .btg-related-link:focus-visible { border-color: var(--btg-green); background: #fff; }
+.btg-related-all { color: var(--btg-green-link); font-weight: 600; }
+.btg-related .btg-related-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; list-style: none; margin: 0 0 14px; padding: 0; }
+.btg-related .btg-related-list li { float: none; width: auto; margin: 0; padding: 0; border: 0; }
+.btg-related .btg-related-link { box-sizing: border-box; height: 100%; }
+@media (max-width: 700px) { .btg-related .btg-related-list { grid-template-columns: 1fr; } }
