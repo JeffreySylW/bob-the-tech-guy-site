@@ -47,7 +47,8 @@ test('search lists one Virginia area page, not nine', () => {
 test('the service-area map can fill a slot on the Chesterfield page', () => {
   assert.match(Z.mapHtml(), /^<div class="btg-zone-map btg-zone-big" role="img" aria-label="Map of the Virginia service area: Richmond,/);
   const slot = { innerHTML: '', querySelector: () => null };
-  const doc = { querySelector: (s) => (s === '.btg-zone-slot' ? slot : null), querySelectorAll: () => [] };
+  slot.className = 'btg-zone-slot';
+  const doc = { querySelector: () => null, querySelectorAll: (s) => (s === '.btg-zone-slot' ? [slot] : []) };
   Z.init(doc, { location: { pathname: PAGE } });
   assert.match(slot.innerHTML, /btg-zone-map/);
 });

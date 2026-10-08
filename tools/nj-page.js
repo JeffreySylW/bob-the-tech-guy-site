@@ -21,6 +21,7 @@ module.exports = function njPageContent(version) {
     '<ul class="btg-sr-list">' + SERVICES.map((p) => '<li><a class="btg-sr-item btg-card--' + p.icon + '" href="' + p.url + '"><span class="btg-search-ico btg-card--' + p.icon + '"></span><span class="btg-sr-title">' + esc(p.title) + '</span></a></li>').join('') + '</ul>\n\n' +
     '<h2 class="btg-nj-h">Towns we serve</h2>\n' +
     '<ul class="btg-nj-towns">' + TOWNS.map((t) => '<li>' + t + '</li>').join('') + '</ul>\n\n' +
+    '<div class="btg-zone-slot btg-zone-slot--nj"></div>\n\n' +
     MAP + '\n\n' +
     '<div class="btg-cta-block"><p><strong>Have any questions? Need a quote? Call Today!</strong></p><p><strong><a href="tel:8448354890">844-TEKGUY-0</a> / <a href="tel:8622105656">(862) 210-5656</a></strong></p></div>' +
     L.loaderBlock(version);
