@@ -8,8 +8,8 @@ require('../dist/btg.js');
 const F = window.BTGFooter;
 const css = fs.readFileSync(require('node:path').join(__dirname, '../dist/btg.css'), 'utf8');
 
-test('contact block: both numbers, email, Virginia service area, NJ link, no street address', () => {
-  const h = F.contactHtml();
+test('contact details: both numbers, email, Virginia service area, NJ link, no street address', () => {
+  const h = F.regionHtml('va') + F.regionHtml('nj'); // v1.8.0: one block per region
   assert.match(h, /href="tel:8448354890"[^>]*>844-TEKGUY-0/);
   assert.match(h, /href="tel:8622105656"[^>]*>\(862\) 210-5656/);
   assert.match(h, /href="mailto:info@bobthetechguy\.com"/);

@@ -39,10 +39,10 @@ test('slots: a plain slot gets the Virginia map, a --nj slot gets the New Jersey
   assert.match(fill('btg-zone-slot btg-zone-slot--nj'), /northern New Jersey service area/);
 });
 
-test('footer: a Northern NJ service-area widget with a map and a link to the NJ page', () => {
-  const h = F.njZoneHtml();
+test('footer: the Northern NJ column has a service-area map and a link to the NJ page', () => {
+  const h = F.regionHtml('nj');
   assert.match(h, /<div class="btg-foot-zone btg-zone-map btg-zone-nj" role="img" aria-label="Map of the northern New Jersey service area/);
-  assert.match(h, /<a href="https:\/\/bobthetechguy\.com\/northern-new-jersey\/">See every town we serve &rarr;<\/a>/);
+  assert.match(h, /<a href="https:\/\/bobthetechguy\.com\/northern-new-jersey\/">See every NJ town we serve &rarr;<\/a>/);
 });
 
 test('styles: service cards stretch to equal height; town pills sit on an even grid', () => {
