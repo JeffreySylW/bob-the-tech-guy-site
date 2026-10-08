@@ -17,6 +17,9 @@ test('links every service page and lists the towns served', () => {
 });
 test('has no reviews band (home page only), a call box with both numbers, and ends with the standard loader', () => {
   assert.doesNotMatch(html, /btg-rv-slot|What customers say/);
+  // v1.7.9: the service-area map slot sits after the towns, before the call box
+  assert.match(html, /<div class="btg-zone-slot btg-zone-slot--nj"><\/div>/);
+  assert.ok(html.indexOf('btg-zone-slot') > html.indexOf('btg-nj-towns') && html.indexOf('btg-zone-slot') < html.indexOf('btg-cta-block'));
   assert.match(html, /<div class="btg-cta-block">[\s\S]*844-TEKGUY-0[\s\S]*\(862\) 210-5656/);
   assert.ok(html.endsWith(require('../tools/loader.js').loaderBlock('v1.6.0')));
 });

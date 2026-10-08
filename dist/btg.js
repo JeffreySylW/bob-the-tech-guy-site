@@ -1260,6 +1260,35 @@ window.BTGFooter = (function () {
     if (!rows.length) return '';
     return '<h4 class="widget-title btg-foot-hours-h">Hours</h4><dl class="btg-foot-hours">' + rows.map(function (r) { return '<dt>' + r[0] + '</dt><dd>' + r[1] + '</dd>'; }).join('') + '</dl>';
   }
+  // The northern New Jersey service area as a zone map (every town listed on the NJ page), next to the Quick Links column.
+  function njZoneHtml() {
+    return '<div class="btg-foot-zone btg-zone-map btg-zone-nj" role="img" aria-label="' + window.BTGZone.areaLabel('nj') + '"></div>' +
+      '<p class="btg-foot-zone-cap"><a href="' + SITE + '/northern-new-jersey/">See every town we serve &rarr;</a></p>';
+  }
+  // In the side-by-side footer, put the NJ service-area map exactly level with Bob's NJ map in the column to its left.
+  // Heights above them differ by screen width, so measure and nudge whichever side is higher (with padding: margins would
+  // collapse into the widget above); stacked layouts are left alone.
+  function alignMaps(doc, win) {
+    var pin = doc.querySelector('#text-3 .btg-foot-map'), zone = doc.querySelector('.btg-foot-zone.btg-zone-nj');
+    var left = doc.querySelector('#text-3 .btg-foot-nj'), right = zone && zone.closest('.btg-foot');
+    if (!pin || !zone || !left || !right) return false;
+    left.style.paddingTop = ''; right.style.paddingTop = '';
+    var a = pin.getBoundingClientRect(), b = zone.getBoundingClientRect();
+    if (Math.abs(a.left - b.left) < 100) return false;
+    var dy = a.top - b.top, num = function (el) { return parseFloat(win.getComputedStyle(el).paddingTop) || 0; };
+    if (dy > 0) right.style.paddingTop = (num(right) + dy) + 'px';
+    else if (dy < 0) left.style.paddingTop = (num(left) - dy) + 'px';
+    return true;
+  }
+  var alignHooked = false;
+  function hookAlign(doc, win) {
+    if (alignHooked || !win.addEventListener) return;
+    alignHooked = true;
+    var t = null, run = function () { alignMaps(doc, win); };
+    win.addEventListener('load', run);
+    win.addEventListener('resize', function () { win.clearTimeout(t); t = win.setTimeout(run, 120); });
+    if (doc.fonts && doc.fonts.ready) doc.fonts.ready.then(run);
+  }
   function widget(doc, title, html) {
     var w = doc.createElement('div');
     w.className = 'fusion-footer-widget-column widget btg-foot';
@@ -1294,13 +1323,16 @@ window.BTGFooter = (function () {
     var cols = Array.prototype.slice.call(doc.querySelectorAll('.fusion-footer .fusion-footer-widget-area .fusion-column'));
     var empty = cols.filter(function (c) { return !c.querySelector('.fusion-footer-widget-column'); })[0];
     var links = widget(doc, 'Quick Links', linksHtml());
-    if (empty) empty.appendChild(links); else t3.parentNode.insertBefore(links, t3.nextSibling);
+    var njZone = widget(doc, 'Northern NJ Service Area', njZoneHtml());
+    if (empty) { empty.appendChild(links); empty.appendChild(njZone); } else { t3.parentNode.insertBefore(links, t3.nextSibling); links.parentNode.insertBefore(njZone, links.nextSibling); }
     var badge = doc.querySelector('.fusion-footer #text-16');
     var rating = widget(doc, 'Customer Reviews', ratingHtml(window.BTGReviews.GOOGLE) + hoursHtml(HOURS));
     if (badge) badge.parentNode.insertBefore(rating, badge.nextSibling); else links.parentNode.appendChild(rating);
+    alignMaps(doc, window);
+    hookAlign(doc, window);
     return true;
   }
-  return { HOURS: HOURS, addAreaLink: addAreaLink, contactHtml: contactHtml, linksHtml: linksHtml, ratingHtml: ratingHtml, hoursHtml: hoursHtml, init: init };
+  return { HOURS: HOURS, addAreaLink: addAreaLink, alignMaps: alignMaps, njZoneHtml: njZoneHtml, contactHtml: contactHtml, linksHtml: linksHtml, ratingHtml: ratingHtml, hoursHtml: hoursHtml, init: init };
 })();
 
 // Virginia service zone: Bob's location is not shared, so the map shows a rounded area around the towns he covers
@@ -1310,6 +1342,17 @@ window.BTGZone = (function () {
   'use strict';
   var TOWNS = [['Richmond', 37.5407, -77.436], ['Bon Air', 37.5246, -77.5578], ['Midlothian', 37.5057, -77.6494], ['Brandermill', 37.4329, -77.6522],
     ['Woodlake', 37.4196, -77.6739], ['Moseley', 37.406, -77.77], ['Chesterfield', 37.3771, -77.5047], ['Chester', 37.3568, -77.4416], ['Colonial Heights', 37.2681, -77.4072]];
+  // Northern New Jersey: the 21 towns on the Northern NJ page (the two counties are areas, not points). The 4th value marks
+  // the towns that get a permanent label on the big map; the rest show their name on hover.
+  var NJ_TOWNS = [['Pompton Lakes', 41.0034, -74.2891, 1], ['Wayne', 40.9254, -74.2765, 1], ['Wyckoff', 41.0004, -74.1727, 1], ['Ramsey', 41.0576, -74.1418, 1],
+    ['Mahwah', 41.0887, -74.1438, 1], ['Oakland', 41.0126, -74.2379], ['Allendale', 41.031, -74.1285], ['Upper Saddle River', 41.0587, -74.1],
+    ['Saddle River', 41.0537, -74.0971], ['Waldwick', 41.0104, -74.1263], ['Midland Park', 40.9965, -74.1424], ['Ridgewood', 40.9793, -74.1166, 1],
+    ['Glen Rock', 40.9626, -74.1327], ['Fair Lawn', 40.9404, -74.1318], ['Paramus', 40.9445, -74.0654, 1], ['Riverdale', 40.9954, -74.3068],
+    ['Butler', 41.0004, -74.3382, 1], ['Wanaque', 41.0443, -74.2921], ['Pequannock', 40.949, -74.304], ['Montville', 40.915, -74.35, 1], ['Totowa', 40.906, -74.209]];
+  var AREAS = {
+    va: { name: 'Virginia', towns: TOWNS, pad: [0.045, 0.057] },
+    nj: { name: 'northern New Jersey', towns: NJ_TOWNS, pad: [0.03, 0.04] }
+  };
   var LEAFLET = {
     js: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js',
     jsSri: 'sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g==',
@@ -1317,9 +1360,9 @@ window.BTGZone = (function () {
     cssSri: 'sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw=='
   };
   // Convex hull of a ~5 km circle around each town: one smooth outline that covers them all.
-  function zone() {
-    var pts = [], i, k, a;
-    TOWNS.forEach(function (t) { for (k = 0; k < 36; k++) { a = (k / 36) * 2 * Math.PI; pts.push([t[1] + 0.045 * Math.sin(a), t[2] + 0.057 * Math.cos(a)]); } });
+  function zone(key) {
+    var A = AREAS[key || 'va'], pts = [], i, k, a;
+    A.towns.forEach(function (t) { for (k = 0; k < 36; k++) { a = (k / 36) * 2 * Math.PI; pts.push([t[1] + A.pad[0] * Math.sin(a), t[2] + A.pad[1] * Math.cos(a)]); } });
     pts.sort(function (p, q) { return p[0] - q[0] || p[1] - q[1]; });
     var cross = function (o, p, q) { return (p[0] - o[0]) * (q[1] - o[1]) - (p[1] - o[1]) * (q[0] - o[0]); };
     var lower = [], upper = [];
@@ -1343,18 +1386,24 @@ window.BTGZone = (function () {
     return loading;
   }
   function draw(L, el) {
+    var key = /(^|\s)btg-zone-nj(\s|$)/.test(el.className) ? 'nj' : 'va', A = AREAS[key];
     var small = el.clientWidth < 400;
-    var map = L.map(el, { scrollWheelZoom: false, zoomControl: !small, attributionControl: true });
+    var map = L.map(el, { scrollWheelZoom: false, zoomControl: !small, attributionControl: true, zoomSnap: key === 'nj' ? 0.25 : 1 });
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 15, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(map);
-    var area = L.polygon(zone(), { color: '#38792f', weight: 2, dashArray: '6 6', fillColor: '#54aa47', fillOpacity: 0.18 }).addTo(map);
-    TOWNS.forEach(function (t) {
+    var area = L.polygon(zone(key), { color: '#38792f', weight: 2, dashArray: '6 6', fillColor: '#54aa47', fillOpacity: 0.18 }).addTo(map);
+    A.towns.forEach(function (t) {
       var m = L.circleMarker([t[1], t[2]], { radius: small ? 3 : 5, color: '#fff', weight: 2, fillColor: '#38792f', fillOpacity: 1 }).addTo(map);
-      m.bindTooltip(t[0], small ? {} : { permanent: true, direction: 'right', offset: [6, 0], className: 'btg-zone-lbl' });
+      var labelled = !small && (key === 'va' || t[3] === 1);
+      m.bindTooltip(t[0], labelled ? { permanent: true, direction: 'right', offset: [6, 0], className: 'btg-zone-lbl' } : {});
     });
     map.fitBounds(area.getBounds(), { padding: small ? [4, 4] : [12, 12] });
   }
-  function mapHtml() {
-    return '<div class="btg-zone-map btg-zone-big" role="img" aria-label="Map of the Virginia service area: ' + TOWNS.map(function (t) { return t[0]; }).join(', ') + '"></div>';
+  function areaLabel(key) {
+    var A = AREAS[key || 'va'];
+    return 'Map of the ' + A.name + ' service area: ' + A.towns.map(function (t) { return t[0]; }).join(', ');
+  }
+  function mapHtml(key) {
+    return '<div class="btg-zone-map btg-zone-big' + (key === 'nj' ? ' btg-zone-nj' : '') + '" role="img" aria-label="' + areaLabel(key) + '"></div>';
   }
   function sectionHtml(now) {
     return '<section class="btg-zone" id="btg-hours"><h2 class="btg-zone-h">Our Virginia service area</h2>' +
@@ -1365,8 +1414,9 @@ window.BTGZone = (function () {
   function init(doc, win) {
     var loc = win.location.pathname === '/contact-2/' && doc.querySelector('.btg-locations');
     if (loc && !doc.querySelector('.btg-zone')) loc.insertAdjacentHTML('afterend', sectionHtml(new Date()));
-    var slot = doc.querySelector('.btg-zone-slot');
-    if (slot && !slot.querySelector('.btg-zone-map')) slot.innerHTML = mapHtml();
+    Array.prototype.forEach.call(doc.querySelectorAll('.btg-zone-slot'), function (slot) {
+      if (!slot.querySelector('.btg-zone-map')) slot.innerHTML = mapHtml(/btg-zone-slot--nj/.test(slot.className) ? 'nj' : 'va');
+    });
     var els = Array.prototype.slice.call(doc.querySelectorAll('.btg-zone-map'));
     if (!els.length) return false;
     var show = function (el) { if (el.getAttribute('data-drawn')) return; el.setAttribute('data-drawn', '1'); loadLeaflet(doc, win).then(function (L) { draw(L, el); }).catch(function () { el.style.display = 'none'; }); };
@@ -1375,7 +1425,7 @@ window.BTGZone = (function () {
     els.forEach(function (el) { io.observe(el); });
     return true;
   }
-  return { TOWNS: TOWNS, LEAFLET: LEAFLET, zone: zone, mapHtml: mapHtml, sectionHtml: sectionHtml, init: init };
+  return { TOWNS: TOWNS, AREAS: AREAS, LEAFLET: LEAFLET, zone: zone, areaLabel: areaLabel, mapHtml: mapHtml, sectionHtml: sectionHtml, init: init };
 })();
 
 // Veteran-owned badge: replaces the old flag image in the footer and sits under Bob's photo on the About page.

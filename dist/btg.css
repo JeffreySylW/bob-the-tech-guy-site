@@ -627,8 +627,8 @@ html .post-content { font-size: 16.5px; line-height: 1.72; color: var(--btg-text
 .btg-sr-h { font-size: 22px !important; margin: 28px 0 4px !important; }
 .btg-sr-group { font-size: 13px !important; letter-spacing: .12em; text-transform: uppercase; color: var(--btg-text-muted); margin: 18px 0 8px !important; }
 .btg-sr-list { list-style: none; margin: 0 0 8px !important; padding: 0 !important; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); gap: 10px; }
-.btg-sr-list li { margin: 0 !important; }
-.btg-sr-item { display: flex; align-items: center; gap: 10px; background: var(--btg-card-bg); border: 1px solid var(--btg-card-border); border-radius: var(--btg-radius-md); padding: 12px 14px; color: var(--btg-text) !important; text-decoration: none !important; font-weight: 700; transition: border-color .18s, transform .18s; }
+.btg-sr-list li { margin: 0 !important; display: flex; }
+.btg-sr-item { display: flex; flex: 1 1 auto; align-items: center; gap: 10px; background: var(--btg-card-bg); border: 1px solid var(--btg-card-border); border-radius: var(--btg-radius-md); padding: 12px 14px; color: var(--btg-text) !important; text-decoration: none !important; font-weight: 700; transition: border-color .18s, transform .18s; }
 .btg-sr-item:hover, .btg-sr-item:focus-visible { border-color: var(--btg-green); transform: translateY(-1px); }
 .btg-sr-more { margin: 22px 0 0 !important; color: var(--btg-text-muted); } .btg-sr-more a { color: #38792f !important; font-weight: 700; }
 @media (prefers-reduced-motion: reduce) { .btg-sr-item { transition: none; transform: none !important; } }
@@ -707,8 +707,8 @@ html .post-content { font-size: 16.5px; line-height: 1.72; color: var(--btg-text
 @media (prefers-reduced-motion: reduce) { .btg-request-btn { transition: none; transform: none !important; } .btg-rv-track { scroll-behavior: auto; } }
 .btg-nj-intro p { font-size: 17px !important; max-width: 70ch; }
 .btg-nj-h { font-size: 24px !important; margin: 32px 0 12px !important; }
-.btg-nj-towns { list-style: none; margin: 0 !important; padding: 0 !important; display: flex; flex-wrap: wrap; gap: 8px; }
-.btg-nj-towns li { margin: 0 !important; padding: 6px 12px; border-radius: 99px; background: var(--btg-green-tint); color: #2b4a26; font-weight: 700; font-size: 14px; }
+.btg-nj-towns { list-style: none; margin: 0 !important; padding: 0 !important; display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
+.btg-nj-towns li { margin: 0 !important; text-align: center; padding: 6px 12px; border-radius: 99px; background: var(--btg-green-tint); color: #2b4a26; font-weight: 700; font-size: 14px; }
 .home .fusion-title-size-two h2.title-heading-left { font-size: 34px !important; line-height: 48px !important; font-weight: 300 !important; margin: 0 !important; color: #333; }
 
 /* v1.6.2 */
@@ -809,3 +809,10 @@ html .post-content { font-size: 16.5px; line-height: 1.72; color: var(--btg-text
 .btg-related .btg-related-list li { float: none; width: auto; margin: 0; padding: 0; border: 0; }
 .btg-related .btg-related-link { box-sizing: border-box; height: 100%; }
 @media (max-width: 700px) { .btg-related .btg-related-list { grid-template-columns: 1fr; } }
+
+/* v1.7.9 — Northern New Jersey service-area map (NJ page + footer). */
+.btg-zone-nj.btg-zone-big { min-height: 520px; margin: 8px 0 28px; }
+.btg-zone-slot--nj { margin-top: 8px; }
+.btg-foot-zone-cap { margin: -6px 0 0; }
+.fusion-footer .btg-foot-zone-cap a { color: var(--btg-green-lighter); }
+@media (max-width: 760px) { .btg-zone-nj.btg-zone-big { min-height: 320px; } }
