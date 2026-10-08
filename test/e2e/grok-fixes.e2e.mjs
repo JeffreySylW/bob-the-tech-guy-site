@@ -14,7 +14,7 @@ await b.sleep(1800);
 check('desktop: no Customer Log In menu item (v1.6.7)', await b.evalJs(count) === 0, 'copies: ' + await b.evalJs(count));
 check('NJ line links to /northern-new-jersey/', await b.evalJs(`(() => { const a = document.querySelector('.btg-hero-alt a'); return !!a && new URL(a.href).pathname === '/northern-new-jersey/' && a.parentNode.previousElementSibling.classList.contains('btg-hero-trust'); })()`));
 check('footer: no Instagram widget, no Tweets by', await b.evalJs(`(() => { const f = document.querySelector('.fusion-footer'); return !f.querySelector('#text-18') && !f.querySelector('#text-17') && f.innerText.toLowerCase().indexOf('instagram') < 0 && f.innerText.indexOf('Tweets by') < 0; })()`));
-check('footer: veteran badge and town links stay', await b.evalJs(`!!document.querySelector('.fusion-footer #text-16 img') && !!document.querySelector('.fusion-footer [id^="recent-posts"] a')`));
+check('footer: veteran badge and the Virginia and NJ area links stay', await b.evalJs(`!!document.querySelector('.fusion-footer #text-16 .btg-vet') && !!document.querySelector('.fusion-footer a[href$="/best-computer-repair-chesterfield-va/"]') && !!document.querySelector('.fusion-footer a[href$="/northern-new-jersey/"]')`));
 check('no horizontal scroll', !(await b.evalJs(`document.documentElement.scrollWidth > innerWidth`)));
 await b.evalJs(`scrollTo(0, 0)`); await b.sleep(300);
 await b.shot(out + '/grok-hero.png');

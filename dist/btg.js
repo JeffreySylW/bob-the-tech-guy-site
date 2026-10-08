@@ -1231,23 +1231,28 @@ window.BTGHours = (function () {
   return { WEEK: WEEK, status: status, isOpen: isOpen, footerRows: footerRows, weekHtml: weekHtml, schemaHours: schemaHours, initPill: initPill };
 })();
 
-// Footer additions (the widgets themselves are admin-only): the first widget becomes a contact block (Virginia details
-// with the service-zone map, then the NJ line with Bob's Google pin), quick links fill the column the Instagram/Twitter
-// widgets left empty, and a Google rating badge plus hours go under the veteran badge.
+// Footer (the widgets themselves are admin-only), arranged in four columns: Virginia | Northern New Jersey | Explore |
+// Why Bob. Each region gets its own contact lines and service-area map; the old "Computer Repair Experts" list (two links
+// already covered by the region links) is removed; the bottom bar gets a plain current line.
 window.BTGFooter = (function () {
   'use strict';
   var SITE = 'https://bobthetechguy.com';
   var HOURS = window.BTGHours.footerRows();
   var LINKS = [['Services', '/services-2/'], ['About Bob', '/about/'], ['Gallery', '/gallery/'], ['Testimonials', '/testimonials/'], ['Contact', '/contact-2/']];
-  function contactHtml() {
-    return '<ul class="btg-foot-contact-list">' +
-      '<li>Serving Chesterfield &amp; Greater Richmond, VA</li>' +
-      '<li><a href="tel:8448354890">844-TEKGUY-0</a> <span>(844) 835-4890</span></li>' +
-      '<li><a href="mailto:info@bobthetechguy.com">info@bobthetechguy.com</a></li></ul>' +
-      '<div class="btg-foot-zone btg-zone-map" role="img" aria-label="Map of the Virginia service area"></div>' +
-      '<ul class="btg-foot-contact-list btg-foot-nj"><li>Northern NJ: <a href="tel:8622105656">(862) 210-5656</a> &middot; <a href="' + SITE + '/northern-new-jersey/">NJ service area</a></li></ul>' +
-      // Bob's Google listing pin. Its card shows the NJ address, which is fine; the Virginia address is never shown.
-      '<iframe class="btg-foot-map" src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d12042.5344460568!2d-74.288835!3d41.0113919!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0xad47b350a040c358!2sBob+The+Tech+Guy!5e0!3m2!1sen!2sus!4v1453449210878" title="Bob The Tech Guy on Google Maps" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>';
+  var MAIL = '<li><a href="mailto:info@bobthetechguy.com">info@bobthetechguy.com</a></li>';
+  // One column's content. Both regions have the same shape (service line, phone, email, map, link) so their maps sit level.
+  function regionHtml(key) {
+    if (key === 'nj') {
+      return '<ul class="btg-foot-contact-list"><li>Serving northern New Jersey</li>' +
+        '<li><a href="tel:8622105656">(862) 210-5656</a></li>' + MAIL + '</ul>' +
+        '<div class="btg-foot-zone btg-zone-map btg-zone-nj" role="img" aria-label="' + window.BTGZone.areaLabel('nj') + '"></div>' +
+        '<p class="btg-foot-zone-cap"><a href="' + SITE + '/northern-new-jersey/">See every NJ town we serve &rarr;</a></p>';
+    }
+    return '<ul class="btg-foot-contact-list"><li>Serving Chesterfield &amp; Greater Richmond, VA</li>' +
+      '<li><a href="tel:8448354890">844-TEKGUY-0</a> <span>(844) 835-4890</span></li>' + MAIL + '</ul>' +
+      '<div class="btg-foot-zone btg-zone-map" role="img" aria-label="' + window.BTGZone.areaLabel('va') + '"></div>' +
+      '<p class="btg-foot-zone-cap"><a href="' + SITE + '/best-computer-repair-chesterfield-va/">See our Virginia service area &rarr;</a></p>' +
+      hoursHtml(HOURS);
   }
   function linksHtml() {
     return '<ul class="btg-foot-links">' + LINKS.map(function (l) { return '<li><a href="' + SITE + l[1] + '">' + l[0] + '</a></li>'; }).join('') + '</ul>';
@@ -1260,24 +1265,27 @@ window.BTGFooter = (function () {
     if (!rows.length) return '';
     return '<h4 class="widget-title btg-foot-hours-h">Hours</h4><dl class="btg-foot-hours">' + rows.map(function (r) { return '<dt>' + r[0] + '</dt><dd>' + r[1] + '</dd>'; }).join('') + '</dl>';
   }
-  // The northern New Jersey service area as a zone map (every town listed on the NJ page), next to the Quick Links column.
-  function njZoneHtml() {
-    return '<div class="btg-foot-zone btg-zone-map btg-zone-nj" role="img" aria-label="' + window.BTGZone.areaLabel('nj') + '"></div>' +
-      '<p class="btg-foot-zone-cap"><a href="' + SITE + '/northern-new-jersey/">See every town we serve &rarr;</a></p>';
+  // Bottom bar: the theme's text still names Pompton Lakes and credits the previous developer.
+  function copyrightText(now) { return '© ' + (now || new Date()).getFullYear() + ' Bob The Tech Guy · Serving Chesterfield and Greater Richmond, VA, and northern New Jersey'; }
+  function setCopyright(doc) {
+    var el = doc.querySelector('.fusion-footer-copyright-area .fusion-copyright-notice > div') || doc.querySelector('.fusion-copyright-notice');
+    if (!el) return false;
+    el.textContent = copyrightText();
+    return true;
   }
-  // In the side-by-side footer, put the NJ service-area map exactly level with Bob's NJ map in the column to its left.
-  // Heights above them differ by screen width, so measure and nudge whichever side is higher (with padding: margins would
-  // collapse into the widget above); stacked layouts are left alone.
+  // With the four columns side by side, put the Virginia and New Jersey maps exactly level. The lines above the maps can wrap
+  // differently by screen width, so measure and add the difference to the shorter contact list (padding, because margins
+  // collapse); the headings stay level and only the space above a map changes. Stacked layouts are left alone.
   function alignMaps(doc, win) {
-    var pin = doc.querySelector('#text-3 .btg-foot-map'), zone = doc.querySelector('.btg-foot-zone.btg-zone-nj');
-    var left = doc.querySelector('#text-3 .btg-foot-nj'), right = zone && zone.closest('.btg-foot');
-    if (!pin || !zone || !left || !right) return false;
-    left.style.paddingTop = ''; right.style.paddingTop = '';
-    var a = pin.getBoundingClientRect(), b = zone.getBoundingClientRect();
+    var va = doc.querySelector('#text-3 .btg-foot-zone'), nj = doc.querySelector('.btg-foot-zone.btg-zone-nj');
+    var left = va && va.parentNode.querySelector('.btg-foot-contact-list'), right = nj && nj.parentNode.querySelector('.btg-foot-contact-list');
+    if (!va || !nj || !left || !right) return false;
+    left.style.paddingBottom = ''; right.style.paddingBottom = '';
+    var a = va.getBoundingClientRect(), b = nj.getBoundingClientRect();
     if (Math.abs(a.left - b.left) < 100) return false;
-    var dy = a.top - b.top, num = function (el) { return parseFloat(win.getComputedStyle(el).paddingTop) || 0; };
-    if (dy > 0) right.style.paddingTop = (num(right) + dy) + 'px';
-    else if (dy < 0) left.style.paddingTop = (num(left) - dy) + 'px';
+    var dy = a.top - b.top, num = function (el) { return parseFloat(win.getComputedStyle(el).paddingBottom) || 0; };
+    if (dy > 0) right.style.paddingBottom = (num(right) + dy) + 'px';
+    else if (dy < 0) left.style.paddingBottom = (num(left) - dy) + 'px';
     return true;
   }
   var alignHooked = false;
@@ -1289,50 +1297,36 @@ window.BTGFooter = (function () {
     win.addEventListener('resize', function () { win.clearTimeout(t); t = win.setTimeout(run, 120); });
     if (doc.fonts && doc.fonts.ready) doc.fonts.ready.then(run);
   }
-  function widget(doc, title, html) {
+  function widget(doc, title, html, cls) {
     var w = doc.createElement('div');
-    w.className = 'fusion-footer-widget-column widget btg-foot';
-    w.innerHTML = '<h4 class="widget-title">' + title + '</h4>' + html + '<div style="clear:both;"></div>';
+    w.className = 'fusion-footer-widget-column widget btg-foot' + (cls ? ' ' + cls : '');
+    w.innerHTML = (title ? '<h4 class="widget-title">' + title + '</h4>' : '') + html + '<div style="clear:both;"></div>';
     return w;
   }
-  // "Computer Repair Experts" is WordPress's recent-posts list, so the Northern New Jersey page (a page, not a post)
-  // never appears in it; add it right after the Chesterfield entry, copying that entry's markup.
-  function addAreaLink(doc) {
-    var list = doc.querySelector('.fusion-footer .widget_recent_entries ul');
-    if (!list) return false;
-    // The old "New Website Launch!" announcement doesn't belong in a list of service areas.
-    Array.prototype.forEach.call(list.querySelectorAll('li a'), function (a) {
-      if (a.pathname === '/new-website-launch/' && a.closest('li').parentNode) a.closest('li').parentNode.removeChild(a.closest('li'));
-    });
-    var links = Array.prototype.slice.call(list.querySelectorAll('li a'));
-    if (links.some(function (a) { return a.pathname === '/northern-new-jersey/'; })) return false;
-    var model = links.filter(function (a) { return a.pathname === '/best-computer-repair-chesterfield-va/'; })[0] || links[0];
-    if (!model) return false;
-    var li = model.closest('li').cloneNode(true), a = li.querySelector('a');
-    a.setAttribute('href', SITE + '/northern-new-jersey/');
-    a.textContent = 'Northern New Jersey';
-    list.insertBefore(li, model.closest('li').nextSibling);
-    return true;
-  }
   function init(doc) {
-    addAreaLink(doc);
-    var t3 = doc.querySelector('.fusion-footer #text-3');
-    if (!t3 || doc.querySelector('.btg-foot-contact-list')) return false;
-    var h = t3.querySelector('.widget-title');
-    t3.innerHTML = (h ? h.outerHTML : '<h4 class="widget-title">Bob the Tech Guy</h4>') + contactHtml();
-    var cols = Array.prototype.slice.call(doc.querySelectorAll('.fusion-footer .fusion-footer-widget-area .fusion-column'));
-    var empty = cols.filter(function (c) { return !c.querySelector('.fusion-footer-widget-column'); })[0];
-    var links = widget(doc, 'Quick Links', linksHtml());
-    var njZone = widget(doc, 'Northern NJ Service Area', njZoneHtml());
-    if (empty) { empty.appendChild(links); empty.appendChild(njZone); } else { t3.parentNode.insertBefore(links, t3.nextSibling); links.parentNode.insertBefore(njZone, links.nextSibling); }
-    var badge = doc.querySelector('.fusion-footer #text-16');
-    var rating = widget(doc, 'Customer Reviews', ratingHtml(window.BTGReviews.GOOGLE) + hoursHtml(HOURS));
-    if (badge) badge.parentNode.insertBefore(rating, badge.nextSibling); else links.parentNode.appendChild(rating);
+    var foot = doc.querySelector('.fusion-footer'), t3 = foot && foot.querySelector('#text-3');
+    if (!t3 || doc.querySelector('.btg-foot-region')) return false;
+    var cols = Array.prototype.slice.call(foot.querySelectorAll('.fusion-footer-widget-area .fusion-column'));
+    var experts = foot.querySelector('#recent-posts-6'), t16 = foot.querySelector('#text-16');
+    if (experts && experts.parentNode) experts.parentNode.removeChild(experts);
+    // Column 1: Virginia (the theme's first widget, rewritten)
+    t3.className += ' btg-foot-region';
+    t3.innerHTML = '<h4 class="widget-title">Virginia</h4>' + regionHtml('va');
+    var nj = widget(doc, 'Northern New Jersey', regionHtml('nj'), 'btg-foot-region');
+    var explore = widget(doc, 'Explore', linksHtml());
+    var rating = widget(doc, '', ratingHtml(window.BTGReviews.GOOGLE));
+    if (t16) t16.insertBefore(Object.assign(doc.createElement('h4'), { className: 'widget-title', textContent: 'Why Bob' }), t16.firstChild);
+    var col = function (i) { return cols.length === 4 ? cols[i] : null; };
+    // Columns: 2 = New Jersey, 3 = Explore, 4 = Why Bob (veteran badge + Google rating). Any other theme layout: stack in order.
+    var place = function (i, node, after) { var c = col(i); if (c) c.appendChild(node); else after.parentNode.insertBefore(node, after.nextSibling); };
+    place(1, nj, t3);
+    place(2, explore, nj);
+    if (t16) { if (col(3)) col(3).appendChild(t16); place(3, rating, t16); } else place(3, rating, explore);
     alignMaps(doc, window);
     hookAlign(doc, window);
     return true;
   }
-  return { HOURS: HOURS, addAreaLink: addAreaLink, alignMaps: alignMaps, njZoneHtml: njZoneHtml, contactHtml: contactHtml, linksHtml: linksHtml, ratingHtml: ratingHtml, hoursHtml: hoursHtml, init: init };
+  return { HOURS: HOURS, regionHtml: regionHtml, alignMaps: alignMaps, copyrightText: copyrightText, setCopyright: setCopyright, linksHtml: linksHtml, ratingHtml: ratingHtml, hoursHtml: hoursHtml, init: init };
 })();
 
 // Virginia service zone: Bob's location is not shared, so the map shows a rounded area around the towns he covers
@@ -1533,6 +1527,7 @@ window.BTGCards = (function () {
     safely(function () { window.BTGInit.addPrivacyNote(document); });
     safely(function () { window.BTGReviews.init(document, window); });
     safely(function () { window.BTGFooter.init(document); });
+    safely(function () { window.BTGFooter.setCopyright(document); });
     safely(function () { window.BTGHours.initPill(document, window); });
     safely(function () { window.BTGZone.init(document, window); });
     safely(function () { window.BTGVet.init(document, window); });

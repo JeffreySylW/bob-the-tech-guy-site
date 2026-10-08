@@ -27,7 +27,7 @@ for (const [w, h, m] of [[1440, 900, false], [390, 844, true]]) {
   await b.shot(`${out}/hz-contact-${w}.png`);
   check(w + ' footer: zone map waits until scrolled near', await b.evalJs(`!document.querySelector('.btg-foot-zone').classList.contains('leaflet-container')`));
   await b.evalJs(`document.querySelector('.btg-foot-zone').scrollIntoView({ block: 'center' })`); await b.sleep(3500);
-  check(w + ' footer: VA zone map then NJ line and NJ pin map', await b.evalJs(`(() => { const t = document.querySelector('#text-3'); const z = t.querySelector('.btg-foot-zone.leaflet-container'); const nj = t.querySelector('.btg-foot-nj'); return !!z && !!nj && !!(z.compareDocumentPosition(nj) & 4) && !!t.querySelector('.btg-foot-nj + .btg-foot-map'); })()`));
+  check(w + ' footer: Virginia and NJ columns each have their zone map (drawn), no pin map', await b.evalJs(`(() => { const va = document.querySelector('#text-3 .btg-foot-zone.leaflet-container'), nj = document.querySelector('.btg-foot-zone.btg-zone-nj.leaflet-container'); return !!va && !!nj && !document.querySelector('.fusion-footer iframe'); })()`));
   await b.shot(`${out}/hz-footer-${w}.png`);
   await b.close();
 }

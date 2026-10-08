@@ -23,7 +23,7 @@ await b.shot(out + '/home-reviews.png');
 await b.goto('http://localhost:4430/northern-new-jersey/');
 await b.sleep(1000);
 check('NJ page: no reviews band', await b.evalJs(`!document.querySelector('.btg-rv')`));
-check('footer NJ links point to the new page, one entry left', await b.evalJs(`(() => { const a = [...document.querySelectorAll('.fusion-footer a')].filter((x) => /new-jersey|-nj\\//.test(x.href)); return a.length >= 1 && a.every((x) => x.pathname === '/northern-new-jersey/') && a.filter((x) => x.closest('li') && !x.closest('.btg-foot-contact-list')).length === 1; })()`), await b.evalJs(`JSON.stringify([...document.querySelectorAll('.fusion-footer a')].filter((x) => /new-jersey|-nj/.test(x.href)).map((x) => x.pathname + ' ' + x.textContent.trim()))`));
+check('footer NJ links all point to the NJ page (the Northern NJ column links it once), no old NJ posts', await b.evalJs(`(() => { const a = [...document.querySelectorAll('.fusion-footer a')].filter((x) => x.href.includes('new-jersey') || x.href.includes('-nj/')); return a.length === 1 && a[0].pathname === '/northern-new-jersey/'; })()`));
 check('15 service links and towns listed', await b.evalJs(`document.querySelectorAll('.btg-sr-item').length === 15 && document.querySelectorAll('.btg-nj-towns li').length === 23`));
 check('NJ area map after the towns, full width', await b.evalJs(`(() => { const m = document.querySelector('.btg-nj-towns ~ .btg-nj-map'); return !!m && m.getBoundingClientRect().height >= 300 && m.getBoundingClientRect().width > 600; })()`));
 await b.evalJs(`document.querySelector('.btg-nj-map').scrollIntoView({ block: 'center' })`); await b.sleep(1500);

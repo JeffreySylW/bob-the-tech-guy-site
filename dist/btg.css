@@ -816,3 +816,8 @@ html .post-content { font-size: 16.5px; line-height: 1.72; color: var(--btg-text
 .btg-foot-zone-cap { margin: -6px 0 0; }
 .fusion-footer .btg-foot-zone-cap a { color: var(--btg-green-lighter); }
 @media (max-width: 760px) { .btg-zone-nj.btg-zone-big { min-height: 320px; } }
+
+/* v1.8.0 — footer layout A: rating card as wide as the veteran badge above it. */
+.fusion-footer #text-16 + .btg-foot .btg-foot-rating { display: flex; box-sizing: border-box; width: 100%; }
+.fusion-footer .btg-foot-region .btg-foot-contact-list { display: flow-root; }
+.fusion-footer .btg-foot-region .btg-foot-contact-list li:last-child { margin-bottom: 0; }
