@@ -1391,6 +1391,8 @@ window.BTGZone = (function () {
       m.bindTooltip(t[0], labelled ? { permanent: true, direction: 'right', offset: [6, 0], className: 'btg-zone-lbl' } : {});
     });
     map.fitBounds(area.getBounds(), { padding: small ? [4, 4] : [12, 12] });
+    // The NJ area is tall, so a small wide map fits it very tightly; back out a little so it reads like the Virginia one.
+    if (key === 'nj' && small) map.setZoom(map.getZoom() - 0.75, { animate: false });
   }
   function areaLabel(key) {
     var A = AREAS[key || 'va'];
