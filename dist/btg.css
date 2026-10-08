@@ -821,3 +821,6 @@ html .post-content { font-size: 16.5px; line-height: 1.72; color: var(--btg-text
 .fusion-footer #text-16 + .btg-foot .btg-foot-rating { display: flex; box-sizing: border-box; width: 100%; }
 .fusion-footer .btg-foot-region .btg-foot-contact-list { display: flow-root; }
 .fusion-footer .btg-foot-region .btg-foot-contact-list li:last-child { margin-bottom: 0; }
+
+/* v1.8.2 — no "By <author> | date | Comments Off" byline and no "About the Author" box on posts/pages. */
+.fusion-meta-info, .about-author, .related-posts.single-related-posts { display: none !important; }
