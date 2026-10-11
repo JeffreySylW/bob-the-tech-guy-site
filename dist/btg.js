@@ -1414,6 +1414,7 @@ window.BTGZone = (function () {
       if (!small) map.addLayer({ id: 'btg-names', type: 'symbol', source: 'btg-towns', layout: { 'text-field': ['get', 'name'], 'text-font': ['Noto Sans Bold'], 'text-size': 12.5,
         'text-variable-anchor': ['left', 'right', 'top', 'bottom'], 'text-radial-offset': 0.7, 'text-justify': 'auto', 'symbol-sort-key': ['get', 'rank'], 'text-padding': 3 },
         paint: { 'text-color': '#1c3318', 'text-halo-color': 'rgba(255,255,255,0.95)', 'text-halo-width': 1.6 } });
+      el.btgMap = map; el.btgRing = ring;
       el.setAttribute('data-ready', '1');
     });
     // The NJ area is tall, so a small wide map fits it very tightly; back out a little so it reads like the Virginia one.
