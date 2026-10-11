@@ -6,7 +6,7 @@ export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export async function launch({ width = 1440, height = 900, mobile = false } = {}) {
   const port = 9600 + Math.floor(Math.random() * 300);
-  spawn(EDGE, ['--headless=new', '--remote-allow-origins=*', '--disable-gpu', '--hide-scrollbars', '--ignore-certificate-errors',
+  spawn(EDGE, ['--headless=new', '--remote-allow-origins=*', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--hide-scrollbars', '--ignore-certificate-errors',
     `--remote-debugging-port=${port}`, `--user-data-dir=${process.env.TEMP}/e2e-profile-${port}`, `--window-size=${width},${height}`, 'about:blank'], { stdio: 'ignore' });
   let tabs;
   for (let i = 0; i < 120 && !tabs; i++) { await sleep(250); try { tabs = await (await fetch(`http://127.0.0.1:${port}/json`)).json(); } catch {} }
