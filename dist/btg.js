@@ -1273,13 +1273,6 @@ window.BTGFooter = (function () {
     el.textContent = copyrightText();
     return true;
   }
-  // The footer maps are too small for their own credit line, so the map data credit sits under the copyright line instead.
-  function setMapCredit(doc) {
-    var notice = doc.querySelector('.fusion-copyright-notice');
-    if (!notice || doc.querySelector('.btg-map-credit')) return false;
-    notice.insertAdjacentHTML('afterend', '<div class="btg-map-credit">Maps: <a href="https://openfreemap.org">OpenFreeMap</a> &copy; <a href="https://www.openmaptiles.org/">OpenMapTiles</a>, data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors</div>');
-    return true;
-  }
   // With the four columns side by side, put the Virginia and New Jersey maps exactly level. The lines above the maps can wrap
   // differently by screen width, so measure and add the difference to the shorter contact list (padding, because margins
   // collapse); the headings stay level and only the space above a map changes. Stacked layouts are left alone.
@@ -1333,7 +1326,7 @@ window.BTGFooter = (function () {
     hookAlign(doc, window);
     return true;
   }
-  return { HOURS: HOURS, regionHtml: regionHtml, alignMaps: alignMaps, copyrightText: copyrightText, setCopyright: setCopyright, setMapCredit: setMapCredit, linksHtml: linksHtml, ratingHtml: ratingHtml, hoursHtml: hoursHtml, init: init };
+  return { HOURS: HOURS, regionHtml: regionHtml, alignMaps: alignMaps, copyrightText: copyrightText, setCopyright: setCopyright, linksHtml: linksHtml, ratingHtml: ratingHtml, hoursHtml: hoursHtml, init: init };
 })();
 
 // Virginia service zone: Bob's location is not shared, so the map shows a rounded area around the towns he covers
@@ -1354,15 +1347,12 @@ window.BTGZone = (function () {
     va: { name: 'Virginia', towns: TOWNS, pad: [0.045, 0.057] },
     nj: { name: 'northern New Jersey', towns: NJ_TOWNS, pad: [0.03, 0.04] }
   };
-  // MapLibre draws OpenFreeMap's vector base map (free, no key). We drop its own place names so the only names are
-  // ours, and MapLibre places those itself, hiding any that would collide.
-  var GL = {
-    js: 'https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.js',
-    jsSri: 'sha512-dXgoFR02YHJ9Fa29P3D/1umNaZ0EXS2N0w29Lm3b/1BK8UDLMdLWDFwuujIyJJdU27/PLuk3dmS1V9NO8ABX1A==',
-    css: 'https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.css',
-    cssSri: 'sha512-qN/uDg9bS3IAldWq4lswyC+9ZSoShtfyNDp+FaJhdtXJqdgubHA+s4nB8BajW0m90Y0+RBGbqu2anzbxiQYdHA=='
+  var LEAFLET = {
+    js: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js',
+    jsSri: 'sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g==',
+    css: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css',
+    cssSri: 'sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw=='
   };
-  var STYLE = 'https://tiles.openfreemap.org/styles/';
   // Convex hull of a ~5 km circle around each town: one smooth outline that covers them all.
   function zone(key) {
     var A = AREAS[key || 'va'], pts = [], i, k, a;
@@ -1375,50 +1365,63 @@ window.BTGZone = (function () {
     return lower.slice(0, -1).concat(upper.slice(0, -1));
   }
   var loading = null;
-  function loadGL(doc, win) {
-    if (win.maplibregl) return Promise.resolve(win.maplibregl);
+  function loadLeaflet(doc, win) {
+    if (win.L) return Promise.resolve(win.L);
     if (loading) return loading;
     loading = new Promise(function (ok, fail) {
       var css = doc.createElement('link');
-      css.rel = 'stylesheet'; css.href = GL.css; css.integrity = GL.cssSri; css.crossOrigin = 'anonymous';
+      css.rel = 'stylesheet'; css.href = LEAFLET.css; css.integrity = LEAFLET.cssSri; css.crossOrigin = 'anonymous';
       doc.head.appendChild(css);
       var s = doc.createElement('script');
-      s.src = GL.js; s.integrity = GL.jsSri; s.crossOrigin = 'anonymous';
-      s.onload = function () { ok(win.maplibregl); }; s.onerror = fail;
+      s.src = LEAFLET.js; s.integrity = LEAFLET.jsSri; s.crossOrigin = 'anonymous';
+      s.onload = function () { ok(win.L); }; s.onerror = fail;
       doc.head.appendChild(s);
     });
     return loading;
   }
-  function draw(gl, el) {
+  function draw(L, el) {
     var key = /(^|\s)btg-zone-nj(\s|$)/.test(el.className) ? 'nj' : 'va', A = AREAS[key];
-    var small = el.clientWidth < 400, dark = /(^|\s)btg-foot-zone(\s|$)/.test(el.className);
-    var ring = zone(key).map(function (p) { return [p[1], p[0]]; }); ring.push(ring[0]);
-    var lngs = ring.map(function (p) { return p[0]; }), lats = ring.map(function (p) { return p[1]; });
-    var bounds = [[Math.min.apply(null, lngs), Math.min.apply(null, lats)], [Math.max.apply(null, lngs), Math.max.apply(null, lats)]];
-    var map = new gl.Map({ container: el, style: STYLE + (dark ? 'dark' : 'positron'), bounds: bounds, fitBoundsOptions: { padding: small ? 8 : 28 },
-      interactive: !small, scrollZoom: false, dragRotate: false, pitchWithRotate: false, touchPitch: false, attributionControl: dark ? false : { compact: false } });
-    if (!small) map.addControl(new gl.NavigationControl({ showCompass: false }), 'top-left');
-    map.on('load', function () {
-      map.getStyle().layers.forEach(function (l) { if (l.type === 'symbol') map.removeLayer(l.id); });
-      var green = dark ? '#6ec95f' : '#38792f';
-      // Spotlight: shade everything outside the area instead of tinting inside it, so the streets Bob covers stay clear.
-      map.addSource('btg-mask', { type: 'geojson', data: { type: 'Feature', geometry: { type: 'Polygon', coordinates: [[[-180, -85], [180, -85], [180, 85], [-180, 85], [-180, -85]], ring.slice().reverse()] } } });
-      map.addLayer({ id: 'btg-mask', type: 'fill', source: 'btg-mask', paint: { 'fill-color': dark ? '#000' : '#1c201b', 'fill-opacity': dark ? 0.5 : 0.14 } });
-      map.addSource('btg-zone', { type: 'geojson', data: { type: 'Feature', geometry: { type: 'LineString', coordinates: ring } } });
-      map.addLayer({ id: 'btg-zone', type: 'line', source: 'btg-zone', paint: { 'line-color': green, 'line-width': small ? 1.5 : 2.5 } });
-      map.addSource('btg-towns', { type: 'geojson', data: { type: 'FeatureCollection', features: A.towns.map(function (t) {
-        return { type: 'Feature', properties: { name: t[0], rank: t[3] ? 0 : 1 }, geometry: { type: 'Point', coordinates: [t[2], t[1]] } };
-      }) } });
-      map.addLayer({ id: 'btg-towns', type: 'circle', source: 'btg-towns', paint: { 'circle-radius': small ? 2.5 : 4.5, 'circle-color': dark ? '#9be08e' : green,
-        'circle-stroke-color': dark ? '#2c2e2f' : '#fff', 'circle-stroke-width': small ? 1 : 2 } });
-      if (!small) map.addLayer({ id: 'btg-names', type: 'symbol', source: 'btg-towns', layout: { 'text-field': ['get', 'name'], 'text-font': ['Noto Sans Bold'], 'text-size': 12.5,
-        'text-variable-anchor': ['left', 'right', 'top', 'bottom'], 'text-radial-offset': 0.7, 'text-justify': 'auto', 'symbol-sort-key': ['get', 'rank'], 'text-padding': 3 },
-        paint: { 'text-color': '#1c3318', 'text-halo-color': 'rgba(255,255,255,0.95)', 'text-halo-width': 1.6 } });
-      el.btgMap = map; el.btgRing = ring;
-      el.setAttribute('data-ready', '1');
+    var small = el.clientWidth < 400;
+    var map = L.map(el, { scrollWheelZoom: false, zoomControl: !small, attributionControl: false, zoomSnap: key === 'nj' ? 0.25 : 1 });
+    // The "Leaflet" credit is optional; the OpenStreetMap credit is required by its licence, so it stays (tucked into an (i) on small maps).
+    L.control.attribution({ prefix: false }).addTo(map);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 15, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(map);
+    var ring = zone(key);
+    // Everything outside the service area is veiled, so the area reads at a glance and the basemap's own labels fade back.
+    L.polygon([[[85, -180], [85, 180], [-85, 180], [-85, -180]], ring], { stroke: false, fillColor: '#f1f4ef', fillOpacity: 0.62, interactive: false }).addTo(map);
+    var area = L.polygon(ring, { color: '#2f6b27', weight: 2.5, fillColor: '#54aa47', fillOpacity: 0.06 }).addTo(map);
+    var markers = A.towns.map(function (t) {
+      return L.circleMarker([t[1], t[2]], { radius: small ? 3 : 6, color: '#fff', weight: 2, fillColor: '#2f6b27', fillOpacity: 1 }).addTo(map);
     });
+    map.fitBounds(area.getBounds(), { padding: small ? [4, 4] : [12, 12] });
     // The NJ area is tall, so a small wide map fits it very tightly; back out a little so it reads like the Virginia one.
-    if (key === 'nj' && small) map.once('load', function () { map.setZoom(map.getZoom() - 0.75); });
+    if (key === 'nj' && small) map.setZoom(map.getZoom() - 0.75, { animate: false });
+    placeLabels(map, A.towns, markers, key, small);
+  }
+  // Label pills go on the side of their dot that has room: each town tries right, left, above, below and takes the first
+  // spot that does not touch a label already placed. A town with no free spot keeps a hover label instead.
+  function placeLabels(map, towns, markers, key, small) {
+    var placed = [], size = map.getSize(), SIDES = [['right', 1, 0], ['left', -1, 0], ['top', 0, -1], ['bottom', 0, 1]];
+    towns.forEach(function (t, i) {
+      var wanted = !small && (key === 'va' || t[3] === 1);
+      if (!wanted) { markers[i].bindTooltip(t[0]); return; }
+      var p = map.latLngToContainerPoint(markers[i].getLatLng()), w = t[0].length * 6.6 + 18, h = 22, pick = null;
+      SIDES.some(function (s) {
+        var x = s[1] > 0 ? p.x + 9 : s[1] < 0 ? p.x - 9 - w : p.x - w / 2, y = s[2] > 0 ? p.y + 9 : s[2] < 0 ? p.y - 9 - h : p.y - h / 2;
+        var r = { l: x, t: y, r: x + w, b: y + h };
+        var inside = r.l >= 2 && r.t >= 2 && r.r <= size.x - 2 && r.b <= size.y - 2;
+        var clear = placed.every(function (o) { return r.r + 3 < o.l || r.l - 3 > o.r || r.b + 3 < o.t || r.t - 3 > o.b; }) && towns.every(function (u, j) {
+          if (j === i) return true;
+          var q = map.latLngToContainerPoint(markers[j].getLatLng());
+          return q.x < r.l - 6 || q.x > r.r + 6 || q.y < r.t - 6 || q.y > r.b + 6;
+        });
+        if (inside && clear) { pick = { s: s, r: r }; return true; }
+        return false;
+      });
+      if (!pick) { markers[i].bindTooltip(t[0]); return; }
+      placed.push(pick.r);
+      markers[i].bindTooltip(t[0], { permanent: true, direction: pick.s[0], offset: [pick.s[1] * 8, pick.s[2] * 8], className: 'btg-zone-lbl' });
+    });
   }
   function areaLabel(key) {
     var A = AREAS[key || 'va'];
@@ -1441,13 +1444,13 @@ window.BTGZone = (function () {
     });
     var els = Array.prototype.slice.call(doc.querySelectorAll('.btg-zone-map'));
     if (!els.length) return false;
-    var show = function (el) { if (el.getAttribute('data-drawn')) return; el.setAttribute('data-drawn', '1'); loadGL(doc, win).then(function (gl) { draw(gl, el); }).catch(function () { el.style.display = 'none'; }); };
+    var show = function (el) { if (el.getAttribute('data-drawn')) return; el.setAttribute('data-drawn', '1'); loadLeaflet(doc, win).then(function (L) { draw(L, el); }).catch(function () { el.style.display = 'none'; }); };
     if (typeof win.IntersectionObserver !== 'function') { els.forEach(show); return true; }
     var io = new win.IntersectionObserver(function (entries) { entries.forEach(function (e) { if (e.isIntersecting) { io.unobserve(e.target); show(e.target); } }); }, { rootMargin: '300px' });
     els.forEach(function (el) { io.observe(el); });
     return true;
   }
-  return { TOWNS: TOWNS, AREAS: AREAS, GL: GL, zone: zone, areaLabel: areaLabel, mapHtml: mapHtml, sectionHtml: sectionHtml, init: init };
+  return { TOWNS: TOWNS, AREAS: AREAS, LEAFLET: LEAFLET, zone: zone, areaLabel: areaLabel, mapHtml: mapHtml, sectionHtml: sectionHtml, init: init };
 })();
 
 // Veteran-owned badge: replaces the old flag image in the footer and sits under Bob's photo on the About page.
@@ -1556,7 +1559,6 @@ window.BTGCards = (function () {
     safely(function () { window.BTGReviews.init(document, window); });
     safely(function () { window.BTGFooter.init(document); });
     safely(function () { window.BTGFooter.setCopyright(document); });
-    safely(function () { window.BTGFooter.setMapCredit(document); });
     safely(function () { window.BTGHours.initPill(document, window); });
     safely(function () { window.BTGZone.init(document, window); });
     safely(function () { window.BTGVet.init(document, window); });

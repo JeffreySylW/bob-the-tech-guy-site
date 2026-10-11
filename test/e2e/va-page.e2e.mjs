@@ -16,7 +16,7 @@ for (const [w, h, m] of [[1440, 900, false], [390, 844, true]]) {
   check(w + ': footer Virginia links fold into the one Chesterfield page (the Virginia column links it once)', await b.evalJs(`(() => { const a = [...document.querySelectorAll('.fusion-footer a')].filter((x) => /virginia|chesterfield-va/.test(x.href)); return a.length === 1 && a[0].pathname === '/best-computer-repair-chesterfield-va/'; })()`),
     await b.evalJs(`JSON.stringify([...document.querySelectorAll('.fusion-footer a')].filter((x) => /virginia|chesterfield-va/.test(x.href)).map((x) => x.pathname))`));
   await b.evalJs(`document.querySelector('.btg-zone-slot').scrollIntoView({ block: 'center' })`); await b.sleep(4000);
-  check(w + ': service-area map drew the zone and 9 towns', await b.evalJs(`(() => { const z = document.querySelector('.btg-zone-slot .btg-zone-big'); return !!z && z.getAttribute('data-ready') === '1' && z.btgMap.getSource('btg-towns')._data.features.length === 9 && !!z.btgMap.getLayer('btg-zone') && z.getBoundingClientRect().height >= 290; })()`));
+  check(w + ': service-area map drew the zone and 9 towns', await b.evalJs(`(() => { const z = document.querySelector('.btg-zone-slot .btg-zone-big'); return !!z && z.classList.contains('leaflet-container') && z.querySelectorAll('path.leaflet-interactive').length === 10 && z.getBoundingClientRect().height >= 290; })()`));
   check(w + ': no reviews band, no address, no horizontal scroll', await b.evalJs(`!document.querySelector('.btg-rv') && !/Broadway/.test(document.body.innerText) && document.documentElement.scrollWidth <= innerWidth`));
   await b.shot(`${out}/va-map-${w}.png`);
   await b.evalJs(`scrollTo(0, 0)`); await b.sleep(600); await b.shot(`${out}/va-top-${w}.png`);
