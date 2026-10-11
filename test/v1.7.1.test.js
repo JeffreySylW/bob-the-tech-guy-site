@@ -43,8 +43,8 @@ test('service zone: rounded outline that contains every town, no street address 
   assert.doesNotMatch(JSON.stringify(Z.TOWNS), /\d+ [A-Z][a-z]+ (St|Rd|Ave|Dr|Ln|Ct)/);
 });
 
-test('Leaflet loads from cdnjs with integrity hashes, only when a map is about to show', () => {
-  assert.match(Z.LEAFLET.js, /^https:\/\/cdnjs\.cloudflare\.com\/ajax\/libs\/leaflet\/1\.9\.4\/leaflet\.min\.js$/);
-  assert.match(Z.LEAFLET.jsSri, /^sha512-/);
-  assert.match(Z.LEAFLET.cssSri, /^sha512-/);
+test('MapLibre loads from cdnjs with integrity hashes, only when a map is about to show', () => {
+  assert.match(Z.GL.js, /^https:\/\/cdnjs\.cloudflare\.com\/ajax\/libs\/maplibre-gl\/4\.7\.1\/maplibre-gl\.min\.js$/);
+  assert.match(Z.GL.jsSri, /^sha512-/);
+  assert.match(Z.GL.cssSri, /^sha512-/);
 });
