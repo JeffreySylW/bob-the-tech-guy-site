@@ -762,6 +762,8 @@ html .post-content { font-size: 16.5px; line-height: 1.72; color: var(--btg-text
 .btg-zone-sub { margin: 0 0 14px; color: #666; }
 .btg-zone-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; align-items: stretch; }
 .btg-zone-big { min-height: 380px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08); background: #eef1ec; }
+/* Chesterfield page: room between the "Towns we serve" pills and the map (padding, so it can't collapse away). */
+.btg-nj-towns + .btg-zone-slot:not(.btg-zone-slot--nj) { padding-top: 24px; }
 .btg-foot-zone { height: 170px; margin: 14px 0 18px; border-radius: 8px; background: #2c2e2f; }
 .btg-zone-map.leaflet-container { font-family: inherit; font-size: 12px; z-index: 0; }
 @media (max-width: 760px) { .btg-zone-grid { grid-template-columns: 1fr; } .btg-zone-big { min-height: 300px; } }
