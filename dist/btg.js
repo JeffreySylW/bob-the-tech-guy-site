@@ -1098,6 +1098,20 @@ window.BTGReviews = (function () {
     "text": "Bob the Tech Guy is very reasonably priced and very patient. He not only repaired my laptops, my daughters and nieces laptops ... but he also helped my 80 yr old father who barely knew how to turn his pc on. Just an overall great experience. Yes I will use his service again for sure."
    }
   ];
+  // Reviews copied by hand from Bob's Google listing on 12 Oct 2026, in Google's order (the signed-in view loaded 10 of 28).
+  // excerpt: Google's own list cuts the review short, so the card links to the listing for the rest. No dates: Google only shows "x years ago".
+  var GOOGLE_REVIEWS = [
+   {"name": "Richard McFarlane", "rating": 5, "text": "Wonderful and quick service for two of our computers. Bob was able to get the files we needed off a damaged laptop. He also got our main computer back up and running in a very short amount of time after a power supply failure. This was a critical machine for our work and we’re so grateful for the quick diagnosis and turnaround time. Everyone was easy to work with and we would recommend their services."},
+   {"name": "Rudge Information", "rating": 5, "text": "Highly recommend his services. After enlisting multiple tech companies to take care of some things around the shop, the issues never seemed to be resolved. We found Bob and finally, FINALLY we got what we needed taken care of! He fixed the issues at hand, made recommendations on equipment that needed to be replaced -at reasonable prices- got everything set up for us, and always responds quickly if a question or problem arises. Additionally, Bob is incredibly personable and pleasant to work with. He is our new go-to guy for all things tech. Thanks Bob!"},
+   {"name": "Linda Lukash", "rating": 5, "text": "We had Bob build a new computer for our father. Dealing with him was an absolute pleasure. He installed everything Dad asked for and transferred over all of his games & files from old computer to new one. We had to call on him with some questions and he was able to log into the new computer and fix what was needed quickly. I'm glad my brother found him because now if anyone needs help with fixing their computers Bob is getting the job. He is reasonably priced, efficient and an all around nice person to deal with. Thanks Bob The Tech Guy!"},
+   {"name": "Marco Pio", "rating": 5, "text": "\"SATISFACTION GUARANTEE\" That is the phrase that define the work that Bob the Tech Guy does, and no folks, it's not a pizza join, is the humble name of a bigger shop than those with neon sign on their store front. The day I met Bob, I met an honest and friendly man, when he checked my PC, he was reassuring and precise in his diagnostic, I order the recommended piece needed and I didn't need to leave my child as payment. Bob the Tech Guy, will leave you with a smile and the know that when you need him he'll be there. A true and honorable marine, if he posted 10 stars in my eyes and experience he deserve every one. It's been a month, not a glitch on my machine. Truly very satisfied."},
+   {"name": "Jesse Forbes", "rating": 5, "text": "Bob the Tech Guy was super helpful from the second I spoke with him on the phone. He fixed my Family's computer that my wife uses for home schooling our children. We had a ton of really important files on there. He fixed the computer and now it is better than new. Thanks again Bob. I recommend if you need a Tech Guy call Bob. He is the BEST!"},
+   {"name": "Kenneth Shouler", "rating": 5, "text": "Bob the Tech Guy is the real deal. He diagnosed the problem with my laptop and gave me a very reasonable price. He finished two days ahead of time, despite having to order parts outside. I recommend Bob and Joyce wholeheartedly to anyone who needs tech help and desires a personal touch."},
+   {"name": "Anthony Carolei", "rating": 5, "text": "I recently had Bob address an issue with our laptop. Bob was able to under cover the issue and fix the problem. He was super knowledgeable and a pleasure to do business with. It is nice to know that I have a \"guy\" in town that can handle", "excerpt": true},
+   {"name": "Joyce Onorata bonhag", "rating": 5, "text": "I brought my computer to Bob the Tech Guy. It was running slow had many pop ups among other issues. The computer came back to me quickly with all issues resolved. I would most definitely recommend this firm to anyone who wants quick, fair and professional service."},
+   {"name": "SnapThat Photobooth", "rating": 5, "text": "Wish I was able to give BOB The Tech Guy Higher than a 5 star review. The professionalism he provided was beyond expectation. I had an issue with my work PC before an event, I was freaking out! Let me tell you he came to the rescue. He", "excerpt": true},
+   {"name": "Nick Caso", "rating": 5, "text": "Took care of my PC issue, reasonable price and quick turn around. when there was a small follow up item to fix he took care of it no problem."}
+  ];
   var STAR = '<svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false"><path d="M10 1.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L10 14.8l-5.2 2.8 1-5.8L1.5 7.7l5.9-.8z" fill="#f5b301"/></svg>';
   function stars(n) { var h = ''; for (var i = 0; i < 5; i++) h += STAR; return '<span class="btg-rv-stars" role="img" aria-label="' + n + ' out of 5 stars">' + h + '</span>'; }
   function summaryHtml(g) {
@@ -1123,6 +1137,24 @@ window.BTGReviews = (function () {
       '<div class="btg-rv-slider"><div class="btg-rv-track" tabindex="0" aria-label="Reviews, scroll sideways for more">' + REVIEWS.map(cardHtml).join('') + '</div>' +
       '<div class="btg-rv-nav"><button type="button" class="btg-rv-prev" aria-label="Previous reviews">&#8249;</button><button type="button" class="btg-rv-next" aria-label="Next reviews">&#8250;</button></div></div></section>';
   }
+  // Google's "G" mark, so each card shows where the review was posted.
+  var GMARK = '<svg class="btg-gr-g" viewBox="0 0 48 48" width="20" height="20" aria-hidden="true" focusable="false"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.8-2.1 5.1-4.4 6.7v5.6h7.1c4.2-3.9 6.6-9.6 6.6-16.3z"/><path fill="#34A853" d="M24 46c5.9 0 10.9-2 14.5-5.3l-7.1-5.6c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.5-3.8-12.2-9H4.5v5.7C8.1 41.1 15.5 46 24 46z"/><path fill="#FBBC05" d="M11.8 28.2c-.4-1.3-.7-2.7-.7-4.2s.3-2.9.7-4.2v-5.7H4.5C3 17 2 20.4 2 24s1 7 2.5 9.9l7.3-5.7z"/><path fill="#EA4335" d="M24 10.8c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.2 29.9 2 24 2 15.5 2 8.1 6.9 4.5 14.1l7.3 5.7c1.7-5.2 6.5-9 12.2-9z"/></svg>';
+  function googleCardHtml(r, i) {
+    return '<article class="btg-gr-card"><header class="btg-rv-head"><span class="btg-rv-avatar" aria-hidden="true">' + esc(r.name.charAt(0)) + '</span>' +
+      '<span><b class="btg-rv-name">' + esc(r.name) + '</b><span class="btg-gr-posted">Posted on Google</span></span>' + GMARK + '</header>' +
+      stars(r.rating) + (r.excerpt
+        ? '<p class="btg-rv-text is-clamped">' + esc(r.text) + ' …</p><a class="btg-gr-rest" href="' + esc(GOOGLE.url) + '" rel="noopener">Read the rest on Google</a>'
+        : '<p class="btg-rv-text' + (r.text.length > 170 ? ' is-clamped' : '') + '" id="btg-gr-text-' + i + '">' + esc(r.text) + '</p>' +
+          (r.text.length > 170 ? '<button type="button" class="btg-rv-more" aria-expanded="false" aria-controls="btg-gr-text-' + i + '">Read more</button>' : '')) + '</article>';
+  }
+  var GWORD = '<span class="btg-gr-word" aria-label="Google"><i style="color:#4285F4">G</i><i style="color:#EA4335">o</i><i style="color:#FBBC05">o</i><i style="color:#4285F4">g</i><i style="color:#34A853">l</i><i style="color:#EA4335">e</i></span>';
+  function googleBandHtml() {
+    return '<section class="btg-rv btg-gr" aria-label="Google reviews"><div class="btg-rv-sum"><p class="btg-rv-word">Excellent</p>' + stars(GOOGLE.rating) +
+      '<p class="btg-rv-score">Based on <b>' + GOOGLE.count + '</b> reviews</p>' + GWORD +
+      '<a class="btg-rv-google" href="' + esc(GOOGLE.url) + '" rel="noopener">Review us on Google</a></div>' +
+      '<div class="btg-rv-slider"><div class="btg-rv-track" tabindex="0" aria-label="Google reviews, scroll sideways for more">' + GOOGLE_REVIEWS.map(googleCardHtml).join('') + '</div>' +
+      '<div class="btg-rv-nav"><button type="button" class="btg-rv-prev" aria-label="Previous reviews">&#8249;</button><button type="button" class="btg-rv-next" aria-label="Next reviews">&#8250;</button></div></div></section>';
+  }
   // The band goes on the home page only, in place of the old testimonial slider (the Reviews page lists them all).
   function spot(doc, path) {
     var old = path === '/' && doc.querySelector('.fusion-testimonials');
@@ -1132,25 +1164,29 @@ window.BTGReviews = (function () {
     if (doc.querySelector('.btg-rv')) return false;
     var s = spot(doc, (win.location && win.location.pathname) || '/');
     if (!s) return false;
+    // Google's own reviews first; the site's reviews below carry the on-site summary, so they never read as Google's.
     var wrap = doc.createElement('div');
-    wrap.innerHTML = bandHtml(GOOGLE);
-    var band = wrap.firstChild;
-    s.parentNode.replaceChild(band, s);
-    var track = band.querySelector('.btg-rv-track');
-    function page(dir) { track.scrollBy({ left: dir * track.clientWidth * 0.9, behavior: 'smooth' }); }
-    band.querySelector('.btg-rv-prev').addEventListener('click', function () { page(-1); });
-    band.querySelector('.btg-rv-next').addEventListener('click', function () { page(1); });
-    band.addEventListener('click', function (e) {
-      var b = e.target.closest && e.target.closest('.btg-rv-more');
-      if (!b) return;
-      var open = b.getAttribute('aria-expanded') !== 'true';
-      b.setAttribute('aria-expanded', String(open));
-      doc.getElementById(b.getAttribute('aria-controls')).classList.toggle('is-clamped', !open);
-      b.textContent = open ? 'Show less' : 'Read more';
+    wrap.innerHTML = googleBandHtml() + bandHtml();
+    var bands = Array.prototype.slice.call(wrap.children);
+    bands.forEach(function (band) { s.parentNode.insertBefore(band, s); });
+    s.parentNode.removeChild(s);
+    bands.forEach(function (band) {
+      var track = band.querySelector('.btg-rv-track');
+      function page(dir) { track.scrollBy({ left: dir * track.clientWidth * 0.9, behavior: 'smooth' }); }
+      band.querySelector('.btg-rv-prev').addEventListener('click', function () { page(-1); });
+      band.querySelector('.btg-rv-next').addEventListener('click', function () { page(1); });
+      band.addEventListener('click', function (e) {
+        var b = e.target.closest && e.target.closest('.btg-rv-more');
+        if (!b) return;
+        var open = b.getAttribute('aria-expanded') !== 'true';
+        b.setAttribute('aria-expanded', String(open));
+        doc.getElementById(b.getAttribute('aria-controls')).classList.toggle('is-clamped', !open);
+        b.textContent = open ? 'Show less' : 'Read more';
+      });
     });
     return true;
   }
-  return { GOOGLE: GOOGLE, REVIEWS: REVIEWS, summaryHtml: summaryHtml, cardHtml: cardHtml, bandHtml: bandHtml, init: init };
+  return { GOOGLE: GOOGLE, REVIEWS: REVIEWS, GOOGLE_REVIEWS: GOOGLE_REVIEWS, summaryHtml: summaryHtml, cardHtml: cardHtml, bandHtml: bandHtml, googleBandHtml: googleBandHtml, init: init };
 })();
 
 // Opening hours (from the Google listing, 2026-10-04; Bob to confirm they also apply in Virginia). One weekly schedule,
