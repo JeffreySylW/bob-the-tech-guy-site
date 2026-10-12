@@ -698,6 +698,18 @@ html .post-content { font-size: 16.5px; line-height: 1.72; color: var(--btg-text
 .btg-rv-text.is-clamped { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
 .btg-rv-more { justify-self: start; background: none !important; border: 0 !important; padding: 0 !important; color: #38792f !important; font: 700 14px var(--btg-font-body) !important; cursor: pointer; text-decoration: underline; }
 .btg-rv-nav { display: flex; justify-content: flex-end; gap: 8px; }
+/* Google band (issue #11): real reviews from Bob's listing, each card marked with the G and "Posted on Google". */
+.btg-gr { margin-bottom: 8px; }
+.btg-gr + .btg-rv { margin-top: 8px; }
+.btg-rv.btg-rv-plain { grid-template-columns: minmax(0, 1fr); }
+.btg-rv-plain .btg-rv-track { grid-auto-columns: minmax(220px, calc((100% - 32px) / 3)); }
+.btg-gr-word { font: 500 26px/1 Arial, Helvetica, sans-serif; letter-spacing: -.02em; }
+.btg-gr-word i { font-style: normal; }
+.btg-gr-card { scroll-snap-align: start; background: var(--btg-card-bg); border: 1px solid var(--btg-card-border); border-radius: 12px; padding: 16px 18px; display: grid; align-content: start; gap: 8px; }
+.btg-gr-card .btg-rv-head > span:not(.btg-rv-avatar) { flex: 1; min-width: 0; }
+.btg-gr-g { flex: none; align-self: flex-start; }
+.btg-gr-posted { display: block; font-size: 12.5px; color: var(--btg-text-muted); }
+.btg-gr-rest { justify-self: start; color: #38792f !important; font-weight: 700; font-size: 14px; }
 .btg-rv-prev, .btg-rv-next { width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid var(--btg-card-border) !important; background: #fff !important; color: #38792f !important; font: 700 22px/1 var(--btg-font-body) !important; cursor: pointer; padding: 0 !important; }
 .btg-rv-prev:hover, .btg-rv-next:hover, .btg-rv-prev:focus-visible, .btg-rv-next:focus-visible { border-color: var(--btg-green) !important; }
 .btg-cta-request { margin: 14px 0 0 !important; }
