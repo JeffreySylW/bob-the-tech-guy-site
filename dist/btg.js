@@ -1132,9 +1132,9 @@ window.BTGReviews = (function () {
       (r.rating ? stars(r.rating) : '') + '<p class="btg-rv-text' + (long ? ' is-clamped' : '') + '" id="btg-rv-text-' + i + '">' + esc(r.text) + '</p>' +
       (long ? '<button type="button" class="btg-rv-more" aria-expanded="false" aria-controls="btg-rv-text-' + i + '">Read more</button>' : '') + '</article>';
   }
-  function bandHtml(g, plain) {
-    return (plain ? '<section class="btg-rv btg-rv-plain" aria-label="More customer reviews">' : '<section class="btg-rv" aria-label="Customer reviews">' + summaryHtml(g)) +
-      '<div class="btg-rv-slider"><div class="btg-rv-track" tabindex="0" aria-label="Reviews, scroll sideways for more">' + REVIEWS.map(cardHtml).join('') + '</div>' +
+  function bandHtml(g, plain, list) {
+    return (plain ? '<section class="btg-rv btg-rv-plain" aria-label="Customer reviews">' : '<section class="btg-rv" aria-label="Customer reviews">' + summaryHtml(g)) +
+      '<div class="btg-rv-slider"><div class="btg-rv-track" tabindex="0" aria-label="Reviews, scroll sideways for more">' + (list || REVIEWS).map(cardHtml).join('') + '</div>' +
       '<div class="btg-rv-nav"><button type="button" class="btg-rv-prev" aria-label="Previous reviews">&#8249;</button><button type="button" class="btg-rv-next" aria-label="Next reviews">&#8250;</button></div></div></section>';
   }
   // Google's "G" mark, so each card shows where the review was posted.
@@ -1155,22 +1155,20 @@ window.BTGReviews = (function () {
       '<div class="btg-rv-slider"><div class="btg-rv-track" tabindex="0" aria-label="Google reviews, scroll sideways for more">' + GOOGLE_REVIEWS.map(googleCardHtml).join('') + '</div>' +
       '<div class="btg-rv-nav"><button type="button" class="btg-rv-prev" aria-label="Previous reviews">&#8249;</button><button type="button" class="btg-rv-next" aria-label="Next reviews">&#8250;</button></div></div></section>';
   }
-  // The band goes on the home page only, in place of the old testimonial slider (the Reviews page lists them all).
-  function spot(doc, path) {
-    var old = path === '/' && doc.querySelector('.fusion-testimonials');
-    return old || null;
-  }
+  // Home: the Google band replaces the old testimonial slider. Testimonials: the site's own star-rated reviews follow the
+  // five quotes already on that page (the five unrated originals are those quotes, so they are left out).
   function init(doc, win) {
     if (doc.querySelector('.btg-rv')) return false;
-    var s = spot(doc, (win.location && win.location.pathname) || '/');
-    if (!s) return false;
-    // Google's own reviews first with the one summary; the site's own reviews follow as plain cards (no Google label).
+    var path = (win.location && win.location.pathname) || '/', html, s, replace;
+    if (path === '/' && (s = doc.querySelector('.fusion-testimonials'))) { html = googleBandHtml(); replace = true; }
+    else if (/^\/testimonials\/?$/.test(path) && (s = doc.querySelector('.btg-home-quotes'))) {
+      html = bandHtml(null, true, REVIEWS.filter(function (r) { return r.rating; }));
+    } else return false;
     var wrap = doc.createElement('div');
-    wrap.innerHTML = googleBandHtml() + bandHtml(null, true);
-    var bands = Array.prototype.slice.call(wrap.children);
-    bands.forEach(function (band) { s.parentNode.insertBefore(band, s); });
-    s.parentNode.removeChild(s);
-    bands.forEach(function (band) {
+    wrap.innerHTML = html;
+    var band = wrap.firstChild;
+    if (replace) s.parentNode.replaceChild(band, s); else s.parentNode.insertBefore(band, s.nextSibling);
+    [band].forEach(function (band) {
       var track = band.querySelector('.btg-rv-track');
       function page(dir) { track.scrollBy({ left: dir * track.clientWidth * 0.9, behavior: 'smooth' }); }
       band.querySelector('.btg-rv-prev').addEventListener('click', function () { page(-1); });
