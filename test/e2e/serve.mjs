@@ -3,6 +3,8 @@ import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
+const { headBlock } = createRequire(import.meta.url)('../../tools/loader.js');
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const CDN = /https:\/\/cdn\.jsdelivr\.net\/gh\/JeffreySylW\/bob-the-tech-guy-site@v[0-9.]+\/dist\//g;
 
@@ -17,7 +19,10 @@ export default function serve(port = 4410) {
         return res.end(f);
       }
       const name = (url.pathname.replace(/^\/|\/$/g, '') || 'home') + '.html';
-      const html = (await readFile(path.join(root, 'test/e2e/pages', name), 'utf8')).replace(CDN, '/dist/');
+      let html = await readFile(path.join(root, 'test/e2e/pages', name), 'utf8');
+      // ?head=1 adds the site-wide <head> loader, as Avada's theme option will print it.
+      if (url.searchParams.has('head')) html = html.replace('</head>', headBlock('v0.0.0') + '</head>');
+      html = html.replace(CDN, '/dist/');
       res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
       res.end(html);
     } catch { res.writeHead(404); res.end('not found'); }

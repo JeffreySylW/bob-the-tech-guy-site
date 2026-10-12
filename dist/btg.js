@@ -1531,6 +1531,9 @@ window.BTGCards = (function () {
   // never stops the others; the page itself always works without them.
   function safely(fn) { try { fn(); } catch (e) { if (window.console) console.warn('btg:', e); } }
   function run() {
+    // The <head> loader and a page's own loader can both be present while pages are migrated (issue #3): build once.
+    if (window.__btgRan) return;
+    window.__btgRan = true;
     safely(function () { window.BTGInit.fixTelLinks(document); });
     safely(function () { window.BTGInit.addCtaDigits(document); });
     safely(function () { window.BTGInit.addHeroTrust(document); });

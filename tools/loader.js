@@ -14,6 +14,18 @@
   function loaderBlock(v) {
     return '\n\n<!-- btg-loader v1 -->\n' + PREHIDE + '\n<link rel="stylesheet" href="' + cdn(v) + 'css">\n<script src="' + cdn(v) + 'js"></script>';
   }
+  // The site-wide loader for Avada's "Space before </head>" field: one copy on every front-end page (issue #3).
+  // `defer` keeps the 100KB script from blocking the parser; the bundle starts once the page is parsed.
+  function headBlock(v) {
+    return '<!-- btg-head v1 -->\n' + PREHIDE + '\n<link rel="stylesheet" href="' + cdn(v) + 'css">\n<script defer src="' + cdn(v) + 'js"></script>\n';
+  }
+  // Take a page's own loader (and the early pre-hide copy) back out once headBlock() serves every page.
+  var LOADER_END = /\n\n<!-- btg-loader v1 -->\n(?:<style>[^\n]*<\/style>\n)?<link rel="stylesheet" href="https:\/\/cdn\.jsdelivr\.net\/gh\/JeffreySylW\/bob-the-tech-guy-site@v[0-9.]+\/dist\/btg\.css">\n<script src="https:\/\/cdn\.jsdelivr\.net\/gh\/JeffreySylW\/bob-the-tech-guy-site@v[0-9.]+\/dist\/btg\.js"><\/script>$/;
+  function strip(content) {
+    var out = content.indexOf(EARLY) === 0 ? content.slice(EARLY.length) : content;
+    if (!LOADER_END.test(out)) throw new Error('No standard loader at the end of the page');
+    return out.replace(LOADER_END, '');
+  }
   // Move an existing loader to version `to` and add the pre-hide style if it is missing.
   function upgrade(content, from, to) {
     var a = cdn(from), n = content.split(a).length - 1;
@@ -22,5 +34,5 @@
     if (out.indexOf('btg-reveal') === -1) out = out.replace('<!-- btg-loader v1 -->\n', '<!-- btg-loader v1 -->\n' + PREHIDE + '\n');
     return out.indexOf('<!-- btg-early -->') === 0 ? out : EARLY + out;
   }
-  return { PREHIDE: PREHIDE, EARLY: EARLY, loaderBlock: loaderBlock, upgrade: upgrade };
+  return { PREHIDE: PREHIDE, EARLY: EARLY, loaderBlock: loaderBlock, headBlock: headBlock, strip: strip, upgrade: upgrade };
 });
