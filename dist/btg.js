@@ -1132,8 +1132,8 @@ window.BTGReviews = (function () {
       (r.rating ? stars(r.rating) : '') + '<p class="btg-rv-text' + (long ? ' is-clamped' : '') + '" id="btg-rv-text-' + i + '">' + esc(r.text) + '</p>' +
       (long ? '<button type="button" class="btg-rv-more" aria-expanded="false" aria-controls="btg-rv-text-' + i + '">Read more</button>' : '') + '</article>';
   }
-  function bandHtml(g) {
-    return '<section class="btg-rv" aria-label="Customer reviews">' + summaryHtml(g) +
+  function bandHtml(g, plain) {
+    return (plain ? '<section class="btg-rv btg-rv-plain" aria-label="More customer reviews">' : '<section class="btg-rv" aria-label="Customer reviews">' + summaryHtml(g)) +
       '<div class="btg-rv-slider"><div class="btg-rv-track" tabindex="0" aria-label="Reviews, scroll sideways for more">' + REVIEWS.map(cardHtml).join('') + '</div>' +
       '<div class="btg-rv-nav"><button type="button" class="btg-rv-prev" aria-label="Previous reviews">&#8249;</button><button type="button" class="btg-rv-next" aria-label="Next reviews">&#8250;</button></div></div></section>';
   }
@@ -1164,9 +1164,9 @@ window.BTGReviews = (function () {
     if (doc.querySelector('.btg-rv')) return false;
     var s = spot(doc, (win.location && win.location.pathname) || '/');
     if (!s) return false;
-    // Google's own reviews first; the site's reviews below carry the on-site summary, so they never read as Google's.
+    // Google's own reviews first with the one summary; the site's own reviews follow as plain cards (no Google label).
     var wrap = doc.createElement('div');
-    wrap.innerHTML = googleBandHtml() + bandHtml();
+    wrap.innerHTML = googleBandHtml() + bandHtml(null, true);
     var bands = Array.prototype.slice.call(wrap.children);
     bands.forEach(function (band) { s.parentNode.insertBefore(band, s); });
     s.parentNode.removeChild(s);

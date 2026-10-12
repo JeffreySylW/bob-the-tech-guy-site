@@ -701,6 +701,8 @@ html .post-content { font-size: 16.5px; line-height: 1.72; color: var(--btg-text
 /* Google band (issue #11): real reviews from Bob's listing, each card marked with the G and "Posted on Google". */
 .btg-gr { margin-bottom: 8px; }
 .btg-gr + .btg-rv { margin-top: 8px; }
+.btg-rv.btg-rv-plain { grid-template-columns: minmax(0, 1fr); }
+.btg-rv-plain .btg-rv-track { grid-auto-columns: minmax(220px, calc((100% - 32px) / 3)); }
 .btg-gr-word { font: 500 26px/1 Arial, Helvetica, sans-serif; letter-spacing: -.02em; }
 .btg-gr-word i { font-style: normal; }
 .btg-gr-card { scroll-snap-align: start; background: var(--btg-card-bg); border: 1px solid var(--btg-card-border); border-radius: 12px; padding: 16px 18px; display: grid; align-content: start; gap: 8px; }
