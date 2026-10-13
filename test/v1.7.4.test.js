@@ -60,5 +60,6 @@ test('page titles: city keywords on main and service pages, short enough for Goo
   for (const p of services.concat(['/', '/about/', '/services-2/', '/contact-2/', '/reviews/', '/testimonials/', '/gallery/', '/northern-new-jersey/'])) {
     assert.ok(T(p) && T(p).length <= 70, p + ' ' + T(p));
   }
-  for (const p of ['/search/', '/customer-log-in/', '/pc-repair-service-chester-virginia/']) assert.strictEqual(T(p), null, p);
+  // /search/ got its own title in v1.8.7 (SEO audit).
+  for (const p of ['/customer-log-in/', '/pc-repair-service-chester-virginia/']) assert.strictEqual(T(p), null, p);
 });

@@ -101,6 +101,8 @@ window.BTGSchema = (function () {
       '@id': opts['@id'],
       name: opts.name,
       image: opts.image,
+      logo: opts.logo,
+      email: opts.email,
       founder: opts.founder,
       telephone: opts.telephone,
       url: opts.url,
@@ -190,15 +192,18 @@ window.BTGInit = (function () {
     '@id': 'https://bobthetechguy.com/#business',
     name: 'Bob The Tech Guy',
     get image() { return window.BTGBob ? window.BTGBob.PORTRAIT : undefined; },
+    logo: 'https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@v1.8.6/dist/brand/logo-564x160.png',
+    email: 'info@bobthetechguy.com',
     founder: { '@type': 'Person', name: 'Bob Dyer' },
     telephone: '+18448354890',
     url: 'https://bobthetechguy.com/',
     get openingHoursSpecification() { return window.BTGHours ? window.BTGHours.schemaHours() : undefined; },
-    areaServed: [
-      'Chesterfield VA', 'Midlothian VA', 'Chester VA', 'Bon Air VA',
-      'Brandermill VA', 'Woodlake VA', 'Moseley VA', 'Colonial Heights VA',
-      'Richmond VA', 'Pompton Lakes NJ',
-    ],
+    // Places, not strings, so search engines can match each town (v1.8.7).
+    areaServed: [['Chesterfield', 'Virginia'], ['Midlothian', 'Virginia'], ['Chester', 'Virginia'], ['Bon Air', 'Virginia'],
+      ['Brandermill', 'Virginia'], ['Woodlake', 'Virginia'], ['Moseley', 'Virginia'], ['Colonial Heights', 'Virginia'],
+      ['Richmond', 'Virginia'], ['Pompton Lakes', 'New Jersey']].map(function (t) {
+      return { '@type': 'City', name: t[0], containedInPlace: { '@type': 'State', name: t[1] } };
+    }),
     priceRange: '$$',
     sameAs: ['https://maps.google.com/?cid=12486145650775343960', 'https://www.facebook.com/BobTheTechGuy',
       'https://www.veteranownedbusiness.com/business/24505/bob-the-tech-guy'],
@@ -451,6 +456,7 @@ window.BTGInit = (function () {
     '/gallery/': 'Photo Gallery | Bob The Tech Guy, Chesterfield VA',
     '/support/': 'Support App Download | Bob The Tech Guy',
     '/tech-certificates/': 'Tech Gift Certificates | Bob The Tech Guy',
+    '/search/': 'Search Services | Bob The Tech Guy',
     '/best-computer-repair-chesterfield-va/': 'Computer Repair in Chesterfield & Richmond, VA | Bob The Tech Guy',
     '/northern-new-jersey/': 'Computer Repair in Northern New Jersey | Bob The Tech Guy'
   };
