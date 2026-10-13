@@ -1365,7 +1365,7 @@ window.BTGFooter = (function () {
 
 // Virginia service zone: Bob's location is not shared, so the map shows a rounded area around the towns he covers
 // (OpenStreetMap via Leaflet, no key). Contact page: map + weekly hours card under the location cards. Footer: a small
-// map in the contact block. Leaflet loads from cdnjs only when a map is about to scroll into view.
+// map in the contact block. Leaflet's script loads from jsDelivr only when a map is about to scroll into view; its stylesheet is bundled in btg.css.
 window.BTGZone = (function () {
   'use strict';
   var TOWNS = [['Richmond', 37.5407, -77.436], ['Bon Air', 37.5246, -77.5578], ['Midlothian', 37.5057, -77.6494], ['Brandermill', 37.4329, -77.6522],
@@ -1382,10 +1382,8 @@ window.BTGZone = (function () {
     nj: { name: 'northern New Jersey', towns: NJ_TOWNS, pad: [0.03, 0.04] }
   };
   var LEAFLET = {
-    js: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js',
-    jsSri: 'sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g==',
-    css: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css',
-    cssSri: 'sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw=='
+    js: 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js',
+    jsSri: 'sha512-BwHfrr4c9kmRkLw6iXFdzcdWV/PGkVgiIyIWLLlTSXzWQzxuSg4DiQUCpauz/EWjgk5TYQqX/kvn9pG1NpYfqg=='
   };
   // Convex hull of a ~5 km circle around each town: one smooth outline that covers them all.
   function zone(key) {
@@ -1403,9 +1401,6 @@ window.BTGZone = (function () {
     if (win.L) return Promise.resolve(win.L);
     if (loading) return loading;
     loading = new Promise(function (ok, fail) {
-      var css = doc.createElement('link');
-      css.rel = 'stylesheet'; css.href = LEAFLET.css; css.integrity = LEAFLET.cssSri; css.crossOrigin = 'anonymous';
-      doc.head.appendChild(css);
       var s = doc.createElement('script');
       s.src = LEAFLET.js; s.integrity = LEAFLET.jsSri; s.crossOrigin = 'anonymous';
       s.onload = function () { ok(win.L); }; s.onerror = fail;
