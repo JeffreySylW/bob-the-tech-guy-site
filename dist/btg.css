@@ -1501,7 +1501,7 @@ html .post-content { font-size: 16.5px; line-height: 1.72; color: var(--btg-text
 .fusion-footer .btg-foot-region .btg-foot-contact-list li:last-child { margin-bottom: 0; }
 
 /* v1.8.2 — no "By <author> | date | Comments Off" byline and no "About the Author" box on posts/pages. */
-.fusion-meta-info, .about-author, .related-posts.single-related-posts { display: none !important; }
+.fusion-meta-info, .fusion-single-line-meta, .about-author, .related-posts.single-related-posts { display: none !important; } /* v1.8.8: also the byline on search and archive cards */
 
 /* v1.8.3 — service-area maps: quieter basemap, label pills, credit tucked into a small (i) on footer maps. */
 .btg-zone-map .leaflet-tile-pane { filter: grayscale(0.85) contrast(0.78) brightness(1.1); }

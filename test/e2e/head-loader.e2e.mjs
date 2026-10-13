@@ -24,5 +24,17 @@ const once = await shape('/memory-install/');
 const both = await shape('/memory-install/?head=1');
 check('per-page loader plus <head> loader builds the same page as one loader', JSON.stringify(both) === JSON.stringify(once), JSON.stringify({ once, both }));
 
+// Pages that never had a loader (404, search results, archives) get the redesign from the <head> loader alone (issue #3).
+for (const [w, h] of [[1440, 900], [390, 844]]) {
+  for (const page of ['notfound', 'search-results', 'category-archive']) {
+    const b = await launch({ width: w, height: h, mobile: w < 600 });
+    await b.goto('http://localhost:4480/' + page + '/?head=1'); await b.sleep(3500);
+    check(w + ' ' + page + ': new header and footer from the <head> loader alone', await b.evalJs(`document.documentElement.classList.contains('btg-ready') && document.querySelectorAll('.btg-header-tools').length === 1 && document.querySelectorAll('.btg-foot-region').length === 2`));
+    check(w + ' ' + page + ': no post byline (author and date), as on every other page since v1.8.2', await b.evalJs(`!/By Jeffrey Weaver/.test(document.querySelector('#main').innerText)`));
+    check(w + ' ' + page + ': no horizontal page scroll', await b.evalJs(`document.documentElement.scrollWidth <= innerWidth`));
+    await b.close();
+  }
+}
+
 server.close();
 const bad = results.filter((x) => !x).length; console.log(`${results.length - bad}/${results.length} passed`); process.exit(bad ? 1 : 0);
