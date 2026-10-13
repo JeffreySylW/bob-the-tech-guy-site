@@ -20,7 +20,8 @@
     return '<!-- btg-head v1 -->\n' + PREHIDE + '\n<link rel="stylesheet" href="' + cdn(v) + 'css">\n<script defer src="' + cdn(v) + 'js"></script>\n';
   }
   // Take a page's own loader (and the early pre-hide copy) back out once headBlock() serves every page.
-  var LOADER_END = /\n\n<!-- btg-loader v1 -->\n(?:<style>[^\n]*<\/style>\n)?<link rel="stylesheet" href="https:\/\/cdn\.jsdelivr\.net\/gh\/JeffreySylW\/bob-the-tech-guy-site@v[0-9.]+\/dist\/btg\.css">\n<script src="https:\/\/cdn\.jsdelivr\.net\/gh\/JeffreySylW\/bob-the-tech-guy-site@v[0-9.]+\/dist\/btg\.js"><\/script>$/;
+  // Live pages put it after their btg-styles block with one newline; generated pages with a blank line.
+  var LOADER_END = /\n\n?<!-- btg-loader v1 -->\n(?:<style>[^\n]*<\/style>\n)?<link rel="stylesheet" href="https:\/\/cdn\.jsdelivr\.net\/gh\/JeffreySylW\/bob-the-tech-guy-site@v[0-9.]+\/dist\/btg\.css">\n<script src="https:\/\/cdn\.jsdelivr\.net\/gh\/JeffreySylW\/bob-the-tech-guy-site@v[0-9.]+\/dist\/btg\.js"><\/script>$/;
   function strip(content) {
     var out = content.indexOf(EARLY) === 0 ? content.slice(EARLY.length) : content;
     if (!LOADER_END.test(out)) throw new Error('No standard loader at the end of the page');

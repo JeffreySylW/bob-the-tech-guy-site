@@ -43,7 +43,7 @@ test('Service schema on service pages only, tied to the business by @id', () => 
   assert.strictEqual(s.name, 'Networking');
   assert.strictEqual(s.url, T('/networking/'));
   assert.deepStrictEqual(s.provider, { '@id': T('/#business') });
-  assert.ok(s.areaServed.includes('Chesterfield VA'));
+  assert.ok(s.areaServed.some((a) => a['@type'] === 'City' && a.name === 'Chesterfield'), 'service area as places since v1.8.7');
   assert.strictEqual(s.address, undefined);
   for (const p of ['/', '/about/', '/contact-2/', '/northern-new-jersey/', '/best-computer-repair-chesterfield-va/']) assert.strictEqual(I.serviceSchema(p), null, p);
 });
