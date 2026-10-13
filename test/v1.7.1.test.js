@@ -43,8 +43,11 @@ test('service zone: rounded outline that contains every town, no street address 
   assert.doesNotMatch(JSON.stringify(Z.TOWNS), /\d+ [A-Z][a-z]+ (St|Rd|Ave|Dr|Ln|Ct)/);
 });
 
-test('Leaflet loads from cdnjs with integrity hashes, only when a map is about to show', () => {
-  assert.match(Z.LEAFLET.js, /^https:\/\/cdnjs\.cloudflare\.com\/ajax\/libs\/leaflet\/1\.9\.4\/leaflet\.min\.js$/);
-  assert.match(Z.LEAFLET.jsSri, /^sha512-/);
-  assert.match(Z.LEAFLET.cssSri, /^sha512-/);
+test('Leaflet\'s script loads from jsDelivr (same CDN as the bundle) with an integrity hash; its stylesheet is bundled in btg.css (v1.8.6)', () => {
+  // cdnjs failed 4 of 10 requests for Leaflet on 2026-10-13 (502/524); jsDelivr and unpkg serve the identical npm build.
+  assert.strictEqual(Z.LEAFLET.js, 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js');
+  assert.strictEqual(Z.LEAFLET.jsSri, 'sha512-BwHfrr4c9kmRkLw6iXFdzcdWV/PGkVgiIyIWLLlTSXzWQzxuSg4DiQUCpauz/EWjgk5TYQqX/kvn9pG1NpYfqg==');
+  assert.strictEqual(Z.LEAFLET.css, undefined, 'no external stylesheet: cdnjs served it empty on 2026-10-13');
+  const css = require('node:fs').readFileSync(require('node:path').join(__dirname, '../dist/btg.css'), 'utf8');
+  assert.match(css, /\.leaflet-container \{\s*overflow: hidden;/, 'Leaflet\'s clipping rule ships with the bundle');
 });
