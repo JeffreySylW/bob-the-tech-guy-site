@@ -21,8 +21,10 @@ test('runtime hero nudge removed', () => {
 });
 
 test('checklist and CTA block styles exist', () => {
-  assert.match(css, /\.btg-checklist \{[^}]*display: grid;[^}]*grid-template-columns: repeat\(2, 1fr\);/);
-  assert.match(css, /@media \(max-width: 600px\) \{\s*\.btg-checklist \{ grid-template-columns: 1fr; \}/);
+  // v1.8.9: two flowing columns, not grid rows (rows made the space between items uneven; see test/e2e/checklist-gaps.e2e.mjs).
+  assert.match(css, /\.btg-checklist \{[^}]*display: block;[^}]*column-count: 2;/);
+  assert.match(css, /@media \(max-width: 600px\) \{\s*\.btg-checklist \{ column-count: 1; \}/);
+  assert.doesNotMatch(css, /\.btg-checklist \{[^}]*display: grid/);
   assert.match(css, /\.btg-cta-block \{[^}]*text-align: center;/);
 });
 

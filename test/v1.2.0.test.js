@@ -11,7 +11,7 @@ test('split layout: 2 columns from 768px, stacked variant stays 1 column', () =>
   assert.match(css, /\.btg-split \{[^}]*display: grid;[^}]*grid-template-columns: 1fr;/);
   assert.match(css, /@media \(min-width: 768px\) \{\s*\.btg-split \{ grid-template-columns: 1\.3fr 1fr; \}\s*\.btg-split--stacked \{ grid-template-columns: 1fr; \}/);
   assert.match(css, /\.btg-include-card \{[^}]*border-top: 3px solid var\(--btg-green\);/);
-  assert.match(css, /\.btg-split--stacked \.btg-include-card \.btg-checklist \{ grid-template-columns: repeat\(2, 1fr\); \}/);
+  assert.match(css, /\.btg-split--stacked \.btg-include-card \.btg-checklist \{ column-count: 2; \}/);
   assert.match(css, /\.btg-note \{/);
   assert.match(css, /\.btg-banner \{/);
 });
