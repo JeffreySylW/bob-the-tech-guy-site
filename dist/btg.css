@@ -968,11 +968,13 @@ body.has-sidebar #sidebar {
   display: none !important;
 }
 body.has-sidebar #content { float: none !important; margin-left: auto !important; margin-right: auto !important; }
-.btg-checklist { list-style: none; margin: 0 0 var(--btg-space-5) !important; padding: 0 !important; display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px var(--btg-space-4); }
+.btg-checklist { list-style: none; margin: 0 0 var(--btg-space-5) !important; padding: 0 !important; display: block; column-count: 2; column-gap: var(--btg-space-4); }
 @media (max-width: 600px) {
-  .btg-checklist { grid-template-columns: 1fr; }
+  .btg-checklist { column-count: 1; }
 }
-.btg-checklist li { position: relative; padding-left: 22px; margin: 0 !important; color: var(--btg-text-muted); line-height: 1.55; }
+/* v1.8.9: the bullets flow down two columns (not locked into grid rows), so every pair of items is the same 6px apart. */
+.btg-checklist li { position: relative; padding-left: 22px; margin: 0 0 6px !important; break-inside: avoid; color: var(--btg-text-muted); line-height: 1.55; }
+.btg-checklist li:last-child { margin-bottom: 0 !important; }
 .btg-checklist li::before { content: ""; position: absolute; left: 2px; top: 0.4em; width: 10px; height: 5px; border-left: 2px solid var(--btg-green); border-bottom: 2px solid var(--btg-green); transform: rotate(-45deg); }
 .btg-cta-block { text-align: center; background: var(--btg-card-bg); border: 1px solid var(--btg-card-border); border-radius: var(--btg-radius-md); padding: var(--btg-space-4); margin: var(--btg-space-5) 0; }
 .btg-cta-block h3 { margin: 0 0 var(--btg-space-2) !important; padding-top: 0 !important; }
@@ -998,10 +1000,10 @@ body.has-sidebar #content { float: none !important; margin-left: auto !important
 .btg-include-card::before { content: ""; display: block; width: 34px; height: 34px; border-radius: 8px; background-color: var(--btg-green-tint); background-position: center; background-size: 22px; background-repeat: no-repeat; margin-bottom: var(--btg-space-2); }
 .btg-include-card h2 { font-size: 21px !important; line-height: 1.3 !important; margin: 0 0 var(--btg-space-3) !important; padding-top: 0 !important; }
 .btg-include-card h2::before { display: none !important; }
-.btg-include-card .btg-checklist { grid-template-columns: 1fr; margin-bottom: 0 !important; }
-.btg-split--stacked .btg-include-card .btg-checklist { grid-template-columns: repeat(2, 1fr); }
+.btg-include-card .btg-checklist { column-count: 1; margin-bottom: 0 !important; }
+.btg-split--stacked .btg-include-card .btg-checklist { column-count: 2; }
 @media (max-width: 600px) {
-  .btg-split--stacked .btg-include-card .btg-checklist { grid-template-columns: 1fr; }
+  .btg-split--stacked .btg-include-card .btg-checklist { column-count: 1; }
 }
 .btg-note { color: var(--btg-text-muted); font-style: italic; margin: 0 0 var(--btg-space-3) !important; }
 .btg-panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: var(--btg-space-3); margin: var(--btg-space-4) 0; }
