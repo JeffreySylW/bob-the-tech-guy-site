@@ -903,18 +903,38 @@ window.BTGBob = (function () {
     hero.insertAdjacentHTML('afterbegin', faceHtml());
     return true;
   }
-  // A real photo beside the first card on four service pages (hand-picked; dated or off-topic shots are left out).
-  var PHOTO_BASE = 'https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@v1.5.10/dist/brand/photos/';
+  // A real photo beside the first card on six service pages (hand-picked; dated or off-topic shots are left out).
+  // Bob's newer shop photos (2026-10-17) replaced the 2013 ones; the base is the tag where they first shipped.
+  var PHOTO_BASE = 'https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@v1.8.10/dist/brand/photos/';
   var PHOTOS = {
     '/hardware-repair-upgrades/': ['bob-repairing-pc.jpg', 'Bob Dyer repairing a computer', 476, 635],
-    '/hardware-install/': ['graphics-card.jpg', 'A graphics card ready to be installed', 600, 800],
-    '/memory-install/': ['motherboard-memory.jpg', 'A motherboard with its memory slots', 847, 635],
-    '/operating-system-install/': ['os-install.jpg', 'A laptop starting from a system recovery disk', 600, 800]
+    '/hardware-install/': ['psu-install.jpg', 'Power supply cables inside a computer case during an installation', 600, 800],
+    '/memory-install/': ['memory-ram.jpg', 'A memory (RAM) module ready to be installed', 600, 800],
+    '/operating-system-install/': ['system-error.jpg', 'A desktop computer showing a blue-screen error', 600, 800],
+    '/screen-replacement/': ['broken-screen.jpg', 'A laptop with a cracked screen', 600, 600],
+    '/computer-tune-up/': ['laptop-fan.jpg', 'The cooling fan inside a laptop', 800, 600]
   };
   function photoFor(path) {
     if (path.charAt(path.length - 1) !== '/') path += '/';
     var p = PHOTOS[path];
     return p ? { src: PHOTO_BASE + p[0], alt: p[1], width: p[2], height: p[3] } : null;
+  }
+  // About page: Bob's Marine photos (2026-10-17) go right after the paragraph about his years in the Corps.
+  var MARINE = [
+    ['marine-portrait.jpg', 'Bob Dyer in his U.S. Marine Corps dress uniform', 600, 669],
+    ['marine-flag.jpg', 'A U.S. Marine in dress blues saluting the American flag', 600, 880]
+  ];
+  function initMarine(doc, win) {
+    if (((win.location && win.location.pathname) || '/').replace(/\/?$/, '/') !== '/about/') return false;
+    var intro = doc.querySelector('.btg-bob-intro');
+    if (!intro || doc.querySelector('.btg-marine-row')) return false;
+    var row = doc.createElement('div');
+    row.className = 'btg-marine-row';
+    row.innerHTML = MARINE.map(function (m) {
+      return '<figure class="btg-photo-fig"><img src="' + PHOTO_BASE + m[0] + '" alt="' + m[1] + '" width="' + m[2] + '" height="' + m[3] + '"></figure>';
+    }).join('');
+    intro.parentNode.insertBefore(row, intro.nextSibling);
+    return true;
   }
   function initPhoto(doc, win) {
     var photo = photoFor(win.location.pathname || '/');
@@ -937,7 +957,7 @@ window.BTGBob = (function () {
     row.appendChild(fig);
     return true;
   }
-  return { PORTRAIT: PORTRAIT, faceHtml: faceHtml, initHero: initHero, photoFor: photoFor, initPhoto: initPhoto };
+  return { PORTRAIT: PORTRAIT, faceHtml: faceHtml, initHero: initHero, photoFor: photoFor, initPhoto: initPhoto, initMarine: initMarine };
 })();
 
 
@@ -1589,6 +1609,7 @@ window.BTGCards = (function () {
     safely(function () { window.BTGAccount.init(document, window); });
     safely(function () { window.BTGBob.initHero(document, window); });
     safely(function () { window.BTGBob.initPhoto(document, window); });
+    safely(function () { window.BTGBob.initMarine(document, window); });
     safely(function () { window.BTGInit.rewriteNjLinks(document); });
     safely(function () { window.BTGInit.blockCrypto(document); });
     safely(function () { window.BTGInit.addRequestButton(document, window); });
