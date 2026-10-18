@@ -915,7 +915,7 @@ window.BTGBob = (function () {
   // A real photo beside the first card on six service pages (hand-picked; dated or off-topic shots are left out).
   // Bob's newer shop photos (2026-10-17) replaced the 2013 ones; the base is the tag where they first shipped.
   // v1.8.13 added the home page's gaming rig photo, so the base moved to that tag (it holds every earlier photo too).
-  var PHOTO_BASE = 'https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@v1.8.13/dist/brand/photos/';
+  var PHOTO_BASE = 'https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@v1.8.15/dist/brand/photos/';
   var PHOTOS = {
     '/hardware-repair-upgrades/': ['bob-repairing-pc.jpg', 'Bob Dyer repairing a computer', 476, 635],
     '/hardware-install/': ['psu-install.jpg', 'Power supply cables inside a computer case during an installation', 600, 800],
@@ -946,16 +946,23 @@ window.BTGBob = (function () {
     intro.parentNode.insertBefore(row, intro.nextSibling);
     return true;
   }
-  // Home page: Bob's all-white custom gaming rig (2026-10-18), a wide photo right after the "Now Open" box.
-  var RIG = ['gaming-rig-white.jpg', 'A custom gaming PC with an all-white case, white fans and a liquid cooler, side panel off', 800, 617];
+  // Home page: Bob's all-white custom gaming rig (2026-10-18), a dark "pop-out" banner right after the "Now Open" box:
+  // the Hardware Install page's own wording on the left, a cut-out of the rig sticking out past the banner's edges.
+  var RIG = ['gaming-rig-cutout.webp', 'A custom gaming PC with an all-white case, white fans and a liquid cooler, side panel off', 720, 513];
   function initRig(doc, win) {
     if (((win.location && win.location.pathname) || '/') !== '/') return false;
     var box = doc.querySelector('.post-content > .fusion-reading-box-container');
-    if (!box || doc.querySelector('.btg-rig-fig')) return false;
-    var fig = doc.createElement('figure');
-    fig.className = 'btg-rig-fig';
-    fig.innerHTML = '<img src="' + PHOTO_BASE + RIG[0] + '" alt="' + RIG[1] + '" width="' + RIG[2] + '" height="' + RIG[3] + '" loading="lazy">';
-    box.parentNode.insertBefore(fig, box.nextSibling);
+    if (!box || doc.querySelector('.btg-rig-pop')) return false;
+    var pop = doc.createElement('section');
+    pop.className = 'btg-rig-pop';
+    pop.style.setProperty('--btg-rig-bg', 'url("' + PHOTO_BASE + 'gaming-rig-white.jpg")');
+    pop.innerHTML = '<div class="btg-rig-pop-text">' +
+      '<p class="btg-rig-pop-eyebrow">Services &middot; Hardware</p>' +
+      '<h2 class="btg-rig-pop-title">New hardware, <strong>installed and tested</strong>.</h2>' +
+      '<p class="btg-rig-pop-lede">Graphics cards, drives, webcams and more, installed and working together.</p>' +
+      '<a class="btg-rig-pop-btn" href="/hardware-install/">Hardware Install</a></div>' +
+      '<img class="btg-rig-pop-img" src="' + PHOTO_BASE + RIG[0] + '" alt="' + RIG[1] + '" width="' + RIG[2] + '" height="' + RIG[3] + '" loading="lazy">';
+    box.parentNode.insertBefore(pop, box.nextSibling);
     return true;
   }
   function initPhoto(doc, win) {

@@ -18,7 +18,7 @@ export default function serve(port = 4410) {
         // The bundle builds some addresses itself (service photos, schema logo): point those at the working copy too, as the page HTML is.
         if (url.pathname.endsWith('.js')) f = Buffer.from(f.toString('utf8').replace(CDN, '/dist/'));
         const ext = url.pathname.split('.').pop();
-        res.writeHead(200, { 'content-type': { css: 'text/css', js: 'application/javascript', jpg: 'image/jpeg', png: 'image/png' }[ext] || 'application/octet-stream' });
+        res.writeHead(200, { 'content-type': { css: 'text/css', js: 'application/javascript', jpg: 'image/jpeg', png: 'image/png', webp: 'image/webp' }[ext] || 'application/octet-stream' });
         return res.end(f);
       }
       const name = (url.pathname.replace(/^\/|\/$/g, '') || 'home') + '.html';
