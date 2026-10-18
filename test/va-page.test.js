@@ -18,7 +18,7 @@ test('hero: one h1 naming Chesterfield, Bob\'s own tagline, the Virginia phone l
 });
 
 test('links every service page and lists the nine towns', () => {
-  assert.strictEqual((html.match(/class="btg-sr-item /g) || []).length, 15);
+  assert.strictEqual((html.match(/class="btg-sr-item /g) || []).length, 16);
   for (const t of TOWNS) assert.ok(html.includes('<li>' + t + '</li>'), t);
   assert.strictEqual((html.match(/<li>[A-Z][A-Za-z ]+<\/li>/g) || []).length, 9);
 });

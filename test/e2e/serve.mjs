@@ -14,8 +14,11 @@ export default function serve(port = 4410) {
     try {
       if (url.pathname.startsWith('/dist/')) {
         if (process.env.BTG_DELAY) await new Promise((r) => setTimeout(r, Number(process.env.BTG_DELAY)));
-        const f = await readFile(path.join(root, url.pathname));
-        res.writeHead(200, { 'content-type': url.pathname.endsWith('.css') ? 'text/css' : 'application/javascript' });
+        let f = await readFile(path.join(root, url.pathname));
+        // The bundle builds some addresses itself (service photos, schema logo): point those at the working copy too, as the page HTML is.
+        if (url.pathname.endsWith('.js')) f = Buffer.from(f.toString('utf8').replace(CDN, '/dist/'));
+        const ext = url.pathname.split('.').pop();
+        res.writeHead(200, { 'content-type': { css: 'text/css', js: 'application/javascript', jpg: 'image/jpeg', png: 'image/png' }[ext] || 'application/octet-stream' });
         return res.end(f);
       }
       const name = (url.pathname.replace(/^\/|\/$/g, '') || 'home') + '.html';

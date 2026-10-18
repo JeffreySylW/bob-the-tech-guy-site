@@ -24,7 +24,7 @@ await b.goto('http://localhost:4430/northern-new-jersey/');
 await b.sleep(1000);
 check('NJ page: no reviews band', await b.evalJs(`!document.querySelector('.btg-rv')`));
 check('footer NJ links all point to the NJ page (the Northern NJ column links it once), no old NJ posts', await b.evalJs(`(() => { const a = [...document.querySelectorAll('.fusion-footer a')].filter((x) => x.href.includes('new-jersey') || x.href.includes('-nj/')); return a.length === 1 && a[0].pathname === '/northern-new-jersey/'; })()`));
-check('15 service links and towns listed', await b.evalJs(`document.querySelectorAll('.btg-sr-item').length === 15 && document.querySelectorAll('.btg-nj-towns li').length === 23`));
+check('16 service links and towns listed', await b.evalJs(`document.querySelectorAll('.btg-sr-item').length === 16 && document.querySelectorAll('.btg-nj-towns li').length === 23`));
 check('NJ area map after the towns, full width', await b.evalJs(`(() => { const m = document.querySelector('.btg-nj-towns ~ .btg-nj-map'); return !!m && m.getBoundingClientRect().height >= 300 && m.getBoundingClientRect().width > 600; })()`));
 await b.evalJs(`document.querySelector('.btg-nj-map').scrollIntoView({ block: 'center' })`); await b.sleep(1500);
 await b.shot(out + '/nj-map.png');

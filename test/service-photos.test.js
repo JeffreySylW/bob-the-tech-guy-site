@@ -8,17 +8,18 @@ require('../dist/btg.js');
 const B = window.BTGBob;
 const css = fs.readFileSync(path.join(__dirname, '../dist/btg.css'), 'utf8');
 const js = fs.readFileSync(path.join(__dirname, '../dist/btg.js'), 'utf8');
-const BASE = 'https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@v1.5.10/dist/brand/photos/';
+const BASE = 'https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@v1.8.10/dist/brand/photos/';
 
-test('photoFor(): only the four approved pages get a photo', () => {
-  const want = { '/hardware-repair-upgrades/': 'bob-repairing-pc.jpg', '/hardware-install/': 'graphics-card.jpg', '/memory-install/': 'motherboard-memory.jpg', '/operating-system-install/': 'os-install.jpg' };
+// 2026-10-17: Jeff approved Bob's newer photos for six service pages (Hardware Repair keeps Bob's own photo).
+test('photoFor(): only the six approved service pages get a photo', () => {
+  const want = { '/hardware-repair-upgrades/': 'bob-repairing-pc.jpg', '/hardware-install/': 'psu-install.jpg', '/memory-install/': 'memory-ram.jpg', '/operating-system-install/': 'system-error.jpg', '/screen-replacement/': 'broken-screen.jpg', '/computer-tune-up/': 'laptop-fan.jpg' };
   for (const [p, f] of Object.entries(want)) {
     const x = B.photoFor(p);
     assert.strictEqual(x.src, BASE + f, p);
     assert.ok(x.alt.length > 10 && x.width > 0 && x.height > 0);
     assert.ok(fs.existsSync(path.join(__dirname, '../dist/brand/photos/' + f)), f);
   }
-  for (const p of ['/', '/computer-tune-up/', '/data-recovery-service/', '/networking/', '/about/', '/pc-repair-service-wyckoff-new-jersey/']) assert.strictEqual(B.photoFor(p), null, p);
+  for (const p of ['/', '/data-recovery-service/', '/networking/', '/about/', '/pc-repair-service-wyckoff-new-jersey/']) assert.strictEqual(B.photoFor(p), null, p);
 });
 test('photoFor() ignores a missing trailing slash', () => {
   assert.ok(B.photoFor('/memory-install'));
@@ -41,4 +42,24 @@ test('split-layout pages get the photo inside the text column, not a third colum
 test('on the two-column pages the photo floats inside the intro text (placed first so the text wraps)', () => {
   assert.match(js, /text\.insertBefore\(fig, text\.firstChild\)/);
   assert.match(css, /\.btg-split:not\(\.btg-split--stacked\) \.btg-split-text \.btg-photo-fig \{[^}]*float: right;[^}]*width: 160px;/);
+});
+
+// The declared width/height are what the browser reserves space with; they must be the file's real size (no layout jump).
+function jpegSize(file) {
+  const b = fs.readFileSync(file);
+  let i = 2;
+  while (i < b.length) {
+    if (b[i] !== 0xff) { i++; continue; }
+    const m = b[i + 1];
+    if (m >= 0xc0 && m <= 0xcf && m !== 0xc4 && m !== 0xc8 && m !== 0xcc) return [b.readUInt16BE(i + 7), b.readUInt16BE(i + 5)];
+    i += 2 + b.readUInt16BE(i + 2);
+  }
+  throw new Error('no size in ' + file);
+}
+test('every photo declares the real size of its file', () => {
+  for (const p of ['/hardware-repair-upgrades/', '/hardware-install/', '/memory-install/', '/operating-system-install/', '/screen-replacement/', '/computer-tune-up/']) {
+    const x = B.photoFor(p);
+    const f = path.join(__dirname, '../dist/brand/photos/' + x.src.split('/').pop());
+    assert.deepStrictEqual(jpegSize(f), [x.width, x.height], p);
+  }
 });

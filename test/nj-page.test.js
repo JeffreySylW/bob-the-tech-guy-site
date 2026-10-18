@@ -12,7 +12,7 @@ test('Northern New Jersey page: hero with the NJ phone line, one h1', () => {
   assert.match(html, /Continuing to serve our northern New Jersey customers\./);
 });
 test('links every service page and lists the towns served', () => {
-  assert.strictEqual((html.match(/class="btg-sr-item /g) || []).length, 15);
+  assert.strictEqual((html.match(/class="btg-sr-item /g) || []).length, 16);
   for (const t of ['Pompton Lakes', 'Wyckoff', 'Ramsey', 'Mahwah', 'Wayne', 'Ridgewood', 'Bergen County', 'Passaic County']) assert.ok(html.includes('<li>' + t + '</li>'), t);
 });
 test('has no reviews band (home page only), a call box with both numbers, and ends with the standard loader', () => {

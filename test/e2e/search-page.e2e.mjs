@@ -10,7 +10,7 @@ const b = await launch({ width: 1440, height: 900 });
 await b.goto('http://localhost:4411/search/?q=zzqxv');
 check('new header on the results page', await b.evalJs(`document.documentElement.classList.contains('btg-header-on')`));
 check('no-match message names the query', await b.evalJs(`/No pages match .zzqxv./.test(document.querySelector('.btg-sr-body').innerText)`));
-check('useful links: 15 current service pages', await b.evalJs(`document.querySelectorAll('.btg-sr-body .btg-sr-item').length === 15`));
+check('useful links: 16 current service pages', await b.evalJs(`document.querySelectorAll('.btg-sr-body .btg-sr-item').length === 16`));
 check('links are our real pages (no cart/shop/activity)', await b.evalJs(`[...document.querySelectorAll('.btg-sr-item')].every((a) => a.href.startsWith('https://bobthetechguy.com/') && !['cart', 'shop', 'checkout', 'activity', 'my-account'].some((w) => a.href.includes(w)))`));
 check('full-text search link goes to the theme search', await b.evalJs(`!!document.querySelector('.btg-sr-more a[href$="/?s=zzqxv"]')`));
 check('cards use the site font and are not unstyled', await b.evalJs(`(() => { const a = document.querySelector('.btg-sr-item'); const cs = getComputedStyle(a); return cs.display === 'flex' && cs.borderTopLeftRadius !== '0px' && a.getBoundingClientRect().height > 40; })()`));
