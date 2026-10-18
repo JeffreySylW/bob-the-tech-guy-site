@@ -1230,6 +1230,10 @@ html .fusion-header-wrapper:before { display: none !important; }
 html .post-content { font-size: 16.5px; line-height: 1.72; color: var(--btg-text); }
 
 .wpcr3_reviews_holder { columns: 2 320px; column-gap: 16px; }
+/* Masonry (btg.js BTGReviews.balance): cards placed into the shorter of two columns; one column below 656px. */
+.wpcr3_reviews_holder.btg-masonry { columns: auto; }
+.btg-rv-cols { display: flex; gap: 16px; align-items: flex-start; }
+.btg-rv-col { flex: 1 1 0; min-width: 0; }
 .wpcr3_review { break-inside: avoid; background: var(--btg-card-bg); border: 1px solid var(--btg-card-border); border-radius: var(--btg-radius-md); padding: 16px 18px; margin: 0 0 16px; }
 .wpcr3_dotline { display: none !important; }
 .wpcr3_review_datePublished, .wpcr3_review_author { display: inline; font-size: 13.5px !important; color: var(--btg-text-muted); }
