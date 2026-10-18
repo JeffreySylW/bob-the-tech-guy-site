@@ -1544,3 +1544,10 @@ body div.wpcr3_dotline, body div.wpcr3_review div.wpcr3_dotline { display: none 
 .btg-foot-zone .leaflet-control-attribution { box-sizing: border-box; width: 20px; height: 20px; margin: 0 6px 6px 0; padding: 0; overflow: hidden; white-space: nowrap; border-radius: 10px; line-height: 20px; transition: width 0.15s; }
 .btg-foot-zone .leaflet-control-attribution::before { content: "i"; display: inline-block; width: 20px; text-align: center; font: italic 700 12px/20px Georgia, serif; color: #2c2e2f; }
 .btg-foot-zone .leaflet-control-attribution:hover, .btg-foot-zone .leaflet-control-attribution:focus-within { width: 172px; padding-right: 6px; text-align: left; }
+
+/* v1.8.17 - About: no copy of the home page portrait (Jeff, 2026-10-18). The portrait stays in the page content but is hidden;
+   the Veteran-Owned badge sits centred above the story, which now runs full width. */
+.btg-bob-photo > img { display: none !important; }
+.btg-bob-intro { grid-template-columns: 1fr !important; gap: 24px; }
+.btg-bob-photo { max-width: 320px; }
+.btg-bob-photo .btg-vet-wrap { margin: 0; }

@@ -53,6 +53,12 @@ test('bundle runs it and styles the face and the About block', () => {
   assert.match(css, /\.btg-bob-photo > img \{[^}]*aspect-ratio: 1;/);
 });
 
+test('About hides the home page portrait (Jeff, 2026-10-18): one column, badge on top, nothing removed from the page', () => {
+  assert.match(css, /\.btg-bob-photo > img \{ display: none !important; \}/);
+  assert.match(css, /\.btg-bob-intro \{ grid-template-columns: 1fr !important;[^}]*\}/);
+  assert.match(css, /\.btg-bob-photo \.btg-vet-wrap \{ margin: 0; \}/);
+});
+
 const hero = '<section class="btg-hero">\n  <p class="btg-hero-eyebrow">About Bob</p>\n</section>\n';
 const about = hero + '\nBob Dyer\'s (aka Bob the Tech Guy) interest in computers started way back in 1993.\n\nFast forwarding a bit, Bob stayed in California.\n\nMore story with <a href="https://bobthetechguy.com/services-2/">a link</a>.\n\n<!-- btg-loader v1 -->\n<link rel="stylesheet" href="x.css">\n<script src="x.js"></script>';
 

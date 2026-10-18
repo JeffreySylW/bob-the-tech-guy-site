@@ -54,6 +54,15 @@ for (const [w, h, mobile] of [[1440, 900, false], [390, 844, true]]) {
   const hs = JSON.parse(await b.evalJs(`JSON.stringify([...document.querySelectorAll('.btg-marine-row img')].map((i) => Math.round(i.getBoundingClientRect().height)))`) || '[]');
   check(`${w} about: both Marine photos are the same height`, hs.length === 2 && Math.abs(hs[0] - hs[1]) <= 1, hs.join(' vs ') + 'px');
   if (r) { await b.evalJs(`document.querySelector('.btg-marine-row').scrollIntoView({ block: 'center' })`); await b.sleep(500); await b.shot(`${out}/marine-${w}.png`); }
+  // v1.8.17 (Jeff, 2026-10-18): no copy of the home page's Bob portrait on About; the badge sits centred above a full-width story.
+  const a = JSON.parse(await b.evalJs(`JSON.stringify((() => { const intro = document.querySelector('.btg-bob-intro'), story = intro.querySelector('.btg-bob-story'), vet = intro.querySelector('.btg-vet'); const iq = intro.getBoundingClientRect(), sq = story.getBoundingClientRect(), vq = vet ? vet.getBoundingClientRect() : null; return { portraits: [...document.querySelectorAll('img[src*="bob-portrait"]')].filter((i) => i.getBoundingClientRect().width > 0).length, vet: !!vq && vq.height > 30, storyFull: sq.width >= iq.width - 2, vetAbove: !!vq && vq.bottom <= sq.top, gap: vq ? Math.round(sq.top - vq.bottom) : null, vetCentred: !!vq && Math.abs((vq.left + vq.right) / 2 - (iq.left + iq.right) / 2) <= 2 }; })())`));
+  check(`${w} about: the home page's Bob portrait is not shown`, a.portraits === 0, `${a.portraits} visible`);
+  check(`${w} about: Veteran badge centred above a full-width story, no empty column`, a.vet && a.storyFull && a.vetAbove && a.vetCentred && a.gap >= 12 && a.gap <= 48, JSON.stringify(a));
+  await b.evalJs(`document.querySelector('.btg-bob-intro').scrollIntoView({ block: 'start' }); scrollBy(0, -90)`); await b.sleep(400); await b.shot(`${out}/about-intro-${w}.png`);
+  // The home page keeps Bob's face in its hero.
+  await b.goto('http://localhost:4498/'); await b.sleep(2500);
+  const face = await b.evalJs(`(() => { const i = document.querySelector('.btg-hero .btg-hero-face'); return !!i && i.src.includes('bob-portrait') && i.getBoundingClientRect().width > 60; })()`);
+  check(`${w} home: Bob's face still in the hero`, face);
   await b.close();
 }
 server.close();
