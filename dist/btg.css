@@ -1235,7 +1235,8 @@ html .post-content { font-size: 16.5px; line-height: 1.72; color: var(--btg-text
 .btg-rv-cols { display: flex; gap: 16px; align-items: flex-start; }
 .btg-rv-col { flex: 1 1 0; min-width: 0; }
 .wpcr3_review { break-inside: avoid; background: var(--btg-card-bg); border: 1px solid var(--btg-card-border); border-radius: var(--btg-radius-md); padding: 16px 18px; margin: 0 0 16px; }
-.wpcr3_dotline { display: none !important; }
+/* The plugin forces its dividers on with "div.wpcr3_dotline { display: block !important }"; out-specify it. */
+body div.wpcr3_dotline, body div.wpcr3_review div.wpcr3_dotline { display: none !important; }
 .wpcr3_review_datePublished, .wpcr3_review_author { display: inline; font-size: 13.5px !important; color: var(--btg-text-muted); }
 .wpcr3_review_title { font-family: var(--btg-font-head); font-size: 16px; font-weight: 700; text-transform: none !important; margin-top: 6px; }
 .wpcr3_review blockquote.wpcr3_content { margin: 8px 0 0 !important; padding: 0 !important; border: 0 !important; background: none !important; font-style: normal !important; font-size: 15.5px !important; line-height: 1.6 !important; color: #2b3029; }
