@@ -1219,7 +1219,37 @@ window.BTGReviews = (function () {
     });
     return true;
   }
-  return { GOOGLE: GOOGLE, REVIEWS: REVIEWS, GOOGLE_REVIEWS: GOOGLE_REVIEWS, summaryHtml: summaryHtml, cardHtml: cardHtml, bandHtml: bandHtml, googleBandHtml: googleBandHtml, init: init };
+  // Reviews page: the plugin's cards go into two columns, each card into whichever column is shorter, so the columns end
+  // within one card of each other (in-order CSS columns left a 683px hole beside one very long review). Narrow screens get
+  // one column in the plugin's order. Cards stay inside the plugin's LocalBusiness block, so the review schema is unchanged.
+  function balance(doc, win) {
+    var holder = doc.querySelector('.wpcr3_reviews_holder'), item = holder && holder.querySelector('.wpcr3_item');
+    if (!item || holder.classList.contains('btg-masonry')) return false;
+    var cards = [].slice.call(item.querySelectorAll('.wpcr3_review'));
+    if (cards.length < 2) return false;
+    var anchor = doc.createComment('btg-reviews'), wrap = doc.createElement('div'), cols = [doc.createElement('div'), doc.createElement('div')];
+    cards[0].parentNode.insertBefore(anchor, cards[0]);
+    wrap.className = 'btg-rv-cols';
+    cols.forEach(function (c) { c.className = 'btg-rv-col'; wrap.appendChild(c); });
+    holder.classList.add('btg-masonry');
+    var wide = null;
+    function layout() {
+      var w = holder.clientWidth >= 656; // where "columns: 2 320px" used to switch to two columns
+      if (w === wide && !w) return;
+      wide = w;
+      cards.forEach(function (c) { anchor.parentNode.insertBefore(c, anchor); }); // back to the plugin's order, columns empty
+      if (!w) { if (wrap.parentNode) wrap.parentNode.removeChild(wrap); return; }
+      if (!wrap.parentNode) anchor.parentNode.insertBefore(wrap, anchor);
+      cards.forEach(function (c) { cols[cols[1].offsetHeight < cols[0].offsetHeight ? 1 : 0].appendChild(c); });
+    }
+    layout();
+    var queued = false;
+    function relayout() { if (queued) return; queued = true; win.requestAnimationFrame(function () { queued = false; wide = null; layout(); }); }
+    win.addEventListener('resize', relayout);
+    win.addEventListener('load', relayout); // fonts and the stars can change card heights after the first pass
+    return true;
+  }
+  return { GOOGLE: GOOGLE, REVIEWS: REVIEWS, GOOGLE_REVIEWS: GOOGLE_REVIEWS, summaryHtml: summaryHtml, cardHtml: cardHtml, bandHtml: bandHtml, googleBandHtml: googleBandHtml, init: init, balance: balance };
 })();
 
 // Opening hours (from the Google listing, 2026-10-04; Bob to confirm they also apply in Virginia). One weekly schedule,
@@ -1625,6 +1655,7 @@ window.BTGCards = (function () {
     safely(function () { window.BTGInit.prefillContact(document, window); });
     safely(function () { window.BTGInit.addPrivacyNote(document); });
     safely(function () { window.BTGReviews.init(document, window); });
+    safely(function () { window.BTGReviews.balance(document, window); });
     safely(function () { window.BTGFooter.init(document); });
     safely(function () { window.BTGFooter.setCopyright(document); });
     safely(function () { window.BTGHours.initPill(document, window); });
