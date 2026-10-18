@@ -21,6 +21,7 @@ const probe = `JSON.stringify((() => {
   const p = pops[0], i = p && p.querySelector('img'), t = p && p.querySelector('.btg-rig-pop-text');
   if (!i || !t) return { n: pops.length, old: document.querySelectorAll('.btg-rig-fig').length };
   const R = (e) => e.getBoundingClientRect(), q = R(i), b = R(p), tx = R(t);
+  const Rr = (e) => { const r = R(e); return [r.left, r.top, r.right, r.bottom].map(Math.round); };
   const box = document.querySelector('.post-content > .fusion-reading-box-container');
   const services = [...document.querySelectorAll('.post-content > .fusion-title')].find((x) => /Bob The Tech Guy/.test(x.textContent));
   const before = (a, c) => !!(a.compareDocumentPosition(c) & 4);
@@ -32,12 +33,13 @@ const probe = `JSON.stringify((() => {
     afterBox: !!box && box.nextElementSibling === p, beforeServices: !!services && before(p, services),
     eyebrow: txt('.btg-rig-pop-eyebrow'), title: txt('h2'), lede: txt('.btg-rig-pop-lede'), btn: txt('a'), href: a && a.getAttribute('href'),
     img: [q.left, q.top, q.right, q.bottom].map(Math.round), banner: [b.left, b.top, b.right, b.bottom].map(Math.round), text: [tx.left, tx.top, tx.right, tx.bottom].map(Math.round),
+    prev: Rr(p.previousElementSibling), next: Rr(p.nextElementSibling),
     vw: innerWidth, scrollOk: document.documentElement.scrollWidth <= innerWidth
   };
 })())`;
 
 // Wide screens get the side-by-side pop-out; tablets and phones (page up to 1000px wide) get the stacked one.
-for (const [w, h, mobile] of [[1440, 900, false], [1280, 800, false], [1024, 768, false], [768, 1024, true], [390, 844, true]]) {
+for (const [w, h, mobile] of [[1440, 900, false], [1280, 800, false], [1024, 768, false], [768, 1024, true], [430, 932, true], [390, 844, true], [360, 780, true]]) {
   const b = await launch({ width: w, height: h, mobile });
   await b.goto('http://localhost:4497/'); await b.sleep(3000);
   await b.evalJs(`(document.querySelector('.btg-rig-pop') || document.body).scrollIntoView({ block: 'center' })`); await b.sleep(1200);
@@ -51,6 +53,11 @@ for (const [w, h, mobile] of [[1440, 900, false], [1280, 800, false], [1024, 768
   check(`${w} home: button "Hardware Install" goes to /hardware-install/`, has && /^hardware install$/i.test(r.btn) && /\/hardware-install\/$/.test(r.href || ''), has ? `${r.btn} ${r.href}` : '');
   check(`${w} home: cut-out gaming-rig-cutout.webp loaded, descriptive alt`, has && r.file === 'gaming-rig-cutout.webp' && r.loaded && /gaming PC/.test(r.alt) && /white/.test(r.alt), has ? `${r.file} ${r.loaded} "${r.alt}"` : '');
   check(`${w} home: no sideways scroll, rig fully on screen`, has && r.scrollOk && r.img[0] >= 0 && r.img[2] <= r.vw, has ? JSON.stringify(r.img) + ' vw ' + r.vw : '');
+  // Jeff (2026-10-18): on phones the rig covered the Now Open box's "See Chesterfield service" button. Neither the banner nor the
+  // rig sticking out of it may touch the block before it (the Now Open box) or after it (the services heading); keep a clear gap.
+  const GAP = 16;
+  check(`${w} home: rig and banner clear the Now Open box above by ${GAP}px+`, has && Math.min(r.img[1], r.banner[1]) - r.prev[3] >= GAP, has ? `box bottom ${r.prev[3]}, rig top ${r.img[1]}, banner top ${r.banner[1]}` : '');
+  check(`${w} home: rig and banner clear the services heading below by ${GAP}px+`, has && r.next[1] - Math.max(r.img[3], r.banner[3]) >= GAP, has ? `heading top ${r.next[1]}, rig bottom ${r.img[3]}, banner bottom ${r.banner[3]}` : '');
   if (!stacked) {
     check(`${w} home: rig jumps out past the banner's top and right edges`, has && r.img[1] <= r.banner[1] - 24 && r.img[2] >= r.banner[2] + 8, has ? `img ${r.img} banner ${r.banner}` : '');
     check(`${w} home: rig sits right of the text, not over it`, has && r.img[0] >= r.text[2] - 8, has ? `img ${r.img} text ${r.text}` : '');

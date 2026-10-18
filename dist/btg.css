@@ -1360,7 +1360,8 @@ body div.wpcr3_dotline, body div.wpcr3_review div.wpcr3_dotline { display: none 
 .btg-rig-pop .btg-rig-pop-btn:hover, .btg-rig-pop .btg-rig-pop-btn:focus-visible { background: var(--btg-green-link); }
 .btg-rig-pop .btg-rig-pop-img { position: absolute; z-index: 2; top: -56px; right: -28px; width: 52%; max-width: none; height: auto; filter: drop-shadow(0 18px 22px rgba(0, 0, 0, .45)); }
 @media (max-width: 1000px) {
-  .btg-rig-pop { flex-direction: column; align-items: stretch; margin-top: 110px !important; }
+  /* The rig sticks 152px above the banner here (-96px margin + the -56px top above), so 176px leaves a 24px gap under the Now Open box (Jeff, 2026-10-18). */
+  .btg-rig-pop { flex-direction: column; align-items: stretch; margin-top: 176px !important; }
   .btg-rig-pop-text { width: auto; padding: 24px 22px 26px; }
   .btg-rig-pop .btg-rig-pop-title { font-size: 24px !important; }
   .btg-rig-pop .btg-rig-pop-img { position: relative; order: -1; right: auto; bottom: auto; display: block; width: 86%; max-width: 420px; margin: -96px auto 0; }
