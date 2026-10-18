@@ -25,6 +25,7 @@ const PROBE = `JSON.stringify((() => {
     inSchema: cards.filter((c) => c.getAttribute('itemprop') === 'review' && scope && scope.contains(c)).length,
     // The plugin's dotted dividers (its own CSS forces them on with !important); masonry piled them up under the cards.
     lines: [...document.querySelectorAll('.wpcr3_dotline')].filter((d) => d.offsetParent).length,
+    button: !!(document.querySelector('.wpcr3_show_btn') || {}).offsetParent,
   };
 })())`;
 
@@ -37,6 +38,7 @@ const desktop = async (label) => {
   check(`${label}: column bottoms within one card height`, r.diff < r.avg, `differ by ${r.diff}px, average card ${r.avg}px`);
   check(`${label}: every review still in the business schema`, r.inSchema === 10, `${r.inSchema}`);
   check(`${label}: no dotted divider lines`, r.lines === 0, `${r.lines} showing`);
+  check(`${label}: "Create your own review" button still shows`, r.button);
 };
 const phone = async (label) => {
   const r = JSON.parse(await b.evalJs(PROBE));
@@ -44,6 +46,7 @@ const phone = async (label) => {
   check(`${label}: original order`, JSON.stringify(r.order) === JSON.stringify(ORIGINAL), r.order.join(' | '));
   check(`${label}: every review still in the business schema`, r.inSchema === 10, `${r.inSchema}`);
   check(`${label}: no dotted divider lines`, r.lines === 0, `${r.lines} showing`);
+  check(`${label}: "Create your own review" button still shows`, r.button);
 };
 
 await b.goto('http://localhost:4496/reviews/'); await b.sleep(2500);
