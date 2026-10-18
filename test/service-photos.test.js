@@ -61,7 +61,8 @@ function fakePage(splitClass) {
 }
 for (const [cls, where, figClass] of [
   ['btg-split', 'first', 'btg-photo-fig'],
-  ['btg-split btg-split--stacked', 'last', 'btg-photo-fig btg-photo-fig--wrap']
+  // Stacked pages too: first, so the short intro wraps around it (appended last it left a blank gap, v1.8.14).
+  ['btg-split btg-split--stacked', 'first', 'btg-photo-fig btg-photo-fig--wrap']
 ]) {
   test(`initPhoto() puts the photo inside the intro text on a "${cls}" page`, () => {
     const { doc, text, body } = fakePage(cls);

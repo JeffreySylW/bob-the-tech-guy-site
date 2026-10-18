@@ -967,9 +967,9 @@ window.BTGBob = (function () {
     fig.innerHTML = '<img src="' + photo.src + '" alt="' + photo.alt + '" width="' + photo.width + '" height="' + photo.height + '">';
     var text = /(^|\s)btg-split(\s|$)/.test(next.className) && next.querySelector('.btg-split-text');
     if (text) {
-      // Split layouts: the photo goes in the empty space under (or beside) the intro text.
+      // Split layouts: the photo floats first in the intro text so the text wraps around it (larger on stacked pages).
       if (/btg-split--stacked/.test(next.className)) fig.className += ' btg-photo-fig--wrap';
-      if (/btg-split--stacked/.test(next.className)) text.appendChild(fig); else text.insertBefore(fig, text.firstChild);
+      text.insertBefore(fig, text.firstChild);
       return true;
     }
     var row = doc.createElement('div');

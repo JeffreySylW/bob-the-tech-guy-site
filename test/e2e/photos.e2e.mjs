@@ -29,6 +29,17 @@ for (const [w, h, mobile] of [[1440, 900, false], [390, 844, true]]) {
     const want = PLACEMENT[page];
     const placed = !!p && (want === 'row' ? p.parent === 'btg-photo-row' : p.parent === 'btg-split-text' && !p.row && p.wrap === (want === 'wrap') && (want !== 'wrap' || p.cardFull));
     check(`${w} ${page}: photo sits ${want === 'row' ? 'beside the content in a photo row' : 'inside the intro text' + (want === 'wrap' ? ' (wrap), checklist card full width' : '')}`, placed, p ? JSON.stringify(p) : 'no photo');
+    if (want === 'row') continue;
+    // First in the intro so the text wraps: on desktop the next block starts level with the photo, to its left; on a phone the photo is centred.
+    const g = JSON.parse(await b.evalJs(`JSON.stringify((() => { const f = document.querySelector('.btg-split-text > .btg-photo-fig'); if (!f) return null; const t = f.parentElement, n = f.nextElementSibling, q = f.getBoundingClientRect(), tq = t.getBoundingClientRect(), nq = n ? n.getBoundingClientRect() : null; return { first: t.firstElementChild === f, topGap: nq ? Math.round(Math.abs(nq.top - q.top)) : null, textLeftOfPhoto: !!nq && nq.left < q.left, centreOff: Math.round(Math.abs((q.left + q.right) / 2 - (tq.left + tq.right) / 2)), w: Math.round(q.width) }; })())`) || 'null');
+    if (mobile) check(`${w} ${page}: photo first in the intro and centred`, !!g && g.first && g.centreOff <= 2, g ? JSON.stringify(g) : 'no photo');
+    else check(`${w} ${page}: photo first in the intro, text wraps beside it`, !!g && g.first && g.topGap !== null && g.topGap <= 24 && g.textLeftOfPhoto, g ? JSON.stringify(g) : 'no photo');
+    // Stacked pages have short intros: the wrap photo must not hang far below the text (portrait photo left ~190px blank at 1440).
+    if (want === 'wrap' && !mobile) {
+      const hang = await b.evalJs(`(() => { const f = document.querySelector('.btg-photo-fig'), kids = [...f.parentElement.children].filter((k) => k !== f); return Math.round(f.getBoundingClientRect().bottom - Math.max(...kids.map((k) => k.getBoundingClientRect().bottom))); })()`);
+      check(`${w} ${page}: no big blank gap beside the photo`, hang <= 80, `photo hangs ${hang}px below the text`);
+    }
+    if (want === 'wrap') { await b.evalJs(`document.querySelector('.btg-split').scrollIntoView({ block: 'start' }); scrollBy(0, -90)`); await b.sleep(400); await b.shot(`${out}/stacked-${page}-${w}.png`); }
   }
   await b.close();
 }
