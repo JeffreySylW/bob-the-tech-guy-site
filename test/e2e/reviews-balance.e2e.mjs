@@ -47,6 +47,16 @@ await desktop('1440');
 await size(1024, 900, false); await desktop('1024');
 await size(390, 844, true); await phone('390');
 await size(1440, 900, false); await desktop('back to 1440');
+
+// Page links ("2") load by AJAX: the plugin puts a whole new respond block and holder INSIDE the old holder (seen live,
+// 2026-10-17). Do the same with the page's original markup and check the new cards are balanced too.
+await b.evalJs(`fetch('/reviews/').then((r) => r.text()).then((t) => {
+  const fresh = new DOMParser().parseFromString(t, 'text/html').querySelector('.wpcr3_reviews_holder').innerHTML;
+  document.querySelector('.wpcr3_reviews_holder').innerHTML = '<div data-wpcr3-content="12166"><div class="wpcr3_respond_1 wpcr3_in_content"><div class="wpcr3_reviews_holder">' + fresh + '</div></div></div>';
+})`);
+await b.sleep(1200);
+await desktop('after AJAX page change');
+await size(390, 844, true); await phone('after AJAX page change, 390');
 await b.close();
 
 // Loaded at phone width from the start (no resize).

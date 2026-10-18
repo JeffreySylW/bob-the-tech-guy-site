@@ -1222,31 +1222,49 @@ window.BTGReviews = (function () {
   // Reviews page: the plugin's cards go into two columns, each card into whichever column is shorter, so the columns end
   // within one card of each other (in-order CSS columns left a 683px hole beside one very long review). Narrow screens get
   // one column in the plugin's order. Cards stay inside the plugin's LocalBusiness block, so the review schema is unchanged.
+  // The plugin's page links load by AJAX and put a new holder inside the old one, so new lists are picked up as they appear.
   function balance(doc, win) {
-    var holder = doc.querySelector('.wpcr3_reviews_holder'), item = holder && holder.querySelector('.wpcr3_item');
-    if (!item || holder.classList.contains('btg-masonry')) return false;
-    var cards = [].slice.call(item.querySelectorAll('.wpcr3_review'));
-    if (cards.length < 2) return false;
-    var anchor = doc.createComment('btg-reviews'), wrap = doc.createElement('div'), cols = [doc.createElement('div'), doc.createElement('div')];
-    cards[0].parentNode.insertBefore(anchor, cards[0]);
-    wrap.className = 'btg-rv-cols';
-    cols.forEach(function (c) { c.className = 'btg-rv-col'; wrap.appendChild(c); });
-    holder.classList.add('btg-masonry');
-    var wide = null;
-    function layout() {
-      var w = holder.clientWidth >= 656; // where "columns: 2 320px" used to switch to two columns
-      if (w === wide && !w) return;
-      wide = w;
-      cards.forEach(function (c) { anchor.parentNode.insertBefore(c, anchor); }); // back to the plugin's order, columns empty
-      if (!w) { if (wrap.parentNode) wrap.parentNode.removeChild(wrap); return; }
-      if (!wrap.parentNode) anchor.parentNode.insertBefore(wrap, anchor);
-      cards.forEach(function (c) { cols[cols[1].offsetHeight < cols[0].offsetHeight ? 1 : 0].appendChild(c); });
+    var top = doc.querySelector('.wpcr3_reviews_holder'), lists = [];
+    if (!top || top.hasAttribute('data-btg-balance')) return false;
+    top.setAttribute('data-btg-balance', '');
+    function layout(l, force) {
+      var width = l.holder.clientWidth;
+      if (!force && width === l.width) return; // phones fire resize when the address bar slides; nothing to redo
+      l.width = width;
+      var w = width >= 656; // where "columns: 2 320px" used to switch to two columns
+      l.cards.forEach(function (c) { l.anchor.parentNode.insertBefore(c, l.anchor); }); // back to the plugin's order, columns empty
+      if (!w) { if (l.wrap.parentNode) l.wrap.parentNode.removeChild(l.wrap); return; }
+      if (!l.wrap.parentNode) l.anchor.parentNode.insertBefore(l.wrap, l.anchor);
+      l.cards.forEach(function (c) { l.cols[l.cols[1].offsetHeight < l.cols[0].offsetHeight ? 1 : 0].appendChild(c); });
     }
-    layout();
-    var queued = false;
-    function relayout() { if (queued) return; queued = true; win.requestAnimationFrame(function () { queued = false; wide = null; layout(); }); }
-    win.addEventListener('resize', relayout);
-    win.addEventListener('load', relayout); // fonts and the stars can change card heights after the first pass
+    function setup() {
+      lists = lists.filter(function (l) { return doc.documentElement.contains(l.item); }); // drop pages the plugin replaced
+      [].forEach.call(top.querySelectorAll('.wpcr3_item'), function (item) {
+        if (item.hasAttribute('data-btg-masonry')) return;
+        item.setAttribute('data-btg-masonry', '');
+        var cards = [].slice.call(item.querySelectorAll('.wpcr3_review')), holder = item.closest('.wpcr3_reviews_holder');
+        if (cards.length < 2) return;
+        var l = { item: item, holder: holder, cards: cards, anchor: doc.createComment('btg-reviews'), wrap: doc.createElement('div'), cols: [doc.createElement('div'), doc.createElement('div')] };
+        cards[0].parentNode.insertBefore(l.anchor, cards[0]);
+        l.wrap.className = 'btg-rv-cols';
+        l.cols.forEach(function (c) { c.className = 'btg-rv-col'; l.wrap.appendChild(c); });
+        holder.classList.add('btg-masonry');
+        lists.push(l);
+        layout(l, true);
+      });
+    }
+    setup();
+    var queued = false, forced = false;
+    function relayout(force) {
+      forced = forced || force;
+      if (queued) return;
+      queued = true;
+      win.requestAnimationFrame(function () { var f = forced; queued = forced = false; lists.forEach(function (l) { layout(l, f); }); });
+    }
+    win.addEventListener('resize', function () { relayout(false); });
+    win.addEventListener('load', function () { relayout(true); }); // fonts and the stars can change card heights after the first pass
+    // Our own card moves also land here; they add no unmarked list, so setup() then does nothing.
+    if (win.MutationObserver) new win.MutationObserver(setup).observe(top, { childList: true, subtree: true });
     return true;
   }
   return { GOOGLE: GOOGLE, REVIEWS: REVIEWS, GOOGLE_REVIEWS: GOOGLE_REVIEWS, summaryHtml: summaryHtml, cardHtml: cardHtml, bandHtml: bandHtml, googleBandHtml: googleBandHtml, init: init, balance: balance };
