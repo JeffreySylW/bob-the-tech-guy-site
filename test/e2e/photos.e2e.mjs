@@ -12,6 +12,11 @@ const SERVICE_PHOTOS = {
   'memory-install': 'memory-ram.jpg', 'hardware-install': 'psu-install.jpg', 'operating-system-install': 'system-error.jpg',
   'screen-replacement': 'broken-screen.jpg', 'computer-tune-up': 'laptop-fan.jpg', 'hardware-repair-upgrades': 'bob-repairing-pc.jpg',
 };
+// Where the photo belongs: inside the intro text on split pages (floated, wrap class on stacked ones); a side row only where there is no split.
+const PLACEMENT = {
+  'memory-install': 'text', 'operating-system-install': 'text', 'screen-replacement': 'text',
+  'hardware-install': 'wrap', 'computer-tune-up': 'wrap', 'hardware-repair-upgrades': 'row',
+};
 
 for (const [w, h, mobile] of [[1440, 900, false], [390, 844, true]]) {
   const b = await launch({ width: w, height: h, mobile });
@@ -20,6 +25,10 @@ for (const [w, h, mobile] of [[1440, 900, false], [390, 844, true]]) {
     const r = JSON.parse(await b.evalJs(`JSON.stringify((() => { const i = document.querySelector('.btg-photo-fig img'); if (!i) return null; const q = i.getBoundingClientRect(); return { file: i.src.split('/').pop(), loaded: i.complete && i.naturalWidth > 0, natural: i.naturalWidth + 'x' + i.naturalHeight, declared: i.width + 'x' + i.height, right: q.right, visible: q.width > 60 && q.height > 60, scrollOk: document.documentElement.scrollWidth <= innerWidth, count: document.querySelectorAll('.btg-photo-fig').length }; })())`) || 'null');
     check(`${w} ${page}: shows ${file}, loaded, once`, !!r && r.file === file && r.loaded && r.count === 1, r ? `${r.natural}` : 'no photo');
     check(`${w} ${page}: photo is visible and the page does not scroll sideways`, !!r && r.visible && r.scrollOk && r.right <= w);
+    const p = JSON.parse(await b.evalJs(`JSON.stringify((() => { const f = document.querySelector('.btg-photo-fig'), s = document.querySelector('.btg-split'), c = s && s.querySelector('.btg-include-card'); if (!f) return null; return { parent: f.parentElement.className, wrap: f.classList.contains('btg-photo-fig--wrap'), row: !!document.querySelector('.btg-photo-row'), cardFull: !c || c.getBoundingClientRect().width >= s.getBoundingClientRect().width * 0.95 }; })())`) || 'null');
+    const want = PLACEMENT[page];
+    const placed = !!p && (want === 'row' ? p.parent === 'btg-photo-row' : p.parent === 'btg-split-text' && !p.row && p.wrap === (want === 'wrap') && (want !== 'wrap' || p.cardFull));
+    check(`${w} ${page}: photo sits ${want === 'row' ? 'beside the content in a photo row' : 'inside the intro text' + (want === 'wrap' ? ' (wrap), checklist card full width' : '')}`, placed, p ? JSON.stringify(p) : 'no photo');
   }
   await b.close();
 }

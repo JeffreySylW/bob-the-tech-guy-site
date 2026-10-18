@@ -965,7 +965,7 @@ window.BTGBob = (function () {
     var fig = doc.createElement('figure');
     fig.className = 'btg-photo-fig';
     fig.innerHTML = '<img src="' + photo.src + '" alt="' + photo.alt + '" width="' + photo.width + '" height="' + photo.height + '">';
-    var text = /(^|s)btg-split(s|$)/.test(next.className) && next.querySelector('.btg-split-text');
+    var text = /(^|\s)btg-split(\s|$)/.test(next.className) && next.querySelector('.btg-split-text');
     if (text) {
       // Split layouts: the photo goes in the empty space under (or beside) the intro text.
       if (/btg-split--stacked/.test(next.className)) fig.className += ' btg-photo-fig--wrap';
