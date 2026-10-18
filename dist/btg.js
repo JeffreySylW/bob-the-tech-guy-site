@@ -914,7 +914,8 @@ window.BTGBob = (function () {
   }
   // A real photo beside the first card on six service pages (hand-picked; dated or off-topic shots are left out).
   // Bob's newer shop photos (2026-10-17) replaced the 2013 ones; the base is the tag where they first shipped.
-  var PHOTO_BASE = 'https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@v1.8.10/dist/brand/photos/';
+  // v1.8.13 added the home page's gaming rig photo, so the base moved to that tag (it holds every earlier photo too).
+  var PHOTO_BASE = 'https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@v1.8.13/dist/brand/photos/';
   var PHOTOS = {
     '/hardware-repair-upgrades/': ['bob-repairing-pc.jpg', 'Bob Dyer repairing a computer', 476, 635],
     '/hardware-install/': ['psu-install.jpg', 'Power supply cables inside a computer case during an installation', 600, 800],
@@ -945,6 +946,18 @@ window.BTGBob = (function () {
     intro.parentNode.insertBefore(row, intro.nextSibling);
     return true;
   }
+  // Home page: Bob's all-white custom gaming rig (2026-10-18), a wide photo right after the "Now Open" box.
+  var RIG = ['gaming-rig-white.jpg', 'A custom gaming PC with an all-white case, white fans and a liquid cooler, side panel off', 800, 617];
+  function initRig(doc, win) {
+    if (((win.location && win.location.pathname) || '/') !== '/') return false;
+    var box = doc.querySelector('.post-content > .fusion-reading-box-container');
+    if (!box || doc.querySelector('.btg-rig-fig')) return false;
+    var fig = doc.createElement('figure');
+    fig.className = 'btg-rig-fig';
+    fig.innerHTML = '<img src="' + PHOTO_BASE + RIG[0] + '" alt="' + RIG[1] + '" width="' + RIG[2] + '" height="' + RIG[3] + '" loading="lazy">';
+    box.parentNode.insertBefore(fig, box.nextSibling);
+    return true;
+  }
   function initPhoto(doc, win) {
     var photo = photoFor(win.location.pathname || '/');
     var hero = doc.querySelector('.btg-hero'), next = hero && hero.nextElementSibling;
@@ -966,7 +979,7 @@ window.BTGBob = (function () {
     row.appendChild(fig);
     return true;
   }
-  return { PORTRAIT: PORTRAIT, faceHtml: faceHtml, initHero: initHero, photoFor: photoFor, initPhoto: initPhoto, initMarine: initMarine };
+  return { PORTRAIT: PORTRAIT, faceHtml: faceHtml, initHero: initHero, photoFor: photoFor, initPhoto: initPhoto, initMarine: initMarine, initRig: initRig };
 })();
 
 
@@ -1667,6 +1680,7 @@ window.BTGCards = (function () {
     safely(function () { window.BTGBob.initHero(document, window); });
     safely(function () { window.BTGBob.initPhoto(document, window); });
     safely(function () { window.BTGBob.initMarine(document, window); });
+    safely(function () { window.BTGBob.initRig(document, window); });
     safely(function () { window.BTGInit.rewriteNjLinks(document); });
     safely(function () { window.BTGInit.blockCrypto(document); });
     safely(function () { window.BTGInit.addRequestButton(document, window); });
