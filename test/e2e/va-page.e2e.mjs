@@ -12,7 +12,7 @@ for (const [w, h, m] of [[1440, 900, false], [390, 844, true]]) {
   await b.goto('http://localhost:4496/best-computer-repair-chesterfield-va/'); await b.sleep(1800);
   check(w + ': hero with one visible h1 and the Virginia phone', await b.evalJs(`(() => { const h = [...document.querySelectorAll('h1')].filter((x) => x.offsetParent); return h.length === 1 && /Chesterfield, Virginia/.test(h[0].innerText) && !!document.querySelector('.btg-hero-cta[href="tel:8448354890"]'); })()`));
   check(w + ': city title and description', await b.evalJs(`document.title === 'Computer Repair in Chesterfield & Richmond, VA | Bob The Tech Guy' && /^Bob The Tech Guy brings on-site computer repair/.test(document.querySelector('meta[name=description]').content)`));
-  check(w + ': 15 service cards and 9 towns', await b.evalJs(`document.querySelectorAll('.btg-sr-item').length === 15 && document.querySelectorAll('.btg-nj-towns li').length === 9`));
+  check(w + ': 16 service cards and 9 towns', await b.evalJs(`document.querySelectorAll('.btg-sr-item').length === 16 && document.querySelectorAll('.btg-nj-towns li').length === 9`));
   check(w + ': footer Virginia links fold into the one Chesterfield page (the Virginia column links it once)', await b.evalJs(`(() => { const a = [...document.querySelectorAll('.fusion-footer a')].filter((x) => /virginia|chesterfield-va/.test(x.href)); return a.length === 1 && a[0].pathname === '/best-computer-repair-chesterfield-va/'; })()`),
     await b.evalJs(`JSON.stringify([...document.querySelectorAll('.fusion-footer a')].filter((x) => /virginia|chesterfield-va/.test(x.href)).map((x) => x.pathname))`));
   await b.evalJs(`document.querySelector('.btg-zone-slot').scrollIntoView({ block: 'center' })`); await b.sleep(4000);

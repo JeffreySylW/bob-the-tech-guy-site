@@ -21,6 +21,7 @@ module.exports = [
   S('hardware-install', 'Hardware Install', 'plug', ['graphics', 'card', 'drive', 'webcam', 'install']),
   S('memory-install', 'Memory Install', 'chip', ['ram', 'memory', 'slow', 'upgrade', 'speed']),
   S('email-setup', 'Email Setup', 'mail', ['email', 'outlook', 'mail', 'gmail']),
+  S('remote-support', 'Remote Support', 'remote', ['remote', 'online', 'internet', 'desktop', 'access', 'support', 'home']),
   A('best-computer-repair-chesterfield-va', 'Chesterfield & Richmond VA Service Area'),
   P('', 'Home', 'page', ['home', 'bob']),
   P('about', 'About', 'page', ['bob', 'veteran', 'story', 'experience']),

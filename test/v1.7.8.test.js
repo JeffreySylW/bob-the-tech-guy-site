@@ -12,7 +12,9 @@ test('related services: the next three in the same Services group, wrapping arou
   const r = (p) => I.relatedServices(p).map((x) => x.url.replace('https://bobthetechguy.com', ''));
   assert.deepStrictEqual(r('/hardware-repair-upgrades/'), ['/screen-replacement/', '/memory-install/', '/hardware-install/']);
   assert.deepStrictEqual(r('/data-recovery-service/'), ['/hardware-repair-upgrades/', '/screen-replacement/', '/memory-install/']);
-  assert.deepStrictEqual(r('/email-setup/'), ['/computer-set-up/', '/operating-system-install/', '/software-installation-and-configuration/']);
+  // 2026-10-17: Remote Support joined the end of the Setup & Software group, so Email Setup's neighbours start with it.
+  assert.deepStrictEqual(r('/email-setup/'), ['/remote-support/', '/computer-set-up/', '/operating-system-install/']);
+  assert.deepStrictEqual(r('/remote-support/'), ['/computer-set-up/', '/operating-system-install/', '/software-installation-and-configuration/']);
   assert.deepStrictEqual(r('/parental-controls/'), ['/networking/', '/anti-virus/', '/backup-solutions/']);
   for (const p of ['/networking/', '/anti-virus/', '/backup-solutions/', '/printer-solutions/']) assert.ok(!r(p).includes(p), p);
   assert.deepStrictEqual(I.relatedServices('/about/'), []);

@@ -7,23 +7,23 @@ const I = require('../tools/services-index.js');
 const fx = (f) => fs.readFileSync(path.join(__dirname, 'fixtures', f), 'utf8');
 const menu = I.parseServicesMenu(fx('menu.html'));
 
-test('parseServicesMenu() reads the 15 Services submenu pages', () => {
-  assert.strictEqual(menu.length, 15);
+test('parseServicesMenu() reads the 16 Services submenu pages', () => {
+  assert.strictEqual(menu.length, 16);
   assert.deepStrictEqual(menu[0], { slug: 'networking', url: 'https://bobthetechguy.com/networking/', title: 'Networking' });
   assert.ok(menu.some((m) => m.slug === 'computer-tune-up'));
   assert.ok(menu.some((m) => m.slug === 'hardware-repair-upgrades' && m.title === 'Hardware Repair &amp; Upgrades'));
 });
 
-test('GROUPS cover exactly the menu pages, 6 + 5 + 4', () => {
-  assert.deepStrictEqual(I.GROUPS.map((g) => g.items.length), [6, 5, 4]);
+test('GROUPS cover exactly the menu pages, 6 + 6 + 4', () => {
+  assert.deepStrictEqual(I.GROUPS.map((g) => g.items.length), [6, 6, 4]);
   assert.deepStrictEqual(I.GROUPS.flatMap((g) => g.items.map((i) => i[0])).sort(), menu.map((m) => m.slug).sort());
 });
 
-test('buildIndex() replaces the 10 h1 links with three panels of 15 links', () => {
+test('buildIndex() replaces the 10 h1 links with three panels of 16 links', () => {
   const out = I.buildIndex(fx('11653.html'), menu);
   assert.doesNotMatch(out, /<h1 class="entry-title"/);
   assert.strictEqual((out.match(/<section class="btg-panel">/g) || []).length, 3);
-  assert.strictEqual((out.match(/<a class="btg-panel-link btg-card--/g) || []).length, 15);
+  assert.strictEqual((out.match(/<a class="btg-panel-link btg-card--/g) || []).length, 16);
   assert.match(out, /<h2 class="btg-panel-title">Repairs &amp; Upgrades<\/h2>/);
   assert.match(out, /href="https:\/\/bobthetechguy\.com\/screen-replacement\/">Screen Replacement<\/a>/);
   assert.doesNotMatch(out, /Laptop Screen Replacement/);

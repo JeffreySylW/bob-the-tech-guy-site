@@ -50,7 +50,7 @@ const I = require('../tools/services-index.js');
 const menu = I.parseServicesMenu(fs.readFileSync(path.join(__dirname, 'fixtures', 'menu.html'), 'utf8'));
 const TOWNS = ['best-computer-repair-chesterfield-va']; // v1.7.5: the eight near-identical town posts fold into this one page
 
-test('search pages: 15 services from the live menu, 1 Virginia area page, 5 pages', () => {
+test('search pages: 16 services from the live menu, 1 Virginia area page, 5 pages', () => {
   const by = (t) => PAGES.filter((p) => p.type === t);
   assert.deepStrictEqual(by('SERVICE').map((p) => p.url).sort(), menu.map((m) => m.url).sort());
   assert.deepStrictEqual(by('AREA').map((p) => p.url).sort(), TOWNS.map((s) => 'https://bobthetechguy.com/' + s + '/').sort());

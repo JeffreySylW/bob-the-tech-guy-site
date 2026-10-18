@@ -211,7 +211,7 @@ window.BTGInit = (function () {
   // Service pages: the same Services groups as the Services index, used for "Related services" links.
   var SERVICE_GROUPS = [
     ['hardware-repair-upgrades', 'screen-replacement', 'memory-install', 'hardware-install', 'computer-tune-up', 'data-recovery-service'],
-    ['computer-set-up', 'operating-system-install', 'software-installation-and-configuration', 'printer-solutions', 'email-setup'],
+    ['computer-set-up', 'operating-system-install', 'software-installation-and-configuration', 'printer-solutions', 'email-setup', 'remote-support'],
     ['networking', 'anti-virus', 'backup-solutions', 'parental-controls']
   ];
   function servicePage(slug) {
@@ -337,7 +337,8 @@ window.BTGInit = (function () {
     '/hardware-repair-upgrades/': 'Computer hardware repair and upgrades from Bob The Tech Guy: diagnostics, failed parts replaced, and upgrades that make an older PC fast again.',
     '/hardware-install/': 'Hardware installation by Bob The Tech Guy: graphics cards, hard drives, power supplies, webcams and more installed, configured and tested together.',
     '/memory-install/': 'RAM upgrades from Bob The Tech Guy: the right memory installed, verified in BIOS and the operating system, and tested so your computer runs faster.',
-    '/email-setup/': 'Email setup by Bob The Tech Guy: Outlook, Gmail and business email accounts configured on your computers so mail arrives, sends and syncs properly.'
+    '/email-setup/': 'Email setup by Bob The Tech Guy: Outlook, Gmail and business email accounts configured on your computers so mail arrives, sends and syncs properly.',
+    '/remote-support/': 'Remote computer support from Bob The Tech Guy: Bob connects to your computer over the internet and fixes the problem remotely. Call 844-TEKGUY-0.',
   };
 
   // The ~375 New Jersey area posts were merged into one page; old links to them go there.
@@ -381,6 +382,11 @@ window.BTGInit = (function () {
 
   // Service pages: a "Request a visit" button in the closing call box, pre-filling the contact form.
   function requestHref(service) { return '/contact-2/?service=' + encodeURIComponent(service) + '#btg-request'; }
+  // The words for asking for a service. Every service asks for a visit except Remote Support, which has no visit (2026-10-17).
+  function requestWording(service) {
+    if (service === 'Remote Support') return { button: 'Request remote support', subject: 'Request remote support', message: 'I would like to request remote support.\n\n' };
+    return { button: 'Request a visit', subject: 'Request a visit: ' + service, message: 'I would like to request a visit for ' + service + '.\n\n' };
+  }
   function addRequestButton(doc, win) {
     var path = (win.location && win.location.pathname) || '/', page = null;
     (window.BTGSearch ? window.BTGSearch.PAGES : []).forEach(function (p) { if (p.type === 'SERVICE' && p.url.replace('https://bobthetechguy.com', '') === path) page = p; });
@@ -388,7 +394,7 @@ window.BTGInit = (function () {
     if (!page || !box || box.querySelector('.btg-request-btn')) return false;
     var p = doc.createElement('p');
     p.className = 'btg-cta-request';
-    p.innerHTML = '<a class="btg-request-btn" href="' + requestHref(page.title).replace(/&/g, '&amp;') + '">Request a visit</a>';
+    p.innerHTML = '<a class="btg-request-btn" href="' + requestHref(page.title).replace(/&/g, '&amp;') + '">' + requestWording(page.title).button + '</a>';
     box.appendChild(p);
     return true;
   }
@@ -401,8 +407,9 @@ window.BTGInit = (function () {
     var service = '';
     try { service = decodeURIComponent(m[1].replace(/\+/g, ' ')).slice(0, 80); } catch (e) { return false; }
     var msg = form.querySelector('[name="your-message"]'), subj = form.querySelector('[name="your-subject"]');
-    if (subj && !subj.value) subj.value = 'Request a visit: ' + service;
-    if (msg && !msg.value) msg.value = 'I would like to request a visit for ' + service + '.\n\n';
+    var words = requestWording(service);
+    if (subj && !subj.value) subj.value = words.subject;
+    if (msg && !msg.value) msg.value = words.message;
     return true;
   }
 
@@ -456,6 +463,7 @@ window.BTGInit = (function () {
     '/gallery/': 'Photo Gallery | Bob The Tech Guy, Chesterfield VA',
     '/support/': 'Support App Download | Bob The Tech Guy',
     '/tech-certificates/': 'Tech Gift Certificates | Bob The Tech Guy',
+    '/remote-support/': 'Remote Computer Support | Bob The Tech Guy',
     '/search/': 'Search Services | Bob The Tech Guy',
     '/best-computer-repair-chesterfield-va/': 'Computer Repair in Chesterfield & Richmond, VA | Bob The Tech Guy',
     '/northern-new-jersey/': 'Computer Repair in Northern New Jersey | Bob The Tech Guy'
@@ -552,6 +560,7 @@ window.BTGSearch = (function () {
     {"title":"Hardware Install","url":"https://bobthetechguy.com/hardware-install/","type":"SERVICE","icon":"plug","keywords":["graphics","card","drive","webcam","install"]},
     {"title":"Memory Install","url":"https://bobthetechguy.com/memory-install/","type":"SERVICE","icon":"chip","keywords":["ram","memory","slow","upgrade","speed"]},
     {"title":"Email Setup","url":"https://bobthetechguy.com/email-setup/","type":"SERVICE","icon":"mail","keywords":["email","outlook","mail","gmail"]},
+    {"title":"Remote Support","url":"https://bobthetechguy.com/remote-support/","type":"SERVICE","icon":"remote","keywords":["remote","online","internet","desktop","access","support","home"]},
     {"title":"Chesterfield & Richmond VA Service Area","url":"https://bobthetechguy.com/best-computer-repair-chesterfield-va/","type":"AREA","icon":"pin","keywords":["repair","computer","pc","near"]},
     {"title":"Home","url":"https://bobthetechguy.com/","type":"PAGE","icon":"page","keywords":["home","bob"]},
     {"title":"About","url":"https://bobthetechguy.com/about/","type":"PAGE","icon":"page","keywords":["bob","veteran","story","experience"]},
@@ -717,7 +726,7 @@ window.BTGHeader = (function () {
   // Keep equal to tools/services-index.js GROUPS (test/header.test.js enforces it).
   var GROUPS = [
     { name: 'Repairs &amp; Upgrades', items: [['hardware-repair-upgrades', 'tool'], ['screen-replacement', 'screen'], ['memory-install', 'chip'], ['hardware-install', 'plug'], ['computer-tune-up', 'gauge'], ['data-recovery-service', 'drive']] },
-    { name: 'Setup &amp; Software', items: [['computer-set-up', 'laptop'], ['operating-system-install', 'window'], ['software-installation-and-configuration', 'box'], ['printer-solutions', 'printer'], ['email-setup', 'mail']] },
+    { name: 'Setup &amp; Software', items: [['computer-set-up', 'laptop'], ['operating-system-install', 'window'], ['software-installation-and-configuration', 'box'], ['printer-solutions', 'printer'], ['email-setup', 'mail'], ['remote-support', 'remote']] },
     { name: 'Security &amp; Networking', items: [['networking', 'wifi'], ['anti-virus', 'shield'], ['backup-solutions', 'cloud'], ['parental-controls', 'lock']] }
   ];
 

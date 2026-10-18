@@ -56,7 +56,7 @@ test('page titles: city keywords on main and service pages, short enough for Goo
   assert.strictEqual(T('/data-recovery-service/'), 'Data Recovery Service in Chesterfield, VA | Bob The Tech Guy');
   assert.strictEqual(T('/software-installation-and-configuration/'), 'Software Setup in Chesterfield, VA | Bob The Tech Guy');
   const services = window.BTGSearch.PAGES.filter((p) => p.type === 'SERVICE').map((p) => p.url.replace('https://bobthetechguy.com', ''));
-  assert.strictEqual(services.length, 15);
+  assert.strictEqual(services.length, 16);
   for (const p of services.concat(['/', '/about/', '/services-2/', '/contact-2/', '/reviews/', '/testimonials/', '/gallery/', '/northern-new-jersey/'])) {
     assert.ok(T(p) && T(p).length <= 70, p + ' ' + T(p));
   }
