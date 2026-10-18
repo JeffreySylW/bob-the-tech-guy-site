@@ -10,8 +10,8 @@ const server = await serve(4497);
 const results = [];
 const check = (name, ok, info = '') => { results.push(ok); console.log((ok ? 'ok   ' : 'FAIL ') + name + (info ? '  ' + info : '')); };
 
-// The shipped bundle pins the photo folder to the tag where the cut-out first ships.
-const TAG = 'v1.8.16';
+// The shipped bundle pins the photo folder to the tag where the current cut-out first ships (v1.8.18: soft edges).
+const TAG = 'v1.8.18';
 const js = readFileSync(new URL('../../dist/btg.js', import.meta.url), 'utf8');
 const base = (js.match(/var PHOTO_BASE = '([^']+)'/) || [])[1] || '';
 check(`PHOTO_BASE is pinned to ${TAG}`, base === `https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@${TAG}/dist/brand/photos/`, base);
@@ -27,6 +27,22 @@ const probe = `JSON.stringify((() => {
   const before = (a, c) => !!(a.compareDocumentPosition(c) & 4);
   const txt = (s) => ((p.querySelector(s) || {}).textContent || '').replace(/\\s+/g, ' ').trim();
   const a = p.querySelector('a');
+  // Any ancestor that clips (overflow or clip-path) must still contain the whole rig.
+  const clippedBy = [];
+  for (let e = i.parentElement; e; e = e.parentElement) {
+    const cs = getComputedStyle(e), r = R(e);
+    const clips = cs.overflowX !== 'visible' || cs.overflowY !== 'visible' || cs.clipPath !== 'none';
+    if (clips && (q.left < r.left - 0.5 || q.right > r.right + 0.5 || q.top < r.top - 0.5 || q.bottom > r.bottom + 0.5)) clippedBy.push(e.tagName + '.' + String(e.className).split(' ')[0]);
+  }
+  // Jeff (2026-10-18): the rig's edges looked cut off. The photo's frame cuts the case at the right and top-left, so those
+  // borders of the cut-out must fade out (near-transparent) instead of ending in a hard straight line.
+  let edges = null;
+  try {
+    const c = document.createElement('canvas'); c.width = i.naturalWidth; c.height = i.naturalHeight;
+    const g = c.getContext('2d'); g.drawImage(i, 0, 0);
+    const maxA = (x0, y0, w, h) => { const d = g.getImageData(x0, y0, w, h).data; let m = 0; for (let k = 3; k < d.length; k += 4) m = Math.max(m, d[k]); return m; };
+    edges = { right: maxA(c.width - 3, 0, 3, c.height), topLeft: maxA(0, 0, 3, Math.round(c.height * 0.25)) };
+  } catch (e) { edges = { err: String(e) }; }
   return {
     n: pops.length, old: document.querySelectorAll('.btg-rig-fig').length,
     file: i.src.split('/').pop(), loaded: i.complete && i.naturalWidth > 0, alt: i.alt,
@@ -34,6 +50,7 @@ const probe = `JSON.stringify((() => {
     eyebrow: txt('.btg-rig-pop-eyebrow'), title: txt('h2'), lede: txt('.btg-rig-pop-lede'), btn: txt('a'), href: a && a.getAttribute('href'),
     img: [q.left, q.top, q.right, q.bottom].map(Math.round), banner: [b.left, b.top, b.right, b.bottom].map(Math.round), text: [tx.left, tx.top, tx.right, tx.bottom].map(Math.round),
     prev: Rr(p.previousElementSibling), next: Rr(p.nextElementSibling),
+    clippedBy, edges,
     vw: innerWidth, scrollOk: document.documentElement.scrollWidth <= innerWidth
   };
 })())`;
@@ -52,6 +69,8 @@ for (const [w, h, mobile] of [[1440, 900, false], [1280, 800, false], [1024, 768
     && r.lede === 'Graphics cards, drives, webcams and more, installed and working together.', has ? `${r.eyebrow} | ${r.title} | ${r.lede}` : '');
   check(`${w} home: button "Hardware Install" goes to /hardware-install/`, has && /^hardware install$/i.test(r.btn) && /\/hardware-install\/$/.test(r.href || ''), has ? `${r.btn} ${r.href}` : '');
   check(`${w} home: cut-out gaming-rig-cutout.webp loaded, descriptive alt`, has && r.file === 'gaming-rig-cutout.webp' && r.loaded && /gaming PC/.test(r.alt) && /white/.test(r.alt), has ? `${r.file} ${r.loaded} "${r.alt}"` : '');
+  check(`${w} home: no ancestor clips the rig`, has && r.clippedBy.length === 0, has ? r.clippedBy.join(', ') : '');
+  check(`${w} home: rig's frame-cut edges fade out (right border and top-left border nearly transparent)`, has && !!r.edges && r.edges.right <= 40 && r.edges.topLeft <= 40, has ? JSON.stringify(r.edges) : '');
   check(`${w} home: no sideways scroll, rig fully on screen`, has && r.scrollOk && r.img[0] >= 0 && r.img[2] <= r.vw, has ? JSON.stringify(r.img) + ' vw ' + r.vw : '');
   // Jeff (2026-10-18): on phones the rig covered the Now Open box's "See Chesterfield service" button. Neither the banner nor the
   // rig sticking out of it may touch the block before it (the Now Open box) or after it (the services heading); keep a clear gap.

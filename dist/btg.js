@@ -914,8 +914,8 @@ window.BTGBob = (function () {
   }
   // A real photo beside the first card on six service pages (hand-picked; dated or off-topic shots are left out).
   // Bob's newer shop photos (2026-10-17) replaced the 2013 ones; the base is the tag where they first shipped.
-  // v1.8.16 added the home page's gaming rig cut-out, so the base moved to that tag (it holds every earlier photo too).
-  var PHOTO_BASE = 'https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@v1.8.16/dist/brand/photos/';
+  // v1.8.18 re-cut the home page's gaming rig (soft edges), so the base moved to that tag (it holds every earlier photo too).
+  var PHOTO_BASE = 'https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@v1.8.18/dist/brand/photos/';
   var PHOTOS = {
     '/hardware-repair-upgrades/': ['bob-repairing-pc.jpg', 'Bob Dyer repairing a computer', 476, 635],
     '/hardware-install/': ['psu-install.jpg', 'Power supply cables inside a computer case during an installation', 600, 800],
@@ -948,7 +948,7 @@ window.BTGBob = (function () {
   }
   // Home page: Bob's all-white custom gaming rig (2026-10-18), a dark "pop-out" banner right after the "Now Open" box:
   // the Hardware Install page's own wording on the left, a cut-out of the rig sticking out past the banner's edges.
-  var RIG = ['gaming-rig-cutout.webp', 'A custom gaming PC with an all-white case, white fans and a liquid cooler, side panel off', 720, 513];
+  var RIG = ['gaming-rig-cutout.webp', 'A custom gaming PC with an all-white case, white fans and a liquid cooler, side panel off', 720, 512];
   function initRig(doc, win) {
     if (((win.location && win.location.pathname) || '/') !== '/') return false;
     var box = doc.querySelector('.post-content > .fusion-reading-box-container');
