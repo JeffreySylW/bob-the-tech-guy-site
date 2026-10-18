@@ -8,7 +8,8 @@ require('../dist/btg.js');
 const B = window.BTGBob;
 const css = fs.readFileSync(path.join(__dirname, '../dist/btg.css'), 'utf8');
 const js = fs.readFileSync(path.join(__dirname, '../dist/btg.js'), 'utf8');
-const BASE = 'https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@v1.8.10/dist/brand/photos/';
+// The tag pin moves with each photo release (test/e2e/home-rig.e2e.mjs checks the exact tag); here only the folder matters.
+const BASE = js.match(/var PHOTO_BASE = '(https:\/\/cdn\.jsdelivr\.net\/gh\/JeffreySylW\/bob-the-tech-guy-site@v[0-9.]+\/dist\/brand\/photos\/)'/)[1];
 
 // 2026-10-17: Jeff approved Bob's newer photos for six service pages (Hardware Repair keeps Bob's own photo).
 test('photoFor(): only the six approved service pages get a photo', () => {
