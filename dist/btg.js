@@ -914,8 +914,8 @@ window.BTGBob = (function () {
   }
   // A real photo beside the first card on six service pages (hand-picked; dated or off-topic shots are left out).
   // Bob's newer shop photos (2026-10-17) replaced the 2013 ones; the base is the tag where they first shipped.
-  // v1.8.13 added the home page's gaming rig photo, so the base moved to that tag (it holds every earlier photo too).
-  var PHOTO_BASE = 'https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@v1.8.15/dist/brand/photos/';
+  // v1.8.16 added the home page's gaming rig cut-out, so the base moved to that tag (it holds every earlier photo too).
+  var PHOTO_BASE = 'https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@v1.8.16/dist/brand/photos/';
   var PHOTOS = {
     '/hardware-repair-upgrades/': ['bob-repairing-pc.jpg', 'Bob Dyer repairing a computer', 476, 635],
     '/hardware-install/': ['psu-install.jpg', 'Power supply cables inside a computer case during an installation', 600, 800],
@@ -972,11 +972,11 @@ window.BTGBob = (function () {
     var fig = doc.createElement('figure');
     fig.className = 'btg-photo-fig';
     fig.innerHTML = '<img src="' + photo.src + '" alt="' + photo.alt + '" width="' + photo.width + '" height="' + photo.height + '">';
-    var text = /(^|s)btg-split(s|$)/.test(next.className) && next.querySelector('.btg-split-text');
+    var text = /(^|\s)btg-split(\s|$)/.test(next.className) && next.querySelector('.btg-split-text');
     if (text) {
-      // Split layouts: the photo goes in the empty space under (or beside) the intro text.
+      // Split layouts: the photo floats first in the intro text so the text wraps around it (larger on stacked pages).
       if (/btg-split--stacked/.test(next.className)) fig.className += ' btg-photo-fig--wrap';
-      if (/btg-split--stacked/.test(next.className)) text.appendChild(fig); else text.insertBefore(fig, text.firstChild);
+      text.insertBefore(fig, text.firstChild);
       return true;
     }
     var row = doc.createElement('div');

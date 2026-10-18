@@ -45,6 +45,34 @@ test('on the two-column pages the photo floats inside the intro text (placed fir
   assert.match(css, /\.btg-split:not\(\.btg-split--stacked\) \.btg-split-text \.btg-photo-fig \{[^}]*float: right;[^}]*width: 160px;/);
 });
 
+// initPhoto() on a tiny fake page: hero, then the split block (className as given), with an intro text column.
+function fakePage(splitClass) {
+  const el = (cls) => ({ className: cls, children: [], innerHTML: '', parentNode: null,
+    appendChild(c) { c.parentNode = this; this.children.push(c); return c; },
+    insertBefore(c, ref) { c.parentNode = this; const i = this.children.indexOf(ref); this.children.splice(i < 0 ? this.children.length : i, 0, c); return c; },
+    get firstChild() { return this.children[0] || null; },
+    querySelector(sel) { for (const c of this.children) { if (c.className.split(' ').includes(sel.slice(1))) return c; const d = c.querySelector(sel); if (d) return d; } return null; } });
+  const body = el('post-content'), hero = el('btg-hero'), split = el(splitClass), text = el('btg-split-text');
+  text.appendChild(el('intro-p'));
+  split.appendChild(text); body.appendChild(hero); body.appendChild(split);
+  hero.nextElementSibling = split;
+  const doc = { createElement: () => el(''), querySelector: (s) => body.querySelector(s) };
+  return { doc, text, body };
+}
+for (const [cls, where, figClass] of [
+  ['btg-split', 'first', 'btg-photo-fig'],
+  // Stacked pages too: first, so the short intro wraps around it (appended last it left a blank gap, v1.8.14).
+  ['btg-split btg-split--stacked', 'first', 'btg-photo-fig btg-photo-fig--wrap']
+]) {
+  test(`initPhoto() puts the photo inside the intro text on a "${cls}" page`, () => {
+    const { doc, text, body } = fakePage(cls);
+    assert.strictEqual(B.initPhoto(doc, { location: { pathname: '/hardware-install/' } }), true);
+    assert.strictEqual(body.querySelector('.btg-photo-row'), null, 'no side photo row');
+    const fig = text.children[where === 'first' ? 0 : text.children.length - 1];
+    assert.strictEqual(fig.className, figClass);
+  });
+}
+
 // The declared width/height are what the browser reserves space with; they must be the file's real size (no layout jump).
 function jpegSize(file) {
   const b = fs.readFileSync(file);

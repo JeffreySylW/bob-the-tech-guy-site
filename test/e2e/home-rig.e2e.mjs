@@ -11,7 +11,7 @@ const results = [];
 const check = (name, ok, info = '') => { results.push(ok); console.log((ok ? 'ok   ' : 'FAIL ') + name + (info ? '  ' + info : '')); };
 
 // The shipped bundle pins the photo folder to the tag where the cut-out first ships.
-const TAG = 'v1.8.15';
+const TAG = 'v1.8.16';
 const js = readFileSync(new URL('../../dist/btg.js', import.meta.url), 'utf8');
 const base = (js.match(/var PHOTO_BASE = '([^']+)'/) || [])[1] || '';
 check(`PHOTO_BASE is pinned to ${TAG}`, base === `https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@${TAG}/dist/brand/photos/`, base);
