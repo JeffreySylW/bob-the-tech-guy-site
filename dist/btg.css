@@ -1364,7 +1364,7 @@ body div.wpcr3_dotline, body div.wpcr3_review div.wpcr3_dotline { display: none 
   .btg-rig-pop { flex-direction: column; align-items: stretch; margin-top: 176px !important; }
   .btg-rig-pop-text { width: auto; padding: 24px 22px 26px; }
   .btg-rig-pop .btg-rig-pop-title { font-size: 24px !important; }
-  .btg-rig-pop .btg-rig-pop-img { position: relative; order: -1; top: auto; left: auto; right: auto; bottom: auto; transform: none; display: block; width: 86%; max-width: 420px; margin: -96px auto 0; }
+  .btg-rig-pop .btg-rig-pop-img { position: relative; order: -1; top: -56px; left: auto; right: auto; bottom: auto; transform: none; display: block; width: 86%; max-width: 420px; margin: -96px auto 0; }
 }
 /* Stacked pages: first in the intro, text wraps on its left. Scoped to .btg-split-text so these margins beat the generic 18px rule above (v1.8.16). */
 .btg-split-text .btg-photo-fig--wrap { float: right; width: 200px; margin: 4px 0 12px 24px !important; }

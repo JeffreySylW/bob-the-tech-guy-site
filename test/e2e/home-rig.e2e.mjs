@@ -89,6 +89,8 @@ for (const [w, h, mobile] of [[1440, 900, false], [1280, 800, false], [1024, 768
     check(`${w} home: rig doesn't cover the text`, has && r.img[0] >= r.ink + 8, has ? `img left ${r.img[0]} text ink right ${r.ink}` : '');
   } else {
     check(`${w} home: rig on top, sticking up out of the banner, above the text`, has && r.img[1] <= r.banner[1] - 24 && r.img[3] <= r.text[1] + 8, has ? `img ${r.img} banner ${r.banner} text ${r.text}` : '');
+    // v1.8.20 review: the stacked rig must keep its v1.8.19 spot, well above the text (56px there), not slide down onto it.
+    check(`${w} home: stacked rig ends 40px+ above the text`, has && r.text[1] - r.img[3] >= 40, has ? `rig bottom ${r.img[3]}, text top ${r.text[1]}` : '');
     check(`${w} home: banner fits the screen`, has && r.banner[0] >= 0 && r.banner[2] <= r.vw, has ? JSON.stringify(r.banner) : '');
     check(`${w} home: rig centred over the banner, at most 420px wide`, has && Math.abs((r.img[0] + r.img[2]) / 2 - (r.banner[0] + r.banner[2]) / 2) <= 2 && r.img[2] - r.img[0] <= 420, has ? `img ${r.img} banner ${r.banner}` : '');
   }
