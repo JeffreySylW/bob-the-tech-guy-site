@@ -50,6 +50,8 @@ const probe = `JSON.stringify((() => {
     eyebrow: txt('.btg-rig-pop-eyebrow'), title: txt('h2'), lede: txt('.btg-rig-pop-lede'), btn: txt('a'), href: a && a.getAttribute('href'),
     img: [q.left, q.top, q.right, q.bottom].map(Math.round), banner: [b.left, b.top, b.right, b.bottom].map(Math.round), text: [tx.left, tx.top, tx.right, tx.bottom].map(Math.round),
     prev: Rr(p.previousElementSibling), next: Rr(p.nextElementSibling),
+    // Where the text's ink actually ends (a Range per line of copy), not its padded box.
+    ink: Math.round(Math.max(...[...t.children].map((e) => { const rg = document.createRange(); rg.selectNodeContents(e); return rg.getBoundingClientRect().right; }))),
     clippedBy, edges,
     vw: innerWidth, scrollOk: document.documentElement.scrollWidth <= innerWidth
   };
@@ -78,8 +80,12 @@ for (const [w, h, mobile] of [[1440, 900, false], [1280, 800, false], [1024, 768
   check(`${w} home: rig and banner clear the Now Open box above by ${GAP}px+`, has && Math.min(r.img[1], r.banner[1]) - r.prev[3] >= GAP, has ? `box bottom ${r.prev[3]}, rig top ${r.img[1]}, banner top ${r.banner[1]}` : '');
   check(`${w} home: rig and banner clear the services heading below by ${GAP}px+`, has && r.next[1] - Math.max(r.img[3], r.banner[3]) >= GAP, has ? `heading top ${r.next[1]}, rig bottom ${r.img[3]}, banner bottom ${r.banner[3]}` : '');
   if (!stacked) {
-    check(`${w} home: rig jumps out past the banner's top and right edges`, has && r.img[1] <= r.banner[1] - 24 && r.img[2] >= r.banner[2] + 8, has ? `img ${r.img} banner ${r.banner}` : '');
-    check(`${w} home: rig sits right of the text, not over it`, has && r.img[0] >= r.text[2] - 8, has ? `img ${r.img} text ${r.text}` : '');
+    // Jeff (2026-10-19) picked "more centred": the rig pops out of the top only, sits inside the banner's width, centred in the
+    // space between the end of the text and the banner's right edge.
+    check(`${w} home: rig jumps out past the banner's top`, has && r.img[1] <= r.banner[1] - 24, has ? `img ${r.img} banner ${r.banner}` : '');
+    check(`${w} home: rig stays inside the banner's width`, has && r.img[0] >= r.banner[0] && r.img[2] <= r.banner[2], has ? `img ${r.img} banner ${r.banner}` : '');
+    check(`${w} home: rig centred between the text and the banner's right edge`, has && Math.abs((r.img[0] + r.img[2]) / 2 - (r.ink + r.banner[2]) / 2) <= 30, has ? `rig centre ${(r.img[0] + r.img[2]) / 2}, space centre ${(r.ink + r.banner[2]) / 2}` : '');
+    check(`${w} home: rig doesn't cover the text`, has && r.img[0] >= r.ink + 8, has ? `img left ${r.img[0]} text ink right ${r.ink}` : '');
   } else {
     check(`${w} home: rig on top, sticking up out of the banner, above the text`, has && r.img[1] <= r.banner[1] - 24 && r.img[3] <= r.text[1] + 8, has ? `img ${r.img} banner ${r.banner} text ${r.text}` : '');
     check(`${w} home: banner fits the screen`, has && r.banner[0] >= 0 && r.banner[2] <= r.vw, has ? JSON.stringify(r.banner) : '');
