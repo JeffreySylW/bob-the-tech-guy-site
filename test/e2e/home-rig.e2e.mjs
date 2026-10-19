@@ -80,11 +80,12 @@ for (const [w, h, mobile] of [[1440, 900, false], [1280, 800, false], [1024, 768
   check(`${w} home: rig and banner clear the Now Open box above by ${GAP}px+`, has && Math.min(r.img[1], r.banner[1]) - r.prev[3] >= GAP, has ? `box bottom ${r.prev[3]}, rig top ${r.img[1]}, banner top ${r.banner[1]}` : '');
   check(`${w} home: rig and banner clear the services heading below by ${GAP}px+`, has && r.next[1] - Math.max(r.img[3], r.banner[3]) >= GAP, has ? `heading top ${r.next[1]}, rig bottom ${r.img[3]}, banner bottom ${r.banner[3]}` : '');
   if (!stacked) {
-    // Jeff (2026-10-19) picked "more centred": the rig pops out of the top only, sits inside the banner's width, centred in the
-    // space between the end of the text and the banner's right edge.
-    check(`${w} home: rig jumps out past the banner's top`, has && r.img[1] <= r.banner[1] - 24, has ? `img ${r.img} banner ${r.banner}` : '');
-    check(`${w} home: rig stays inside the banner's width`, has && r.img[0] >= r.banner[0] && r.img[2] <= r.banner[2], has ? `img ${r.img} banner ${r.banner}` : '');
-    check(`${w} home: rig centred between the text and the banner's right edge`, has && Math.abs((r.img[0] + r.img[2]) / 2 - (r.ink + r.banner[2]) / 2) <= 30, has ? `rig centre ${(r.img[0] + r.img[2]) / 2}, space centre ${(r.ink + r.banner[2]) / 2}` : '');
+    // Jeff (2026-10-19): "more in the middle of the right half section of the card". He picked: the rig sits inside the card,
+    // its centre at the middle of the card's right half, both across (75% of the width) and up-down (50% of the height).
+    const cx = (r.img[0] + r.img[2]) / 2, cy = (r.img[1] + r.img[3]) / 2, bw = r.banner[2] - r.banner[0];
+    check(`${w} home: rig sits inside the card`, has && r.img[0] >= r.banner[0] && r.img[2] <= r.banner[2] && r.img[1] >= r.banner[1] && r.img[3] <= r.banner[3], has ? `img ${r.img} banner ${r.banner}` : '');
+    check(`${w} home: rig centred across the card's right half`, has && Math.abs(cx - (r.banner[0] + bw * 0.75)) <= 4, has ? `rig centre ${cx}, right-half middle ${r.banner[0] + bw * 0.75}` : '');
+    check(`${w} home: rig centred up-down in the card`, has && Math.abs(cy - (r.banner[1] + r.banner[3]) / 2) <= 4, has ? `rig centre ${cy}, card middle ${(r.banner[1] + r.banner[3]) / 2}` : '');
     check(`${w} home: rig doesn't cover the text`, has && r.img[0] >= r.ink + 8, has ? `img left ${r.img[0]} text ink right ${r.ink}` : '');
   } else {
     check(`${w} home: rig on top, sticking up out of the banner, above the text`, has && r.img[1] <= r.banner[1] - 24 && r.img[3] <= r.text[1] + 8, has ? `img ${r.img} banner ${r.banner} text ${r.text}` : '');

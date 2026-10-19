@@ -1347,7 +1347,7 @@ body div.wpcr3_dotline, body div.wpcr3_review div.wpcr3_dotline { display: none 
 .btg-marine-row .btg-photo-fig { flex: 0 1 220px; width: auto; max-width: 220px; margin: 0 !important; }
 .btg-marine-row .btg-photo-fig img { aspect-ratio: 3 / 4; object-fit: cover; object-position: center 25%; }
 /* Home: the gaming-rig "pop-out" banner (2026-10-18). A dark rounded box (the rig photo, darkened, as its background) with the
-   Hardware Install wording; the rig cut-out sticks out of the top on desktop, centred in the space right of the text (Jeff, 2026-10-19) and up out of the top on phones. */
+   Hardware Install wording; on desktop the rig cut-out sits inside the card, centred in its right half both ways (Jeff, 2026-10-19), and up out of the top on phones. */
 .btg-rig-pop { position: relative; display: flex; align-items: center; min-height: 300px; margin: 72px 0 56px !important; border-radius: 18px; background: var(--btg-bg-0); color: #fff; box-shadow: 0 18px 40px rgba(10, 14, 10, .28); }
 .btg-rig-pop::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(90deg, rgba(13, 15, 12, .98) 0%, rgba(13, 15, 12, .93) 50%, rgba(13, 15, 12, .78) 100%), var(--btg-rig-bg, none) center / cover; }
 .btg-rig-pop::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px rgba(84, 170, 71, .45); pointer-events: none; }
@@ -1358,13 +1358,13 @@ body div.wpcr3_dotline, body div.wpcr3_review div.wpcr3_dotline { display: none 
 .btg-rig-pop .btg-rig-pop-lede { font: 16px/1.5 var(--btg-font-body); color: #d7ddd4 !important; margin: 0 0 20px !important; }
 .btg-rig-pop .btg-rig-pop-btn { display: inline-block; padding: 10px 18px; border: 2px solid var(--btg-green-light); border-radius: var(--btg-radius-sm); color: #fff !important; font: 700 14px/1 var(--btg-font-body); letter-spacing: .06em; text-transform: uppercase; text-decoration: none !important; transition: background-color .15s; }
 .btg-rig-pop .btg-rig-pop-btn:hover, .btg-rig-pop .btg-rig-pop-btn:focus-visible { background: var(--btg-green-link); }
-.btg-rig-pop .btg-rig-pop-img { position: absolute; z-index: 2; top: -56px; right: 6%; width: 46%; max-width: none; height: auto; filter: drop-shadow(0 18px 22px rgba(0, 0, 0, .45)); }
+.btg-rig-pop .btg-rig-pop-img { position: absolute; z-index: 2; top: 50%; left: 52%; width: 46%; transform: translateY(-50%); max-width: none; height: auto; filter: drop-shadow(0 18px 22px rgba(0, 0, 0, .45)); }
 @media (max-width: 1000px) {
   /* The rig sticks 152px above the banner here (-96px margin + the -56px top above), so 176px leaves a 24px gap under the Now Open box (Jeff, 2026-10-18). */
   .btg-rig-pop { flex-direction: column; align-items: stretch; margin-top: 176px !important; }
   .btg-rig-pop-text { width: auto; padding: 24px 22px 26px; }
   .btg-rig-pop .btg-rig-pop-title { font-size: 24px !important; }
-  .btg-rig-pop .btg-rig-pop-img { position: relative; order: -1; right: auto; bottom: auto; display: block; width: 86%; max-width: 420px; margin: -96px auto 0; }
+  .btg-rig-pop .btg-rig-pop-img { position: relative; order: -1; top: auto; left: auto; right: auto; bottom: auto; transform: none; display: block; width: 86%; max-width: 420px; margin: -96px auto 0; }
 }
 /* Stacked pages: first in the intro, text wraps on its left. Scoped to .btg-split-text so these margins beat the generic 18px rule above (v1.8.16). */
 .btg-split-text .btg-photo-fig--wrap { float: right; width: 200px; margin: 4px 0 12px 24px !important; }
