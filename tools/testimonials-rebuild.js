@@ -1,7 +1,8 @@
 // tools/testimonials-rebuild.js
 // Testimonials page (3754): adds the standard hero and turns the five pasted
 // testimonials (name/place label + quote) into the homepage's quote cards.
-// Hero lines reuse the Reviews page's approved copy; the only other added text
+// Hero lines reuse the Reviews page's approved copy, except the H1 (own heading since
+// 2026-10-20 so it differs from Reviews); the only other added text
 // is the homepage's existing "Read all of our customer reviews »" link.
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory(require('./cards-transform.js'), require('./markup-guard.js'));
@@ -10,7 +11,7 @@
   'use strict';
   var HERO = '<section class="btg-hero">\n' +
     '  <p class="btg-hero-eyebrow">Testimonials</p>\n' +
-    '  <h1 class="btg-hero-title">Real reviews from <strong>real customers</strong>.</h1>\n' +
+    '  <h1 class="btg-hero-title">What customers say <strong>about Bob</strong>.</h1>\n' +
     '  <p class="btg-hero-lede">25 years in business, built on word of mouth and repeat customers.</p>\n' +
     '  <a class="btg-hero-cta" href="tel:8448354890">844-TEKGUY-0</a>\n' +
     '</section>';
