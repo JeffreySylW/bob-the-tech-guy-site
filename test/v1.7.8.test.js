@@ -1,6 +1,6 @@
 // test/v1.7.8.test.js — run: node --test test/v1.7.8.test.js
 // SEO pass 2 (Editor-access items): related-services links, Service/LocalBusiness schema, noindex on the search page,
-// titles and descriptions for the Support and Tech Certificates pages.
+// titles and descriptions for the Support page (Tech Certificates was unpublished 2026-10-20).
 const test = require('node:test');
 const assert = require('node:assert');
 global.window = global;
@@ -55,8 +55,7 @@ test('the search results page asks not to be indexed; real pages do not', () => 
   for (const p of ['/', '/about/', '/networking/', '/best-computer-repair-chesterfield-va/', '/support/']) assert.strictEqual(I.robotsFor(p), null, p);
 });
 
-test('Support and Tech Certificates get accurate titles and 110-160 character descriptions', () => {
+test('Support gets an accurate title and a 110-160 character description', () => {
   assert.strictEqual(I.pageTitle('/support/'), 'Support App Download | Bob The Tech Guy');
-  assert.strictEqual(I.pageTitle('/tech-certificates/'), 'Tech Gift Certificates | Bob The Tech Guy');
-  for (const p of ['/support/', '/tech-certificates/']) { const d = I.DESCRIPTIONS[p]; assert.ok(d && d.length >= 110 && d.length <= 160, p + ' ' + (d && d.length)); }
+  for (const p of ['/support/']) { const d = I.DESCRIPTIONS[p]; assert.ok(d && d.length >= 110 && d.length <= 160, p + ' ' + (d && d.length)); }
 });

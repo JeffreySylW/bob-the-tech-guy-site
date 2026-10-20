@@ -50,4 +50,3 @@
 
 - [Gallery](https://bobthetechguy.com/gallery/): photos from real jobs
 - [Support app](https://bobthetechguy.com/support/): download the Bob The Tech Guy support app
-- [Gift certificates](https://bobthetechguy.com/tech-certificates/): gift certificates for any amount
