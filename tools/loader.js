@@ -27,8 +27,12 @@
     var json = JSON.stringify(box.BTGSchema.buildLocalBusiness(box.BTGInit.SCHEMA)).replace(/</g, '\\u003c');
     return '<script type="application/ld+json">' + json + '</script>';
   }
+  // Since v1.8.23 the script is fetchpriority="high". The LCP element is the hero title btg.js builds, so it paints at
+  // DOMContentLoaded, once btg.js has arrived; browsers fetch defer scripts at Low priority, and on a slow phone it sat
+  // behind Avada's 208KB main.min.js (lab 2026-10-20: LCP minus TTFB 3.17s -> 2.62s). Still deferred, same order.
+  // Rejected: preloading the hero font. It was already loaded by then, and Google serves Windows a different file.
   function headBlock(v) {
-    return '<!-- btg-head v1 -->\n' + PREHIDE + '\n<link rel="stylesheet" href="' + cdn(v) + 'css">\n<script defer src="' + cdn(v) + 'js"></script>\n' + businessJsonLd() + '\n';
+    return '<!-- btg-head v1 -->\n' + PREHIDE + '\n<link rel="stylesheet" href="' + cdn(v) + 'css">\n<script defer fetchpriority="high" src="' + cdn(v) + 'js"></script>\n' + businessJsonLd() + '\n';
   }
   // Take a page's own loader (and the early pre-hide copy) back out once headBlock() serves every page.
   // Live pages put it after their btg-styles block with one newline; generated pages with a blank line.
