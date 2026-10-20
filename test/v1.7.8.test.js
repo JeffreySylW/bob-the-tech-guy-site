@@ -35,7 +35,7 @@ test('LocalBusiness schema gains an @id, an image and the founder, and still no 
   assert.strictEqual(s['@id'], T('/#business'));
   assert.strictEqual(s.image, B.PORTRAIT);
   assert.deepStrictEqual(s.founder, { '@type': 'Person', name: 'Bob Dyer' });
-  assert.strictEqual(s.address, undefined);
+  assert.deepStrictEqual(s.address, { '@type': 'PostalAddress', addressLocality: 'Chesterfield', addressRegion: 'VA', addressCountry: 'US' }); // locality only since v1.8.22
   assert.doesNotMatch(JSON.stringify(s), /Broadway|streetAddress/);
 });
 

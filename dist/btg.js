@@ -91,9 +91,16 @@ window.BTGScrollReveal = (function () {
 
 /* 04-schema-meta.js */
 window.BTGSchema = (function () {
+  // Locality only (Jeff, 2026-10-20): town, state and country, never a street or ZIP. Copied field by field, so a
+  // streetAddress or postalCode passed in by mistake is dropped (Rules: the Virginia street address is never shown).
+  function localityAddress(a) {
+    if (!a || !a.addressLocality) return undefined;
+    return { '@type': 'PostalAddress', addressLocality: a.addressLocality, addressRegion: a.addressRegion, addressCountry: a.addressCountry };
+  }
+
   function buildLocalBusiness(opts) {
     // Deliberately built field-by-field from an allowlist, never by spreading
-    // `opts` — that's what guarantees an address can't sneak in through a
+    // `opts` — that's what guarantees a street address can't sneak in through a
     // future caller mistake.
     return {
       '@context': 'https://schema.org',
@@ -105,6 +112,7 @@ window.BTGSchema = (function () {
       email: opts.email,
       founder: opts.founder,
       telephone: opts.telephone,
+      address: localityAddress(opts.address),
       url: opts.url,
       openingHoursSpecification: opts.openingHoursSpecification,
       areaServed: opts.areaServed,
@@ -138,7 +146,7 @@ window.BTGSchema = (function () {
     document.head.appendChild(script);
   }
 
-  return { buildLocalBusiness: buildLocalBusiness, hasId: hasId, inject: inject, injectRaw: injectRaw };
+  return { buildLocalBusiness: buildLocalBusiness, localityAddress: localityAddress, hasId: hasId, inject: inject, injectRaw: injectRaw };
 })();
 
 window.BTGMeta = (function () {
@@ -208,6 +216,8 @@ window.BTGInit = (function () {
     telephone: '+18448354890',
     url: 'https://bobthetechguy.com/',
     get openingHoursSpecification() { return window.BTGHours ? window.BTGHours.schemaHours() : undefined; },
+    // Locality only, approved by Jeff 2026-10-20 (v1.8.22): no street, no ZIP.
+    address: { addressLocality: 'Chesterfield', addressRegion: 'VA', addressCountry: 'US' },
     // Places, not strings, so search engines can match each town (v1.8.7).
     areaServed: [['Chesterfield', 'Virginia'], ['Midlothian', 'Virginia'], ['Chester', 'Virginia'], ['Bon Air', 'Virginia'],
       ['Brandermill', 'Virginia'], ['Woodlake', 'Virginia'], ['Moseley', 'Virginia'], ['Colonial Heights', 'Virginia'],

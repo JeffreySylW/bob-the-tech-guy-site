@@ -10,7 +10,7 @@ test('LocalBusiness schema: logo and email, still no address of any kind', () =>
   const s = S.buildLocalBusiness(I.SCHEMA);
   assert.strictEqual(s.logo, 'https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@v1.8.6/dist/brand/logo-564x160.png');
   assert.strictEqual(s.email, 'info@bobthetechguy.com');
-  assert.strictEqual(s.address, undefined);
+  assert.deepStrictEqual(s.address, { '@type': 'PostalAddress', addressLocality: 'Chesterfield', addressRegion: 'VA', addressCountry: 'US' }); // locality only since v1.8.22
   assert.doesNotMatch(JSON.stringify(s), /Broadway|streetAddress/);
 });
 

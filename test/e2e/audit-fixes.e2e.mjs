@@ -5,7 +5,7 @@ import { launch } from './cdp.mjs';
 const server = await serve(4521);
 const results = [];
 const check = (name, ok, info = '') => { results.push(ok); console.log((ok ? 'ok   ' : 'FAIL ') + name + (info ? '  ' + info : '')); };
-const LD = `JSON.stringify([...document.querySelectorAll('script[type="application/ld+json"]')].map((s) => { try { const j = JSON.parse(s.textContent); return [j['@type'], j['@id'] || '', !!j.address, s.parentNode.tagName]; } catch (e) { return ['bad']; } }))`;
+const LD = `JSON.stringify([...document.querySelectorAll('script[type="application/ld+json"]')].map((s) => { try { const j = JSON.parse(s.textContent); return [j['@type'], j['@id'] || '', !!(j.address && (j.address.streetAddress || j.address.postalCode)), s.parentNode.tagName]; } catch (e) { return ['bad']; } }))`;
 async function open(path, w = 1440, h = 900) {
   const b = await launch({ width: w, height: h, mobile: w < 768 });
   const errors = [];
@@ -20,7 +20,7 @@ for (const [path, svc] of [['/', false], ['/memory-install/', true], ['/about/',
   const { b, errors } = await open(path + '?head=1');
   const ld = JSON.parse(await b.evalJs(LD));
   const biz = ld.filter((x) => x[1] === 'https://bobthetechguy.com/#business');
-  check(`${path} head field: exactly one business JSON-LD, in <head>, no address`, biz.length === 1 && biz[0][3] === 'HEAD' && !biz[0][2], JSON.stringify(ld));
+  check(`${path} head field: exactly one business JSON-LD, in <head>, no street or ZIP`, biz.length === 1 && biz[0][3] === 'HEAD' && !biz[0][2], JSON.stringify(ld));
   check(`${path} head field: ${svc ? 'Service schema still added by the bundle' : 'no Service schema'}`, ld.filter((x) => x[0] === 'Service').length === (svc ? 1 : 0), JSON.stringify(ld));
   check(`${path} head field: bundle finished, no script errors`, (await b.evalJs(`document.documentElement.classList.contains('btg-ready')`)) && errors.length === 0, errors.join(' | '));
   await b.close();

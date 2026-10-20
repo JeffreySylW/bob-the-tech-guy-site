@@ -29,10 +29,10 @@ test('head JSON-LD: the business @id, hours and service area are filled in (not 
   assert.strictEqual(j.telephone, '+18448354890');
 });
 
-test('head JSON-LD: still no address of any kind (Rules: never the VA street; locality-only not approved)', () => {
+test('head JSON-LD: locality-only address, never a street or ZIP (Rules: never the VA street; locality approved 2026-10-20)', () => {
   const block = L.headBlock('v1.8.21');
-  assert.strictEqual(ldOf(block).address, undefined);
-  assert.doesNotMatch(block, /address|streetAddress|PostalAddress|Broadway|postalCode/i);
+  assert.deepStrictEqual(ldOf(block).address, { '@type': 'PostalAddress', addressLocality: 'Chesterfield', addressRegion: 'VA', addressCountry: 'US' });
+  assert.doesNotMatch(block, /streetAddress|postalCode|Broadway|228/i);
 });
 
 test('head JSON-LD: nothing in it can close the script tag early', () => {
@@ -123,4 +123,12 @@ test('rig cut-out: 360/540/720 srcset from the pinned photo folder, files presen
   assert.match(html, new RegExp('srcset="' + base + 'gaming-rig-cutout-360\\.webp 360w, ' + base + 'gaming-rig-cutout-540\\.webp 540w, ' + base + 'gaming-rig-cutout\\.webp 720w"'));
   assert.match(html, /sizes="\(max-width: 1000px\) min\(86vw, 420px\), 360px"/);
   assert.match(html, new RegExp('src="' + base + 'gaming-rig-cutout\\.webp"'));
+});
+
+test('localityAddress(): drops a street or ZIP passed in by mistake; no locality, no address', () => {
+  assert.deepStrictEqual(S.localityAddress({ streetAddress: '1 Main St', postalCode: '23832', addressLocality: 'Chesterfield', addressRegion: 'VA', addressCountry: 'US' }),
+    { '@type': 'PostalAddress', addressLocality: 'Chesterfield', addressRegion: 'VA', addressCountry: 'US' });
+  assert.strictEqual(S.localityAddress({ streetAddress: '1 Main St' }), undefined);
+  assert.strictEqual(S.localityAddress(undefined), undefined);
+  assert.doesNotMatch(JSON.stringify(S.buildLocalBusiness(Object.assign({}, I.SCHEMA, { address: { streetAddress: 'X', postalCode: '1', addressLocality: 'Chesterfield' } }))), /streetAddress|postalCode/);
 });

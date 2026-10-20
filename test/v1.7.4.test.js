@@ -38,7 +38,7 @@ test('LocalBusiness schema: hours, url and real profiles, still no street addres
   assert.ok(s.sameAs.includes('https://maps.google.com/?cid=12486145650775343960'));
   assert.ok(s.sameAs.includes('https://www.facebook.com/BobTheTechGuy'));
   assert.ok(s.sameAs.includes('https://www.veteranownedbusiness.com/business/24505/bob-the-tech-guy'));
-  assert.strictEqual(s.address, undefined);
+  assert.deepStrictEqual(s.address, { '@type': 'PostalAddress', addressLocality: 'Chesterfield', addressRegion: 'VA', addressCountry: 'US' }); // locality only since v1.8.22
   assert.doesNotMatch(JSON.stringify(s), /Broadway|streetAddress/);
 });
 
