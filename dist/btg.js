@@ -113,12 +113,22 @@ window.BTGSchema = (function () {
     };
   }
 
+  // True when the page already carries a JSON-LD block with this @id (since v1.8.21 the head field prints the
+  // business block server-side). Matched by @id, not @type: the reviews plugin has its own LocalBusiness.
+  function hasId(doc, id) {
+    return Array.prototype.some.call(doc.querySelectorAll('script[type="application/ld+json"]'), function (s) {
+      try { return JSON.parse(s.textContent)['@id'] === id; } catch (e) { return false; }
+    });
+  }
+
   function inject(opts) {
+    if (hasId(document, opts['@id'])) return false;
     var schema = buildLocalBusiness(opts);
     var script = document.createElement('script');
     script.type = 'application/ld+json';
     script.textContent = JSON.stringify(schema);
     document.head.appendChild(script);
+    return true;
   }
 
   function injectRaw(obj) {
@@ -128,7 +138,7 @@ window.BTGSchema = (function () {
     document.head.appendChild(script);
   }
 
-  return { buildLocalBusiness: buildLocalBusiness, inject: inject, injectRaw: injectRaw };
+  return { buildLocalBusiness: buildLocalBusiness, hasId: hasId, inject: inject, injectRaw: injectRaw };
 })();
 
 window.BTGMeta = (function () {
@@ -440,6 +450,21 @@ window.BTGInit = (function () {
       a.setAttribute('aria-label', 'Bob The Tech Guy on ' + (a.getAttribute('data-title') || a.getAttribute('title') || 'social media'));
     });
   }
+  // Theme markup that accessibility and agent checks flag (SEO audit 2026-10-19): the mobile menu link has no name,
+  // the page has no main landmark, and two anchors have no href. The search icon is a toggle (Avada's script opens
+  // the search box), so it becomes a named button; the page-load link is an empty target for Avada's scroll script,
+  // so it's taken out of the accessibility tree. Attributes only: nothing moves and Avada's click handlers still match.
+  function fixLandmarks(doc) {
+    var set = function (sel, attrs) {
+      Array.prototype.forEach.call(doc.querySelectorAll(sel), function (el) {
+        Object.keys(attrs).forEach(function (k) { if (!el.hasAttribute(k)) el.setAttribute(k, attrs[k]); });
+      });
+    };
+    set('a.fusion-icon-bars', { 'aria-label': 'Menu' });
+    set('a.fusion-main-menu-icon:not([href])', { role: 'button', 'aria-label': 'Search' });
+    set('a.fusion-one-page-text-link:not([href])', { role: 'presentation', 'aria-hidden': 'true' });
+    if (!doc.querySelector('main, [role="main"]')) set('#main', { role: 'main' });
+  }
   // Theme buttons that only say "Learn More": say where they go instead.
   var BUTTON_TEXT = { '/best-computer-repair-chesterfield-va/': 'See Chesterfield service' };
   function describeButtons(doc) {
@@ -529,6 +554,7 @@ window.BTGInit = (function () {
     injectSchemaAndMeta: injectSchemaAndMeta,
     SCHEMA: SCHEMA,
     tidySocial: tidySocial,
+    fixLandmarks: fixLandmarks,
     describeButtons: describeButtons,
     pageTitle: pageTitle,
     relatedServices: relatedServices,
@@ -915,7 +941,7 @@ window.BTGBob = (function () {
   // A real photo beside the first card on six service pages (hand-picked; dated or off-topic shots are left out).
   // Bob's newer shop photos (2026-10-17) replaced the 2013 ones; the base is the tag where they first shipped.
   // v1.8.18 re-cut the home page's gaming rig (soft edges), so the base moved to that tag (it holds every earlier photo too).
-  var PHOTO_BASE = 'https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@v1.8.18/dist/brand/photos/';
+  var PHOTO_BASE = 'https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@v1.8.21/dist/brand/photos/';
   var PHOTOS = {
     '/hardware-repair-upgrades/': ['bob-repairing-pc.jpg', 'Bob Dyer repairing a computer', 476, 635],
     '/hardware-install/': ['psu-install.jpg', 'Power supply cables inside a computer case during an installation', 600, 800],
@@ -949,6 +975,10 @@ window.BTGBob = (function () {
   // Home page: Bob's all-white custom gaming rig (2026-10-18), a dark "pop-out" banner right after the "Now Open" box:
   // the Hardware Install page's own wording on the left, a cut-out of the rig sticking out past the banner's edges.
   var RIG = ['gaming-rig-cutout.webp', 'A custom gaming PC with an all-white case, white fans and a liquid cooler, side panel off', 720, 512];
+  // Smaller copies (v1.8.21): it is drawn 332-360px wide on desktop and at most 420px when stacked (measured 2026-10-19),
+  // so 1x screens no longer fetch the 720px file. sizes may overshoot (bigger file, same look), never undershoot.
+  var RIG_SRCSET = ['gaming-rig-cutout-360.webp 360w', 'gaming-rig-cutout-540.webp 540w', 'gaming-rig-cutout.webp 720w'];
+  var RIG_SIZES = '(max-width: 1000px) min(86vw, 420px), 360px';
   function initRig(doc, win) {
     if (((win.location && win.location.pathname) || '/') !== '/') return false;
     var box = doc.querySelector('.post-content > .fusion-reading-box-container');
@@ -961,7 +991,8 @@ window.BTGBob = (function () {
       '<h2 class="btg-rig-pop-title">New hardware, <strong>installed and tested</strong>.</h2>' +
       '<p class="btg-rig-pop-lede">Graphics cards, drives, webcams and more, installed and working together.</p>' +
       '<a class="btg-rig-pop-btn" href="/hardware-install/">Hardware Install</a></div>' +
-      '<img class="btg-rig-pop-img" src="' + PHOTO_BASE + RIG[0] + '" alt="' + RIG[1] + '" width="' + RIG[2] + '" height="' + RIG[3] + '" loading="lazy">';
+      '<img class="btg-rig-pop-img" src="' + PHOTO_BASE + RIG[0] + '" srcset="' + RIG_SRCSET.map(function (s) { return PHOTO_BASE + s; }).join(', ') +
+      '" sizes="' + RIG_SIZES + '" alt="' + RIG[1] + '" width="' + RIG[2] + '" height="' + RIG[3] + '" loading="lazy">';
     box.parentNode.insertBefore(pop, box.nextSibling);
     return true;
   }
@@ -1590,7 +1621,7 @@ window.BTGZone = (function () {
 window.BTGVet = (function () {
   'use strict';
   var VOB = 'https://www.veteranownedbusiness.com/business/24505/bob-the-tech-guy';
-  var LOGO = 'https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@v1.7.2/dist/brand/vob-logo.png';
+  var LOGO = 'https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@v1.8.21/dist/brand/vob-logo-300x64.webp';
   var STAR = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 2.5l2.9 6.1 6.6.8-4.9 4.5 1.3 6.6L12 17.3l-5.9 3.2 1.3-6.6L2.5 9.4l6.6-.8z"/></svg>';
   function badgeHtml(dark) {
     return '<a class="btg-vet' + (dark ? ' btg-vet--dark' : '') + '" href="' + VOB + '" target="_blank" rel="noopener" aria-label="Veteran-owned business: Bob The Tech Guy on VeteranOwnedBusiness.com">' +
@@ -1673,6 +1704,7 @@ window.BTGCards = (function () {
     safely(function () { window.BTGInit.fixLoginMenu(document); });
     safely(function () { window.BTGInit.quietFooter(document); });
     safely(function () { window.BTGInit.tidySocial(document); });
+    safely(function () { window.BTGInit.fixLandmarks(document); });
     safely(function () { window.BTGInit.describeButtons(document); });
     safely(function () { window.BTGInit.removeDuplicateTitleBar(document); });
     safely(function () { window.BTGInit.removeHomeSlider(document); });

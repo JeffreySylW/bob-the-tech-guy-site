@@ -18,8 +18,8 @@ test('the badge links to Bob\'s VOB listing (the page the old flag image opened)
 });
 
 test('it shows the VOB logo from this repo, pinned to a release', () => {
-  assert.match(V.LOGO, /^https:\/\/cdn\.jsdelivr\.net\/gh\/JeffreySylW\/bob-the-tech-guy-site@v1\.7\.2\/dist\/brand\/vob-logo\.png$/);
-  assert.ok(fs.existsSync(path.join(__dirname, '../dist/brand/vob-logo.png')));
+  assert.match(V.LOGO, /^https:\/\/cdn\.jsdelivr\.net\/gh\/JeffreySylW\/bob-the-tech-guy-site@v1\.8\.21\/dist\/brand\/vob-logo-300x64\.webp$/);
+  assert.ok(fs.existsSync(path.join(__dirname, '../dist/brand/vob-logo-300x64.webp')));
   assert.ok(V.badgeHtml(false).includes('<img src="' + V.LOGO + '" alt="VeteranOwnedBusiness.com" width="150" height="32" loading="lazy">'));
 });
 

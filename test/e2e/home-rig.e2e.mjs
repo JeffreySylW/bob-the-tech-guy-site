@@ -10,8 +10,8 @@ const server = await serve(4497);
 const results = [];
 const check = (name, ok, info = '') => { results.push(ok); console.log((ok ? 'ok   ' : 'FAIL ') + name + (info ? '  ' + info : '')); };
 
-// The shipped bundle pins the photo folder to the tag where the current cut-out first ships (v1.8.18: soft edges).
-const TAG = 'v1.8.18';
+// The shipped bundle pins the photo folder to the tag where the current cut-out files first ship (v1.8.21: its 360/540px copies).
+const TAG = 'v1.8.21';
 const js = readFileSync(new URL('../../dist/btg.js', import.meta.url), 'utf8');
 const base = (js.match(/var PHOTO_BASE = '([^']+)'/) || [])[1] || '';
 check(`PHOTO_BASE is pinned to ${TAG}`, base === `https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@${TAG}/dist/brand/photos/`, base);
@@ -45,7 +45,7 @@ const probe = `JSON.stringify((() => {
   } catch (e) { edges = { err: String(e) }; }
   return {
     n: pops.length, old: document.querySelectorAll('.btg-rig-fig').length,
-    file: i.src.split('/').pop(), loaded: i.complete && i.naturalWidth > 0, alt: i.alt,
+    file: i.src.split('/').pop(), used: (i.currentSrc || '').split('/').pop(), imgW: Math.round(q.width), loaded: i.complete && i.naturalWidth > 0, alt: i.alt,
     afterBox: !!box && box.nextElementSibling === p, beforeServices: !!services && before(p, services),
     eyebrow: txt('.btg-rig-pop-eyebrow'), title: txt('h2'), lede: txt('.btg-rig-pop-lede'), btn: txt('a'), href: a && a.getAttribute('href'),
     img: [q.left, q.top, q.right, q.bottom].map(Math.round), banner: [b.left, b.top, b.right, b.bottom].map(Math.round), text: [tx.left, tx.top, tx.right, tx.bottom].map(Math.round),
@@ -71,6 +71,10 @@ for (const [w, h, mobile] of [[1440, 900, false], [1280, 800, false], [1024, 768
     && r.lede === 'Graphics cards, drives, webcams and more, installed and working together.', has ? `${r.eyebrow} | ${r.title} | ${r.lede}` : '');
   check(`${w} home: button "Hardware Install" goes to /hardware-install/`, has && /^hardware install$/i.test(r.btn) && /\/hardware-install\/$/.test(r.href || ''), has ? `${r.btn} ${r.href}` : '');
   check(`${w} home: cut-out gaming-rig-cutout.webp loaded, descriptive alt`, has && r.file === 'gaming-rig-cutout.webp' && r.loaded && /gaming PC/.test(r.alt) && /white/.test(r.alt), has ? `${r.file} ${r.loaded} "${r.alt}"` : '');
+  // v1.8.21: a srcset, so 1x screens get a smaller copy. Side by side it is drawn <=360px wide (1x here: the 360px copy);
+  // stacked it is up to 420px wide (1x: 540px copy; mobile emulation is 2x: 720px). Never a copy narrower than it is drawn.
+  check(`${w} home: rig drawn from the srcset, never narrower than shown`, has && (stacked ? /^gaming-rig-cutout(-540)?\.webp$/.test(r.used) : r.used === 'gaming-rig-cutout-360.webp')
+    && r.imgW <= (/-360/.test(r.used) ? 360 : /-540/.test(r.used) ? 540 : 720), has ? `${r.used} shown ${r.imgW}px` : '');
   check(`${w} home: no ancestor clips the rig`, has && r.clippedBy.length === 0, has ? r.clippedBy.join(', ') : '');
   check(`${w} home: rig's frame-cut edges fade out (right border and top-left border nearly transparent)`, has && !!r.edges && r.edges.right <= 40 && r.edges.topLeft <= 40, has ? JSON.stringify(r.edges) : '');
   check(`${w} home: no sideways scroll, rig fully on screen`, has && r.scrollOk && r.img[0] >= 0 && r.img[2] <= r.vw, has ? JSON.stringify(r.img) + ' vw ' + r.vw : '');

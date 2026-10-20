@@ -6,12 +6,13 @@ const L = require('../tools/loader.js');
 
 const CDN = 'https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@';
 
-test('headBlock(): pre-hide style, stylesheet and deferred script, all pinned to one tag', () => {
+test('headBlock(): pre-hide style, stylesheet, deferred script pinned to one tag, then the business JSON-LD', () => {
   assert.strictEqual(L.headBlock('v1.8.5'),
     '<!-- btg-head v1 -->\n' +
     '<style>html:not(.btg-ready) .fusion-header-wrapper,html:not(.btg-ready) #main{visibility:hidden;animation:btg-reveal 0s 1.5s forwards}@keyframes btg-reveal{to{visibility:visible}}</style>\n' +
     '<link rel="stylesheet" href="' + CDN + 'v1.8.5/dist/btg.css">\n' +
-    '<script defer src="' + CDN + 'v1.8.5/dist/btg.js"></script>\n');
+    '<script defer src="' + CDN + 'v1.8.5/dist/btg.js"></script>\n' +
+    L.businessJsonLd() + '\n'); // since v1.8.21, see test/v1.8.21.test.js
 });
 
 // A published page as the re-pin script leaves it: early pre-hide copy, Bob's content, then the v1 loader.

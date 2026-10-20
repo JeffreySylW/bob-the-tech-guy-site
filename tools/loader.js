@@ -16,8 +16,19 @@
   }
   // The site-wide loader for Avada's "Space before </head>" field: one copy on every front-end page (issue #3).
   // `defer` keeps the 100KB script from blocking the parser; the bundle starts once the page is parsed.
+  // Since v1.8.21 it also carries the site-wide LocalBusiness JSON-LD, so crawlers that don't run scripts see it in the
+  // raw HTML. It is built by the bundle's own BTGSchema/BTGInit.SCHEMA (one source of truth, still no address), loaded
+  // in a sandbox from this working copy, so generate the field from the same commit as tag `v`. btg.js skips its copy
+  // when this one is on the page. `<` is escaped so no string can close the script tag.
+  function businessJsonLd() {
+    var fs = require('fs'), vm = require('vm'), path = require('path'), box = {};
+    box.window = box;
+    vm.runInNewContext(fs.readFileSync(path.join(__dirname, '..', 'dist', 'btg.js'), 'utf8'), box);
+    var json = JSON.stringify(box.BTGSchema.buildLocalBusiness(box.BTGInit.SCHEMA)).replace(/</g, '\\u003c');
+    return '<script type="application/ld+json">' + json + '</script>';
+  }
   function headBlock(v) {
-    return '<!-- btg-head v1 -->\n' + PREHIDE + '\n<link rel="stylesheet" href="' + cdn(v) + 'css">\n<script defer src="' + cdn(v) + 'js"></script>\n';
+    return '<!-- btg-head v1 -->\n' + PREHIDE + '\n<link rel="stylesheet" href="' + cdn(v) + 'css">\n<script defer src="' + cdn(v) + 'js"></script>\n' + businessJsonLd() + '\n';
   }
   // Take a page's own loader (and the early pre-hide copy) back out once headBlock() serves every page.
   // Live pages put it after their btg-styles block with one newline; generated pages with a blank line.
@@ -35,5 +46,5 @@
     if (out.indexOf('btg-reveal') === -1) out = out.replace('<!-- btg-loader v1 -->\n', '<!-- btg-loader v1 -->\n' + PREHIDE + '\n');
     return out.indexOf('<!-- btg-early -->') === 0 ? out : EARLY + out;
   }
-  return { PREHIDE: PREHIDE, EARLY: EARLY, loaderBlock: loaderBlock, headBlock: headBlock, strip: strip, upgrade: upgrade };
+  return { PREHIDE: PREHIDE, EARLY: EARLY, loaderBlock: loaderBlock, headBlock: headBlock, businessJsonLd: businessJsonLd, strip: strip, upgrade: upgrade };
 });
