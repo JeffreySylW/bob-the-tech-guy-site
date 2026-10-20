@@ -18,7 +18,7 @@ for (const [w, h, m] of [[1440, 900, false], [390, 844, true]]) {
   check(w + ' footer: old flag image gone, dark badge in its place', await b.evalJs(`(() => { const t = document.querySelector('#text-16'); return !t.querySelector('img[src*="Veteran-Owned-Small-Business-Badge"]') && !!t.querySelector('.btg-vet.btg-vet--dark') && t.querySelector('.btg-vet').href === '${LISTING}'; })()`));
   check(w + ' footer: "Verified member" stays inside the card', await b.evalJs(`(() => { const c = document.querySelector('#text-16 .btg-vet').getBoundingClientRect(), e = document.querySelector('#text-16 .btg-vet-vob em').getBoundingClientRect(); return e.right <= c.right + 1 && e.bottom <= c.bottom + 1; })()`));
   await b.evalJs(`document.querySelector('#text-16').scrollIntoView()`); await b.sleep(1500);
-  check(w + ' VOB logo image loads, wide and undistorted', await b.evalJs(`[...document.querySelectorAll('.btg-vet-vob img')].every((i) => i.complete && i.naturalWidth === 426 && i.getBoundingClientRect().width > i.getBoundingClientRect().height * 4 && getComputedStyle(i).boxShadow === 'none')`));
+  check(w + ' VOB logo image loads, wide and undistorted', await b.evalJs(`[...document.querySelectorAll('.btg-vet-vob img')].every((i) => i.complete && i.naturalWidth === 300 && /vob-logo-300x64\\.webp$/.test(i.currentSrc) && i.getBoundingClientRect().width > i.getBoundingClientRect().height * 4 && getComputedStyle(i).boxShadow === 'none')`));
   await b.evalJs(`document.querySelector('.btg-vet').scrollIntoView({ block: 'center' })`); await b.sleep(400);
   await b.shot(`${out}/vet-about-new-${w}.png`);
   await b.evalJs(`document.querySelector('#text-16').scrollIntoView({ block: 'center' })`); await b.sleep(400);
