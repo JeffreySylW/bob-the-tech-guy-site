@@ -21,21 +21,21 @@ The widget side is tested from the repo root with `node test/e2e/helper-ai.e2e.m
 ## Deploy (Jeff does these steps; Claude never handles the keys)
 
 1. **Anthropic:** in console.anthropic.com create an API key for this helper only, and set a monthly spend limit (Settings > Limits).
-2. **Cloudflare:** create the (free) account, then from this folder:
+2. **Cloudflare:** create the (free) account, then run everything below from this `worker` folder. Until this branch is merged it exists only in the worktree, `C:\Users\there\bob-the-tech-guy-site\.claude\worktrees\mystifying-newton-d88aa1\worker`; from any other folder wrangler says "Required Worker name missing". Run `npm install` there first if `node_modules` is missing.
 
 ```bash
 npx wrangler login
 ```
 
 ```bash
+npx wrangler deploy
+```
+
+```bash
 npx wrangler secret put ANTHROPIC_API_KEY
 ```
 
-(paste the key when asked; it is stored encrypted in Cloudflare, never in git)
-
-```bash
-npx wrangler deploy
-```
+(deploy first so the Worker exists; type the command exactly as shown and paste the key only when wrangler asks for the value; it is stored encrypted in Cloudflare, never in git. Never put the key itself on the command line: it lands in the shell history.)
 
 3. Wrangler prints the Worker address, like `https://bob-helper.<your-subdomain>.workers.dev`. Its chat address is that plus `/chat`.
 4. Check that it answers (should print a JSON reply):
