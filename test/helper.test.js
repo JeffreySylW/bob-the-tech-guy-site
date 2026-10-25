@@ -95,3 +95,13 @@ test('never-say guard: no prices, turnaround, warranty, street address, competit
 test('the AI is switched on: HELPER_API is the deployed Worker\'s /chat address (https, workers.dev)', () => {
   assert.strictEqual(H.HELPER_API, 'https://bob-helper.bobthetechguy.workers.dev/chat');
 });
+
+test('launcher icon: three equal dots spaced evenly on the bubble body\'s centre (body x 3-21, y 4-18)', () => {
+  const src = SRC.slice(SRC.indexOf('var CHAT_ICON'), SRC.indexOf('\n', SRC.indexOf('var CHAT_ICON')));
+  const dots = [...src.matchAll(/<circle cx="([\d.]+)" cy="([\d.]+)" r="([\d.]+)"\/>/g)].map((m) => m.slice(1).map(Number));
+  assert.strictEqual(dots.length, 3);
+  assert.ok(dots.every((d) => d[1] === (4 + 18) / 2 && d[2] === dots[0][2]));
+  assert.strictEqual(dots[1][0], (3 + 21) / 2);
+  assert.strictEqual(dots[1][0] - dots[0][0], dots[2][0] - dots[1][0]);
+  assert.match(src, /M6 4h12a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-7l-4\.5 3\.5V18H6a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3z/);
+});
