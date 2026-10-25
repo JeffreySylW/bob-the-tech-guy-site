@@ -1692,8 +1692,8 @@ window.BTGHelper = (function () {
   var PRIVACY = 'Chats are answered by an AI service and deleted within 30 days.';
   var PHONES = [['VA', '844-TEKGUY-0', 'tel:+18448354890'], ['NJ', '(862) 210-5656', 'tel:+18622105656']];
   var AREAS = { va: 'Virginia (Chesterfield and greater Richmond)', nj: 'Northern New Jersey' };
-  // The Worker's chat address, filled in once Jeff has deployed it (worker/README.md). Empty = guided chips only.
-  var HELPER_API = '';
+  // The Worker's chat address (worker/, deployed by Jeff 2026-10-25). Empty = guided chips only, the AI switched off.
+  var HELPER_API = 'https://bob-helper.bobthetechguy.workers.dev/chat';
   var MAX_TURNS = 12, MAX_CHARS = 500, MAX_BOT_CHARS = 1200; // the Worker refuses longer chats
   // Starter chips -> a plain line (no diagnosis) and the service pages that fit.
   var TOPICS = [

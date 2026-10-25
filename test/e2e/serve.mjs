@@ -24,7 +24,8 @@ export default function serve(port = 4410) {
         res.writeHead(200, { 'content-type': 'application/json' });
         return res.end(JSON.stringify(failed ? { status: 'mail_failed', message: 'There was an error trying to send your message.' } : { status: 'mail_sent', message: 'Thank you for your message. It has been sent.', posted_data_hash: 'x' }));
       }
-      // Bob's helper phase 2: a stand-in for the Worker. With BTG_HELPER_API set, the bundle's empty HELPER_API is pointed
+      // Bob's helper phase 2: a stand-in for the Worker. The bundle's HELPER_API is always rewritten, to BTG_HELPER_API or to ''
+      // (local tests never reach the live Worker), and with BTG_HELPER_API set it points
       // here; replies are canned by keyword ("price", "error" -> 500, anything else -> Wi-Fi). GET /__helper-log lists the chats.
       if (url.pathname === '/__helper-api' && req.method === 'POST') {
         const chunks = []; for await (const c of req) chunks.push(c);
@@ -44,7 +45,7 @@ export default function serve(port = 4410) {
         if (process.env.BTG_DELAY) await new Promise((r) => setTimeout(r, Number(process.env.BTG_DELAY)));
         let f = await readFile(path.join(root, url.pathname));
         // The bundle builds some addresses itself (service photos, schema logo): point those at the working copy too, as the page HTML is.
-        if (url.pathname.endsWith('.js')) f = Buffer.from(f.toString('utf8').replace(CDN, '/dist/').replace("var HELPER_API = '';", "var HELPER_API = '" + (process.env.BTG_HELPER_API || '') + "';"));
+        if (url.pathname.endsWith('.js')) f = Buffer.from(f.toString('utf8').replace(CDN, '/dist/').replace(/var HELPER_API = '[^']*';/, "var HELPER_API = '" + (process.env.BTG_HELPER_API || '') + "';"));
         const ext = url.pathname.split('.').pop();
         res.writeHead(200, { 'content-type': { css: 'text/css', js: 'application/javascript', jpg: 'image/jpeg', png: 'image/png', webp: 'image/webp' }[ext] || 'application/octet-stream' });
         return res.end(f);

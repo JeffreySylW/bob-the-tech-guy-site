@@ -91,3 +91,7 @@ test('never-say guard: no prices, turnaround, warranty, street address, competit
   assert.doesNotMatch(helperSrc, /gtag|google-analytics|googletagmanager|clarity|fbq|sendBeacon|localStorage|document\.cookie/i);
   assert.doesNotMatch(helperSrc, /geek squad|best buy|staples|ubreakifix|asurion/i);
 });
+
+test('the AI is switched on: HELPER_API is the deployed Worker\'s /chat address (https, workers.dev)', () => {
+  assert.strictEqual(H.HELPER_API, 'https://bob-helper.bobthetechguy.workers.dev/chat');
+});
