@@ -1675,6 +1675,274 @@ window.BTGCards = (function () {
 })();
 
 
+// Bob's helper, phase 1 (2026-10-24, vault "AI Helper"): an "Ask Bob's helper" launcher on every page opens a panel
+// (a bottom sheet on phones). Starter chips lead to service cards built from the site's own DESCRIPTIONS, and an in-chat
+// form files a request through the Contact page's CF7 form 16906, so it reaches Bob's inbox the moment it is sent.
+// No AI yet (phase 2 adds a Worker). Never-say list: prices, diagnoses, turnaround, data-recovery success, warranty.
+// Never the Virginia street address, no competitor names, no analytics.
+window.BTGHelper = (function () {
+  'use strict';
+  var FORM_ID = 16906;
+  var ENDPOINT = '/wp-json/contact-form-7/v1/contact-forms/' + FORM_ID + '/feedback';
+  // The hidden fields the Contact page's own form sends (page 11802, CF7 6.0.6).
+  var CF7_HIDDEN = { _wpcf7: String(FORM_ID), _wpcf7_version: '6.0.6', _wpcf7_locale: 'en_US', _wpcf7_unit_tag: 'wpcf7-f16906-p11802-o1', _wpcf7_container_post: '11802', _wpcf7_posted_data_hash: '' };
+  var MAX_MESSAGE = 2000; // your-message maxlength on form 16906
+  var BOB_EMAIL = 'info@bobthetechguy.com';
+  var PRIVACY = 'Chats are answered by an AI service and deleted within 30 days.';
+  var PHONES = [['VA', '844-TEKGUY-0', 'tel:+18448354890'], ['NJ', '(862) 210-5656', 'tel:+18622105656']];
+  var AREAS = { va: 'Virginia (Chesterfield and greater Richmond)', nj: 'Northern New Jersey' };
+  // Starter chips -> a plain line (no diagnosis) and the service pages that fit.
+  var TOPICS = [
+    { key: 'slow', chip: "It's running slow", label: 'Computer running slow', line: 'Bob can find out what is slowing it down. These services cover a slow computer:', slugs: ['computer-tune-up', 'memory-install', 'remote-support'] },
+    { key: 'virus', chip: 'Virus or pop-ups', label: 'Possible virus or pop-ups', line: 'These services cover viruses, pop-ups and protection:', slugs: ['anti-virus', 'remote-support', 'backup-solutions'] },
+    { key: 'power', chip: "Won't turn on", label: "Computer won't turn on", line: 'Bob checks it to find the cause. These services fit:', slugs: ['hardware-repair-upgrades', 'screen-replacement', 'data-recovery-service'] },
+    { key: 'wifi', chip: 'Wi-Fi trouble', label: 'Wi-Fi or internet trouble', line: 'These services cover Wi-Fi, routers and home networks:', slugs: ['networking', 'remote-support'] },
+    { key: 'files', chip: 'Lost files', label: 'Lost or deleted files', line: 'These services cover lost files and backups:', slugs: ['data-recovery-service', 'backup-solutions'] },
+    { key: 'screen', chip: 'Cracked screen', label: 'Cracked or broken screen', line: 'These services cover cracked and dead screens:', slugs: ['screen-replacement', 'hardware-repair-upgrades'] }
+  ];
+  var CHAT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01"/></svg>';
+  var RESTART_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>';
+  var CLOSE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; });
+  }
+  function topic(key) { return TOPICS.filter(function (t) { return t.key === key; })[0] || null; }
+  // A service card's facts: title and icon from the search data, words from the page's own description.
+  function service(slug) {
+    var url = 'https://bobthetechguy.com/' + slug + '/';
+    var page = (window.BTGSearch ? window.BTGSearch.PAGES : []).filter(function (p) { return p.url === url; })[0];
+    var desc = window.BTGInit && window.BTGInit.DESCRIPTIONS['/' + slug + '/'];
+    if (!page || !desc) return null;
+    return { slug: slug, title: page.title, icon: page.icon, href: '/' + slug + '/', desc: desc };
+  }
+  function cardsFor(key) {
+    var t = topic(key);
+    return t ? t.slugs.map(service).filter(Boolean) : [];
+  }
+  function summaryFor(key, serviceTitle) {
+    var t = topic(key);
+    return (t ? t.label + '.' : '') + (serviceTitle ? (t ? ' ' : '') + 'Interested in: ' + serviceTitle + '.' : '');
+  }
+
+  function digits(s) { return String(s || '').replace(/\D/g, ''); }
+  function validEmail(s) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s); }
+  function validPhone(s) { var d = digits(s); return d.length === 10 || (d.length === 11 && d.charAt(0) === '1'); }
+  // Field errors, keyed by field; an empty object means the request can go.
+  function validate(f) {
+    var e = {}, name = (f.name || '').trim(), email = (f.email || '').trim(), phone = (f.phone || '').trim();
+    if (!name) e.name = 'Please enter your name.';
+    if (email && !validEmail(email)) e.email = 'That email address doesn\'t look right.';
+    if (phone && !validPhone(phone)) e.phone = 'Please enter a 10-digit phone number.';
+    if (!email && !phone) e.contact = 'Please give a phone number or an email address, so Bob can reply.';
+    if (!AREAS[f.area]) e.area = 'Please choose Virginia or New Jersey.';
+    if (!(f.summary || '').trim()) e.summary = 'Please describe the problem in a few words.';
+    return e;
+  }
+  // The four CF7 fields. your-email is required by the form, so a phone-only request carries Bob's own address
+  // there (replying to it reaches Bob, never a stranger) and the subject says to call back.
+  function buildFields(f) {
+    var name = f.name.trim(), email = (f.email || '').trim(), phone = (f.phone || '').trim();
+    var what = f.service || (topic(f.topic) || {}).label || 'General request';
+    var subject = 'Helper request: ' + what + ' (' + f.area.toUpperCase() + ')' + (email ? '' : ' - no email, please call');
+    var head = 'Name: ' + name + '\n' +
+      'Phone: ' + (phone || 'not given') + '\n' +
+      'Email: ' + (email || 'not given, please call') + '\n' +
+      'Area: ' + AREAS[f.area] + '\n' +
+      (f.service ? 'Service: ' + f.service + '\n' : '') +
+      'Sent from Bob\'s helper on the website.\n\n';
+    var summary = f.summary.trim().slice(0, MAX_MESSAGE - head.length);
+    return { 'your-name': name.slice(0, 400), 'your-email': email || BOB_EMAIL, 'your-subject': subject.slice(0, 400), 'your-message': head + summary };
+  }
+  function hoursLine() {
+    return window.BTGHours.footerRows().filter(function (r) { return r[1] !== 'Closed'; }).map(function (r) { return r[0] + ' ' + r[1]; }).join(', ');
+  }
+  // The confirmation; outside Bob's hours it says when he replies (Jeff, 2026-10-24: tickets go at once, any hour).
+  function confirmHtml(name, now) {
+    var first = String(name || '').trim().split(/\s+/)[0];
+    var html = '<p><strong>Thanks' + (first ? ', ' + esc(first) : '') + '. Your request is with Bob.</strong></p>';
+    if (window.BTGHours.isOpen(now)) html += '<p>He will reply by phone or email.</p>';
+    else html += '<p>Bob is out of the office right now and replies during business hours (Eastern Time): ' + esc(hoursLine()) + '.</p>';
+    return html + '<p>Need him sooner? Call ' + phonesHtml() + '.</p>';
+  }
+  function phonesHtml() {
+    return PHONES.map(function (p) { return p[0] + ' <a href="' + p[2] + '">' + p[1] + '</a>'; }).join(' or ');
+  }
+
+  function cardHtml(s) {
+    return '<li class="btg-hp-card"><span class="btg-search-ico btg-card--' + s.icon + '" aria-hidden="true"></span>' +
+      '<div class="btg-hp-card-body"><strong class="btg-hp-card-title">' + esc(s.title) + '</strong><p>' + esc(s.desc) + '</p>' +
+      '<div class="btg-hp-card-row"><a class="btg-hp-more" href="' + s.href + '">Read more<span class="btg-hp-sr"> about ' + esc(s.title) + '</span></a>' +
+      '<button type="button" class="btg-hp-request" data-service="' + esc(s.title) + '">Request this service</button></div></div></li>';
+  }
+  function formHtml(summary, n) {
+    var id = function (k) { return 'btg-hp-' + k + '-' + n; };
+    return '<form class="btg-hp-form" novalidate>' +
+      '<h3 class="btg-hp-form-title">Send Bob a request</h3>' +
+      '<label for="' + id('name') + '">Name</label><input id="' + id('name') + '" name="name" type="text" autocomplete="name" maxlength="100" required aria-describedby="' + id('e-name') + '">' +
+      '<p class="btg-hp-err" data-for="name" id="' + id('e-name') + '" hidden></p>' +
+      '<p class="btg-hp-hint">A phone number or an email address (at least one):</p>' +
+      '<div class="btg-hp-two"><div><label for="' + id('phone') + '">Phone</label><input id="' + id('phone') + '" name="phone" type="tel" autocomplete="tel" maxlength="30" aria-describedby="' + id('e-phone') + ' ' + id('e-contact') + '"></div>' +
+      '<div><label for="' + id('email') + '">Email</label><input id="' + id('email') + '" name="email" type="email" autocomplete="email" maxlength="100" aria-describedby="' + id('e-email') + ' ' + id('e-contact') + '"></div></div>' +
+      ['phone', 'email', 'contact'].map(function (k) { return '<p class="btg-hp-err" data-for="' + k + '" id="' + id('e-' + k) + '" hidden></p>'; }).join('') +
+      '<fieldset class="btg-hp-area"><legend>Where are you?</legend>' +
+      '<label><input type="radio" name="area" value="va"> Virginia</label><label><input type="radio" name="area" value="nj"> New Jersey</label></fieldset>' +
+      '<p class="btg-hp-err" data-for="area" hidden></p>' +
+      '<label for="' + id('summary') + '">What\'s going on? <span class="btg-hp-opt">(edit as you like)</span></label>' +
+      '<textarea id="' + id('summary') + '" name="summary" rows="4" maxlength="1500" required aria-describedby="' + id('e-summary') + '">' + esc(summary) + '</textarea>' +
+      '<p class="btg-hp-err" data-for="summary" id="' + id('e-summary') + '" hidden></p>' +
+      '<p class="btg-hp-fine">Please don\'t include passwords or card numbers. Bob gives prices once he has looked at the job.</p>' +
+      '<button type="submit" class="btg-hp-send">Send to Bob</button>' +
+      '<p class="btg-hp-err btg-hp-fail" role="alert" hidden></p></form>';
+  }
+  function panelHtml() {
+    return '<div class="btg-hp-head"><span class="btg-hp-badge" aria-hidden="true">B</span>' +
+      '<div class="btg-hp-titles"><h2 class="btg-hp-title" id="btg-hp-title">Bob\'s helper</h2><span>Answers from bobthetechguy.com</span></div>' +
+      '<button type="button" class="btg-hp-icon btg-hp-restart" aria-label="Start over">' + RESTART_ICON + '</button>' +
+      '<button type="button" class="btg-hp-icon btg-hp-close" aria-label="Close helper">' + CLOSE_ICON + '</button></div>' +
+      '<div class="btg-hp-log" aria-live="polite"></div>' +
+      '<div class="btg-hp-foot"><p class="btg-hp-phones">Call Bob: ' + PHONES.map(function (p) { return p[0] + ' <a href="' + p[2] + '">' + p[1] + '</a>'; }).join(' · ') + '</p>' +
+      '<p class="btg-hp-privacy">' + PRIVACY + '</p></div>';
+  }
+
+  function init(doc, win) {
+    if (!doc.body || doc.querySelector('.btg-hp-launch')) return false;
+    var launch = doc.createElement('button');
+    launch.type = 'button';
+    launch.className = 'btg-hp-launch';
+    launch.setAttribute('aria-controls', 'btg-hp-panel');
+    launch.setAttribute('aria-expanded', 'false');
+    launch.innerHTML = CHAT_ICON + '<span>Ask Bob\'s helper</span>';
+    var panel = doc.createElement('section');
+    panel.className = 'btg-hp-panel';
+    panel.id = 'btg-hp-panel';
+    panel.setAttribute('role', 'dialog');
+    panel.setAttribute('aria-labelledby', 'btg-hp-title');
+    panel.hidden = true;
+    panel.innerHTML = panelHtml();
+    doc.body.appendChild(launch);
+    doc.body.appendChild(panel);
+    var log = panel.querySelector('.btg-hp-log'), state = { topic: null }, forms = 0;
+
+    function add(cls, html) {
+      var el = doc.createElement('div');
+      el.className = cls;
+      el.innerHTML = html;
+      log.appendChild(el);
+      log.scrollTop = log.scrollHeight;
+      return el;
+    }
+    function bot(html) { return add('btg-hp-msg btg-hp-bot', html); }
+    function me(text) { return add('btg-hp-msg btg-hp-me', esc(text)); }
+    function chips(list) {
+      var box = add('btg-hp-chips', list.map(function (c, i) { return '<button type="button" data-i="' + i + '">' + esc(c[0]) + '</button>'; }).join(''));
+      box.addEventListener('click', function (e) {
+        var b = e.target.closest('button');
+        if (!b) return;
+        log.removeChild(box);
+        list[Number(b.getAttribute('data-i'))][1]();
+      });
+      return box;
+    }
+    function starters() {
+      chips(TOPICS.map(function (t) { return [t.chip, function () { me(t.chip); pick(t.key); }]; })
+        .concat([['Something else', function () { me('Something else'); state.topic = null; request(null); }]]));
+    }
+    function pick(key) {
+      state.topic = key;
+      bot('<p>' + esc(topic(key).line) + '</p>');
+      var list = add('btg-hp-cards-wrap', '<ul class="btg-hp-cards">' + cardsFor(key).map(cardHtml).join('') + '</ul>');
+      list.addEventListener('click', function (e) {
+        var b = e.target.closest('.btg-hp-request');
+        if (!b) return;
+        me('Request ' + b.getAttribute('data-service'));
+        request(b.getAttribute('data-service'));
+      });
+      chips([['Send Bob a request', function () { me('Send Bob a request'); request(null); }], ['Something else', function () { me('Something else'); restart(true); }]]);
+    }
+    function request(serviceTitle) {
+      bot('<p>I can send this to Bob. Fill in the form and he gets it by email right away.</p>');
+      var wrap = add('btg-hp-form-wrap', formHtml(summaryFor(state.topic, serviceTitle), ++forms));
+      var form = wrap.querySelector('form');
+      form.querySelector('[name=name]').focus({ preventScroll: true });
+      wrap.scrollIntoView && wrap.scrollIntoView({ block: 'start' });
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var area = form.querySelector('[name=area]:checked');
+        var f = { name: form.elements.name.value, phone: form.elements.phone.value, email: form.elements.email.value,
+          area: area ? area.value : '', summary: form.elements.summary.value, topic: state.topic, service: serviceTitle };
+        var errs = validate(f), first = null;
+        [].forEach.call(form.querySelectorAll('.btg-hp-err[data-for]'), function (p) {
+          var k = p.getAttribute('data-for');
+          p.hidden = !errs[k];
+          p.textContent = errs[k] || '';
+        });
+        ['name', 'phone', 'email', 'summary'].forEach(function (k) {
+          var bad = !!errs[k] || (errs.contact && (k === 'phone' || k === 'email'));
+          form.elements[k].setAttribute('aria-invalid', String(bad));
+          if (bad && !first) first = form.elements[k];
+        });
+        if (!first && errs.area) first = form.querySelector('[name=area]');
+        if (first) { first.focus(); return; }
+        send(form, buildFields(f), f.name);
+      });
+    }
+    function send(form, fields, name) {
+      var btn = form.querySelector('.btg-hp-send'), fail = form.querySelector('.btg-hp-fail');
+      var body = new win.FormData();
+      Object.keys(CF7_HIDDEN).forEach(function (k) { body.append(k, CF7_HIDDEN[k]); });
+      Object.keys(fields).forEach(function (k) { body.append(k, fields[k]); });
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+      fail.hidden = true;
+      win.fetch(ENDPOINT, { method: 'POST', body: body, credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (!res || res.status !== 'mail_sent') throw new Error(res && res.status);
+          var wrap = form.parentNode;
+          wrap.parentNode.removeChild(wrap);
+          bot(confirmHtml(name, new Date()));
+          chips([['Start over', function () { restart(false); }]]);
+        })
+        .catch(function () {
+          btn.disabled = false;
+          btn.textContent = 'Send to Bob';
+          fail.innerHTML = 'Sorry, that didn\'t go through. Please try again, or call ' + phonesHtml() + '.';
+          fail.hidden = false;
+        });
+    }
+    function restart(keep) {
+      if (!keep) log.innerHTML = '';
+      state.topic = null;
+      bot(keep ? '<p>Sure. Pick another topic:</p>' : '<p>Hi! I\'m Bob\'s helper. Pick what\'s going on and I\'ll point you to the right service, or send Bob a request.</p>');
+      starters();
+    }
+    function open() {
+      launch.hidden = true;
+      panel.hidden = false;
+      launch.setAttribute('aria-expanded', 'true');
+      doc.documentElement.classList.add('btg-hp-open');
+      if (!log.childElementCount) restart(false);
+      var focus = log.querySelector('.btg-hp-chips button') || panel.querySelector('.btg-hp-close');
+      focus.focus({ preventScroll: true });
+    }
+    function close() {
+      panel.hidden = true;
+      launch.hidden = false;
+      launch.setAttribute('aria-expanded', 'false');
+      doc.documentElement.classList.remove('btg-hp-open');
+      launch.focus({ preventScroll: true });
+    }
+    launch.addEventListener('click', open);
+    panel.querySelector('.btg-hp-close').addEventListener('click', close);
+    panel.querySelector('.btg-hp-restart').addEventListener('click', function () { restart(false); var b = log.querySelector('.btg-hp-chips button'); if (b) b.focus(); });
+    panel.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    return true;
+  }
+  return { TOPICS: TOPICS, PRIVACY: PRIVACY, ENDPOINT: ENDPOINT, CF7_HIDDEN: CF7_HIDDEN, MAX_MESSAGE: MAX_MESSAGE, cardsFor: cardsFor,
+    summaryFor: summaryFor, validate: validate, buildFields: buildFields, confirmHtml: confirmHtml, init: init };
+})();
+
 (function () {
   // Guards against the Node test environment's minimal `document` stub,
   // which has no querySelector/readyState/addEventListener — this file is
@@ -1741,6 +2009,7 @@ window.BTGCards = (function () {
     safely(function () { window.BTGZone.init(document, window); });
     safely(function () { window.BTGVet.init(document, window); });
     safely(function () { window.BTGCards.init(document, window); });
+    safely(function () { window.BTGHelper.init(document, window); });
     // Reveals the header and page area the loader's inline style kept hidden until now.
     document.documentElement.classList.add('btg-ready');
     // Avada builds its mobile menu clone and the Twitter script adds its iframe after DOMContentLoaded.

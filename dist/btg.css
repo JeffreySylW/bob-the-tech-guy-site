@@ -1552,3 +1552,77 @@ body div.wpcr3_dotline, body div.wpcr3_review div.wpcr3_dotline { display: none 
 .btg-bob-intro { grid-template-columns: 1fr !important; gap: 24px; }
 .btg-bob-photo { max-width: 320px; }
 .btg-bob-photo .btg-vet-wrap { margin: 0; }
+
+/* Bob's helper, phase 1 (2026-10-24): launcher bottom-right on every page, a panel on desktop, a bottom sheet on phones.
+   Dark header, light card body, brand green buttons (the site's own tokens). Above Leaflet's panes (z-index up to 1000). */
+.btg-hp-launch { position: fixed; right: 20px; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); z-index: 9990; display: inline-flex; align-items: center; gap: 9px;
+  margin: 0; background: var(--btg-bg-1); color: #fff; border: 2px solid var(--btg-green); border-radius: var(--btg-radius-pill); padding: 11px 18px 11px 14px;
+  font: 700 15px/1.2 var(--btg-font-body); letter-spacing: 0; text-transform: none; cursor: pointer; box-shadow: 0 8px 24px rgba(0, 0, 0, .45); }
+.btg-hp-launch svg { width: 20px; height: 20px; color: var(--btg-green-light); flex: none; }
+.btg-hp-launch:hover { background: var(--btg-bg-2); }
+.btg-hp-launch[hidden], .btg-hp-panel[hidden] { display: none !important; }
+.btg-hp-panel { position: fixed; right: 20px; bottom: 20px; z-index: 9991; width: 390px; height: min(600px, calc(100vh - 40px)); display: flex; flex-direction: column;
+  background: var(--btg-card-bg); color: var(--btg-text); border-radius: 14px; overflow: hidden; box-shadow: 0 18px 50px rgba(0, 0, 0, .55);
+  font: 15px/1.45 var(--btg-font-body); text-align: left; }
+.btg-hp-panel *, .btg-hp-panel *::before, .btg-hp-panel *::after { box-sizing: border-box; }
+.btg-hp-head { background: var(--btg-bg-1); color: #fff; padding: 12px 10px 12px 16px; display: flex; align-items: center; gap: 10px; flex: none; }
+.btg-hp-badge { width: 34px; height: 34px; border-radius: 50%; background: var(--btg-green-link); display: grid; place-items: center; font: 700 16px/1 var(--btg-font-head); color: #fff; flex: none; }
+.btg-hp-titles { flex: 1; min-width: 0; }
+.btg-hp-panel .btg-hp-title { margin: 0; padding: 0; font: 700 16px/1.25 var(--btg-font-head); color: #fff; letter-spacing: 0; text-transform: none; }
+.btg-hp-titles span { display: block; font-size: 12.5px; color: #b9c2b3; }
+.btg-hp-panel .btg-hp-icon { width: 36px; height: 36px; margin: 0; padding: 0; border-radius: 8px; border: 0; background: transparent; color: #cfd6ca; cursor: pointer; display: grid; place-items: center; flex: none; }
+.btg-hp-panel .btg-hp-icon:hover { background: var(--btg-bg-2); color: #fff; }
+.btg-hp-icon svg { width: 18px; height: 18px; }
+.btg-hp-log { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.btg-hp-msg { max-width: 90%; padding: 9px 12px; border-radius: 12px; font-size: 15px; line-height: 1.45; }
+.btg-hp-msg p { margin: 0; padding: 0; }
+.btg-hp-msg p + p { margin-top: 6px; }
+.btg-hp-bot { background: #fff; border: 1px solid var(--btg-card-border); border-bottom-left-radius: 4px; align-self: flex-start; }
+.btg-hp-me { background: var(--btg-bg-1); color: #fff; border-bottom-right-radius: 4px; align-self: flex-end; }
+.btg-hp-panel a { color: var(--btg-green-link); font-weight: 700; text-decoration: underline; }
+.btg-hp-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.btg-hp-panel .btg-hp-chips button { margin: 0; font: 700 14px/1.2 var(--btg-font-body); color: #2c5e25; background: #fff; border: 1.5px solid var(--btg-green); border-radius: var(--btg-radius-pill); padding: 8px 12px; cursor: pointer; text-transform: none; letter-spacing: 0; }
+.btg-hp-panel .btg-hp-chips button:hover { background: var(--btg-green-tint); }
+.btg-hp-panel .btg-hp-cards { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.btg-hp-panel .btg-hp-card { margin: 0; padding: 10px; display: flex; gap: 10px; background: #fff; border: 1px solid var(--btg-card-border); border-radius: var(--btg-radius-md); }
+.btg-hp-card-body { min-width: 0; flex: 1; }
+.btg-hp-card-title { display: block; font: 700 15px/1.25 var(--btg-font-head); }
+.btg-hp-card p { margin: 3px 0 0; font-size: 13.5px; line-height: 1.4; color: var(--btg-text-muted); }
+.btg-hp-card-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: 8px; }
+.btg-hp-panel .btg-hp-more { font-size: 14px; }
+.btg-hp-panel .btg-hp-request, .btg-hp-panel .btg-hp-send { margin: 0; font: 700 14px/1.2 var(--btg-font-body); background: var(--btg-green-link); color: #fff; border: 0; border-radius: 8px; padding: 9px 12px; cursor: pointer; text-transform: none; letter-spacing: 0; }
+.btg-hp-panel .btg-hp-request:hover, .btg-hp-panel .btg-hp-send:hover { background: #2c5e25; }
+.btg-hp-panel .btg-hp-send[disabled] { opacity: .7; cursor: progress; }
+.btg-hp-form { background: #fff; border: 1px solid var(--btg-card-border); border-radius: 12px; padding: 12px; display: grid; gap: 6px; }
+.btg-hp-panel .btg-hp-form-title { margin: 0 0 2px; padding: 0; font: 700 16px/1.25 var(--btg-font-head); color: var(--btg-text); letter-spacing: 0; text-transform: none; }
+.btg-hp-form label, .btg-hp-form legend { font-size: 13.5px; font-weight: 700; color: var(--btg-text); margin: 0; padding: 0; }
+.btg-hp-opt { font-weight: 400; color: var(--btg-text-muted); }
+.btg-hp-panel .btg-hp-form input[type=text], .btg-hp-panel .btg-hp-form input[type=tel], .btg-hp-panel .btg-hp-form input[type=email], .btg-hp-panel .btg-hp-form textarea {
+  display: block; width: 100%; height: auto; min-height: 0; margin: 2px 0 0; font: 15px/1.35 var(--btg-font-body); color: var(--btg-text); background: #fff;
+  border: 1px solid #b9c2b3; border-radius: 7px; padding: 8px 9px; box-shadow: none; color-scheme: light; }
+.btg-hp-panel .btg-hp-form textarea { resize: vertical; min-height: 90px; }
+.btg-hp-panel .btg-hp-form [aria-invalid=true] { border-color: #9b2c2c; }
+.btg-hp-panel .btg-hp-form input:focus-visible, .btg-hp-panel .btg-hp-form textarea:focus-visible, .btg-hp-panel button:focus-visible, .btg-hp-panel a:focus-visible, .btg-hp-launch:focus-visible {
+  outline: 3px solid var(--btg-green-light); outline-offset: 2px; }
+.btg-hp-two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.btg-hp-hint { margin: 4px 0 0; font-size: 13px; color: var(--btg-text-muted); }
+.btg-hp-area { margin: 4px 0 0; padding: 0; border: 0; display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.btg-hp-area legend { width: 100%; margin-bottom: 2px; }
+.btg-hp-form .btg-hp-area label { display: inline-flex; align-items: center; gap: 6px; font-weight: 400; font-size: 15px; cursor: pointer; }
+.btg-hp-area input { margin: 0; width: 16px; height: 16px; accent-color: var(--btg-green-link); }
+.btg-hp-err { margin: 0; font-size: 13px; font-weight: 700; color: #9b2c2c; }
+.btg-hp-fine { margin: 2px 0 0; font-size: 12.5px; line-height: 1.35; color: var(--btg-text-muted); }
+.btg-hp-foot { flex: none; border-top: 1px solid var(--btg-card-border); background: #fff; padding: 9px 12px calc(9px + env(safe-area-inset-bottom, 0px)); text-align: center; }
+.btg-hp-foot p { margin: 0; padding: 0; line-height: 1.35; }
+.btg-hp-phones { font-size: 14px; color: var(--btg-text); }
+.btg-hp-panel .btg-hp-phones a { white-space: nowrap; }
+.btg-hp-foot .btg-hp-privacy { margin-top: 3px; font-size: 12px; color: var(--btg-text-muted); }
+.btg-hp-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+@media (max-width: 600px) {
+  .btg-hp-launch { right: 14px; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); padding: 10px 15px 10px 12px; font-size: 14.5px; }
+  .btg-hp-panel { left: 0; right: 0; bottom: 0; width: auto; height: 88vh; height: 88dvh; border-radius: 16px 16px 0 0; }
+  .btg-hp-two { grid-template-columns: 1fr; }
+  /* 16px keeps iOS from zooming into the field */
+  .btg-hp-panel .btg-hp-form input[type=text], .btg-hp-panel .btg-hp-form input[type=tel], .btg-hp-panel .btg-hp-form input[type=email], .btg-hp-panel .btg-hp-form textarea { font-size: 16px; }
+}
+@media print { .btg-hp-launch, .btg-hp-panel { display: none !important; } }

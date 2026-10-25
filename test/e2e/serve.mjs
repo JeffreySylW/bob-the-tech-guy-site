@@ -9,9 +9,22 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const CDN = /https:\/\/cdn\.jsdelivr\.net\/gh\/JeffreySylW\/bob-the-tech-guy-site@v[0-9.]+\/dist\//g;
 
 export default function serve(port = 4410) {
+  const cf7Posts = [];
   const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, 'http://x');
     try {
+      // Bob's helper posts requests to CF7 form 16906. Locally they land here and never reach the live form:
+      // GET /__cf7 lists what was posted; a name containing FAIL gets mail_failed back.
+      if (url.pathname === '/wp-json/contact-form-7/v1/contact-forms/16906/feedback' && req.method === 'POST') {
+        const chunks = []; for await (const c of req) chunks.push(c);
+        const form = await new Request('http://x/', { method: 'POST', headers: { 'content-type': req.headers['content-type'] }, body: Buffer.concat(chunks) }).formData();
+        const fields = Object.fromEntries(form.entries());
+        cf7Posts.push(fields);
+        const failed = /FAIL/.test(fields['your-name'] || '');
+        res.writeHead(200, { 'content-type': 'application/json' });
+        return res.end(JSON.stringify(failed ? { status: 'mail_failed', message: 'There was an error trying to send your message.' } : { status: 'mail_sent', message: 'Thank you for your message. It has been sent.', posted_data_hash: 'x' }));
+      }
+      if (url.pathname === '/__cf7') { res.writeHead(200, { 'content-type': 'application/json' }); return res.end(JSON.stringify(cf7Posts)); }
       if (url.pathname.startsWith('/dist/')) {
         if (process.env.BTG_DELAY) await new Promise((r) => setTimeout(r, Number(process.env.BTG_DELAY)));
         let f = await readFile(path.join(root, url.pathname));
