@@ -19,6 +19,7 @@ for (const [w, h, m] of [[1440, 900, false], [390, 844, true]]) {
   const b = await launch({ width: w, height: h, mobile: m });
   for (const page of ['/', '/contact-2/', '/computer-tune-up/', '/northern-new-jersey/', '/about/']) {
     await b.goto(BASE + page); await b.sleep(600);
+    for (let t = 0; t < 30 && !(await b.evalJs(`!!document.querySelector('.btg-hp-launch')`)); t++) await b.sleep(100); // a cold first load can lag
     check(`${w} ${page}: one launcher, bottom-right, labelled "Ask Bob's helper"`, await b.evalJs(`(() => { const l = document.querySelectorAll('.btg-hp-launch'); if (l.length !== 1) return false; const r = l[0].getBoundingClientRect();
       return l[0].innerText.trim() === "Ask Bob's helper" && innerWidth - r.right <= 24 && innerHeight - r.bottom <= 24 && r.width > 100 && getComputedStyle(l[0]).position === 'fixed'; })()`));
   }

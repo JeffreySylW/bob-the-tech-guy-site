@@ -1678,7 +1678,8 @@ window.BTGCards = (function () {
 // Bob's helper, phase 1 (2026-10-24, vault "AI Helper"): an "Ask Bob's helper" launcher on every page opens a panel
 // (a bottom sheet on phones). Starter chips lead to service cards built from the site's own DESCRIPTIONS, and an in-chat
 // form files a request through the Contact page's CF7 form 16906, so it reaches Bob's inbox the moment it is sent.
-// No AI yet (phase 2 adds a Worker). Never-say list: prices, diagnoses, turnaround, data-recovery success, warranty.
+// Phase 2 (2026-10-25): when HELPER_API is set, a text box sends the chat to our Cloudflare Worker (worker/), which asks
+// Claude (Haiku 5.5) and returns a short reply plus service slugs; the guided chips keep working without it. Never-say list: prices, diagnoses, turnaround, data-recovery success, warranty.
 // Never the Virginia street address, no competitor names, no analytics.
 window.BTGHelper = (function () {
   'use strict';
@@ -1691,6 +1692,9 @@ window.BTGHelper = (function () {
   var PRIVACY = 'Chats are answered by an AI service and deleted within 30 days.';
   var PHONES = [['VA', '844-TEKGUY-0', 'tel:+18448354890'], ['NJ', '(862) 210-5656', 'tel:+18622105656']];
   var AREAS = { va: 'Virginia (Chesterfield and greater Richmond)', nj: 'Northern New Jersey' };
+  // The Worker's chat address, filled in once Jeff has deployed it (worker/README.md). Empty = guided chips only.
+  var HELPER_API = '';
+  var MAX_TURNS = 12, MAX_CHARS = 500, MAX_BOT_CHARS = 1200; // the Worker refuses longer chats
   // Starter chips -> a plain line (no diagnosis) and the service pages that fit.
   var TOPICS = [
     { key: 'slow', chip: "It's running slow", label: 'Computer running slow', line: 'Bob can find out what is slowing it down. These services cover a slow computer:', slugs: ['computer-tune-up', 'memory-install', 'remote-support'] },
@@ -1702,6 +1706,7 @@ window.BTGHelper = (function () {
   ];
   var CHAT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01"/></svg>';
   var RESTART_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>';
+  var SEND_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
   var CLOSE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 
   function esc(s) {
@@ -1724,6 +1729,18 @@ window.BTGHelper = (function () {
     var t = topic(key);
     return (t ? t.label + '.' : '') + (serviceTitle ? (t ? ' ' : '') + 'Interested in: ' + serviceTitle + '.' : '');
   }
+
+  // The chat the Worker sees: alternating turns, starting and ending with the visitor. Two turns in a row from the same
+  // side (a chip, then typed text) are joined, and every turn is cut to the Worker's limits.
+  function pushTurn(history, role, text) {
+    var last = history[history.length - 1], max = role === 'user' ? MAX_CHARS : MAX_BOT_CHARS;
+    text = String(text).trim();
+    if (!text) return history;
+    if (last && last.role === role) last.content = (last.content + '\n' + text).slice(-max);
+    else if (role === 'user' || history.length) history.push({ role: role, content: text.slice(0, max) });
+    return history;
+  }
+  function userTurns(history) { return history.filter(function (m) { return m.role === 'user'; }).length; }
 
   function digits(s) { return String(s || '').replace(/\D/g, ''); }
   function validEmail(s) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s); }
@@ -1795,18 +1812,24 @@ window.BTGHelper = (function () {
       '<button type="submit" class="btg-hp-send">Send to Bob</button>' +
       '<p class="btg-hp-err btg-hp-fail" role="alert" hidden></p></form>';
   }
-  function panelHtml() {
+  function askHtml() {
+    return '<form class="btg-hp-ask"><label class="btg-hp-sr" for="btg-hp-q">Describe the problem or ask a question</label>' +
+      '<input id="btg-hp-q" name="q" type="text" maxlength="' + MAX_CHARS + '" autocomplete="off" placeholder="Or type your question…">' +
+      '<button type="submit" aria-label="Send">' + SEND_ICON + '</button></form>';
+  }
+  function panelHtml(ai) {
     return '<div class="btg-hp-head"><span class="btg-hp-badge" aria-hidden="true">B</span>' +
       '<div class="btg-hp-titles"><h2 class="btg-hp-title" id="btg-hp-title">Bob\'s helper</h2><span>Answers from bobthetechguy.com</span></div>' +
       '<button type="button" class="btg-hp-icon btg-hp-restart" aria-label="Start over">' + RESTART_ICON + '</button>' +
       '<button type="button" class="btg-hp-icon btg-hp-close" aria-label="Close helper">' + CLOSE_ICON + '</button></div>' +
       '<div class="btg-hp-log" aria-live="polite"></div>' +
-      '<div class="btg-hp-foot"><p class="btg-hp-phones">Call Bob: ' + PHONES.map(function (p) { return p[0] + ' <a href="' + p[2] + '">' + p[1] + '</a>'; }).join(' · ') + '</p>' +
+      '<div class="btg-hp-foot">' + (ai ? askHtml() : '') + '<p class="btg-hp-phones">Call Bob: ' + PHONES.map(function (p) { return p[0] + ' <a href="' + p[2] + '">' + p[1] + '</a>'; }).join(' · ') + '</p>' +
       '<p class="btg-hp-privacy">' + PRIVACY + '</p></div>';
   }
 
   function init(doc, win) {
     if (!doc.body || doc.querySelector('.btg-hp-launch')) return false;
+    var ai = !!HELPER_API && typeof win.fetch === 'function';
     var launch = doc.createElement('button');
     launch.type = 'button';
     launch.className = 'btg-hp-launch';
@@ -1819,10 +1842,11 @@ window.BTGHelper = (function () {
     panel.setAttribute('role', 'dialog');
     panel.setAttribute('aria-labelledby', 'btg-hp-title');
     panel.hidden = true;
-    panel.innerHTML = panelHtml();
+    panel.innerHTML = panelHtml(ai);
     doc.body.appendChild(launch);
     doc.body.appendChild(panel);
-    var log = panel.querySelector('.btg-hp-log'), state = { topic: null }, forms = 0;
+    var log = panel.querySelector('.btg-hp-log'), state = { topic: null, history: [], aiSummary: '' }, forms = 0;
+    var askForm = panel.querySelector('.btg-hp-ask'), askInput = askForm && askForm.querySelector('input');
 
     function add(cls, html) {
       var el = doc.createElement('div');
@@ -1848,24 +1872,68 @@ window.BTGHelper = (function () {
       chips(TOPICS.map(function (t) { return [t.chip, function () { me(t.chip); pick(t.key); }]; })
         .concat([['Something else', function () { me('Something else'); state.topic = null; request(null); }]]));
     }
-    function pick(key) {
-      state.topic = key;
-      bot('<p>' + esc(topic(key).line) + '</p>');
-      var list = add('btg-hp-cards-wrap', '<ul class="btg-hp-cards">' + cardsFor(key).map(cardHtml).join('') + '</ul>');
+    function showCards(cards) {
+      if (!cards.length) return;
+      var list = add('btg-hp-cards-wrap', '<ul class="btg-hp-cards">' + cards.map(cardHtml).join('') + '</ul>');
       list.addEventListener('click', function (e) {
         var b = e.target.closest('.btg-hp-request');
         if (!b) return;
         me('Request ' + b.getAttribute('data-service'));
         request(b.getAttribute('data-service'));
       });
+    }
+    function nextSteps() {
       chips([['Send Bob a request', function () { me('Send Bob a request'); request(null); }], ['Something else', function () { me('Something else'); restart(true); }]]);
+    }
+    function pick(key) {
+      var t = topic(key);
+      state.topic = key;
+      pushTurn(state.history, 'user', t.chip);
+      pushTurn(state.history, 'assistant', t.line);
+      bot('<p>' + esc(t.line) + '</p>');
+      showCards(cardsFor(key));
+      nextSteps();
+    }
+    // Free text (phase 2): the whole chat goes to the Worker; contact details are stripped there before Claude sees it.
+    function askAi(text) {
+      [].forEach.call(log.querySelectorAll('.btg-hp-chips'), function (c) { log.removeChild(c); });
+      me(text);
+      pushTurn(state.history, 'user', text);
+      var typing = add('btg-hp-typing', '<span class="btg-hp-sr">Bob\'s helper is typing</span><i></i><i></i><i></i>');
+      askInput.disabled = true;
+      win.fetch(HELPER_API, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ messages: state.history }) })
+        .then(function (r) { return r.json(); })
+        .then(function (a) {
+          if (!a || typeof a.reply !== 'string') throw new Error('no reply');
+          return a;
+        })
+        .catch(function () {
+          return { reply: 'Sorry, I can\'t answer right now. You can still send Bob a request, or call him.', services: [], offer_request: true, summary: '', failed: true };
+        })
+        .then(function (a) {
+          log.removeChild(typing);
+          bot('<p>' + esc(a.reply) + '</p>' + (a.failed ? '<p>Call ' + phonesHtml() + '.</p>' : ''));
+          // A failed turn leaves the chat ending with the visitor, so the next question is joined to it.
+          if (!a.failed) pushTurn(state.history, 'assistant', a.reply);
+          if (a.summary) state.aiSummary = String(a.summary).slice(0, 300);
+          showCards((a.services || []).map(service).filter(Boolean).slice(0, 3));
+          if (a.offer_request || (a.services || []).length) nextSteps();
+          if (userTurns(state.history) >= MAX_TURNS) {
+            askInput.placeholder = 'Chat limit reached. Send Bob a request or call.';
+          } else {
+            askInput.disabled = false;
+            askInput.focus({ preventScroll: true });
+          }
+        });
     }
     function request(serviceTitle) {
       bot('<p>I can send this to Bob. Fill in the form and he gets it by email right away.</p>');
-      var wrap = add('btg-hp-form-wrap', formHtml(summaryFor(state.topic, serviceTitle), ++forms));
+      var summary = state.aiSummary ? state.aiSummary + (serviceTitle ? ' Interested in: ' + serviceTitle + '.' : '') : summaryFor(state.topic, serviceTitle);
+      var wrap = add('btg-hp-form-wrap', formHtml(summary, ++forms));
       var form = wrap.querySelector('form');
       form.querySelector('[name=name]').focus({ preventScroll: true });
-      wrap.scrollIntoView && wrap.scrollIntoView({ block: 'start' });
+      // Scroll only the chat log to the form's top (scrollIntoView would also scroll the panel and hide its header).
+      log.scrollTop += wrap.getBoundingClientRect().top - log.getBoundingClientRect().top - 8;
       form.addEventListener('submit', function (e) {
         e.preventDefault();
         var area = form.querySelector('[name=area]:checked');
@@ -1912,9 +1980,16 @@ window.BTGHelper = (function () {
         });
     }
     function restart(keep) {
-      if (!keep) log.innerHTML = '';
+      if (!keep) {
+        log.innerHTML = '';
+        state.history = [];
+        state.aiSummary = '';
+        if (askInput) { askInput.disabled = false; askInput.placeholder = 'Or type your question…'; }
+      }
       state.topic = null;
-      bot(keep ? '<p>Sure. Pick another topic:</p>' : '<p>Hi! I\'m Bob\'s helper. Pick what\'s going on and I\'ll point you to the right service, or send Bob a request.</p>');
+      bot(keep ? '<p>Sure. Pick another topic' + (ai ? ' or type your question below' : '') + ':</p>' :
+        ai ? '<p>Hi! I\'m Bob\'s AI helper. Pick what\'s going on or type your question below, and I\'ll point you to the right service or send Bob a request.</p>' :
+        '<p>Hi! I\'m Bob\'s helper. Pick what\'s going on and I\'ll point you to the right service, or send Bob a request.</p>');
       starters();
     }
     function open() {
@@ -1937,10 +2012,17 @@ window.BTGHelper = (function () {
     panel.querySelector('.btg-hp-close').addEventListener('click', close);
     panel.querySelector('.btg-hp-restart').addEventListener('click', function () { restart(false); var b = log.querySelector('.btg-hp-chips button'); if (b) b.focus(); });
     panel.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    if (askForm) askForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var q = askInput.value.trim();
+      if (!q || askInput.disabled) return;
+      askInput.value = '';
+      askAi(q);
+    });
     return true;
   }
   return { TOPICS: TOPICS, PRIVACY: PRIVACY, ENDPOINT: ENDPOINT, CF7_HIDDEN: CF7_HIDDEN, MAX_MESSAGE: MAX_MESSAGE, cardsFor: cardsFor,
-    summaryFor: summaryFor, validate: validate, buildFields: buildFields, confirmHtml: confirmHtml, init: init };
+    summaryFor: summaryFor, validate: validate, buildFields: buildFields, confirmHtml: confirmHtml, pushTurn: pushTurn, HELPER_API: HELPER_API, init: init };
 })();
 
 (function () {
