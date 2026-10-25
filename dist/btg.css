@@ -1643,4 +1643,10 @@ body div.wpcr3_dotline, body div.wpcr3_review div.wpcr3_dotline { display: none 
 }
 @keyframes btg-hp-dot { 0%, 80%, 100% { opacity: .3; } 40% { opacity: 1; } }
 @media (max-width: 600px) { .btg-hp-panel .btg-hp-ask input { font-size: 16px; } }
+/* The helper and the page's own corner: Avada's back-to-top arrow (#toTop: fixed bottom-right, z-index 10000, styled by
+   its own id rule and inline display) sits above the launcher instead of on it and hides while the panel is open, and the
+   footer's bottom bar gets room so no link (e.g. Instagram) ends up under the launcher when scrolled to the end. */
+html #toTop { bottom: 84px !important; }
+html.btg-hp-open #toTop { display: none !important; }
+.fusion-footer .fusion-footer-copyright-area { padding-bottom: 84px !important; }
 @media print { .btg-hp-launch, .btg-hp-panel { display: none !important; } }

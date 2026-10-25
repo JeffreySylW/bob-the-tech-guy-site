@@ -19,6 +19,18 @@ const Answer = z.object({
   summary: z.string(),
 });
 
+// A second, in-memory limit per visitor IP. The Rate Limiting binding counts per Cloudflare location and syncs lazily, and
+// in the 2026-10-25 risk review 72 quick requests from one IP never got a 429. This one holds within each Worker isolate.
+const hits = new Map();
+export function localLimit(ip, now = Date.now(), max = 20, windowMs = 60000) {
+  if (hits.size > 5000) hits.clear();
+  const recent = (hits.get(ip) || []).filter((t) => now - t < windowMs);
+  if (recent.length >= max) { hits.set(ip, recent); return false; }
+  recent.push(now);
+  hits.set(ip, recent);
+  return true;
+}
+
 const FALLBACK = { reply: "Sorry, I can't answer right now. You can still send Bob a request below, or call 844-TEKGUY-0 (Virginia) or (862) 210-5656 (New Jersey).", services: [], offer_request: true, summary: '' };
 
 function json(body, status, origin) {
@@ -83,8 +95,10 @@ export async function handle(request, env, deps = {}) {
   }
   if (request.method !== 'POST') return json({ error: 'method' }, 405, ok);
   if (!ok) return json({ error: 'origin' }, 403, '');
+  const ip = request.headers.get('cf-connecting-ip') || 'unknown';
+  if (!localLimit(ip)) return json({ error: 'rate_limited' }, 429, ok);
   if (env.RATE_LIMITER) {
-    const { success } = await env.RATE_LIMITER.limit({ key: request.headers.get('cf-connecting-ip') || 'unknown' });
+    const { success } = await env.RATE_LIMITER.limit({ key: ip });
     if (!success) return json({ error: 'rate_limited' }, 429, ok);
   }
   const raw = await request.text();

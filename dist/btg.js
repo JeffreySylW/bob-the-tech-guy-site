@@ -1845,7 +1845,8 @@ window.BTGHelper = (function () {
     panel.innerHTML = panelHtml(ai);
     doc.body.appendChild(launch);
     doc.body.appendChild(panel);
-    var log = panel.querySelector('.btg-hp-log'), state = { topic: null, history: [], aiSummary: '' }, forms = 0;
+    // state.gen changes on "Start over", so an answer that arrives afterwards is dropped instead of landing in the new chat.
+    var log = panel.querySelector('.btg-hp-log'), state = { topic: null, history: [], aiSummary: '', gen: 0 }, forms = 0;
     var askForm = panel.querySelector('.btg-hp-ask'), askInput = askForm && askForm.querySelector('input');
 
     function add(cls, html) {
@@ -1900,8 +1901,10 @@ window.BTGHelper = (function () {
       me(text);
       pushTurn(state.history, 'user', text);
       var typing = add('btg-hp-typing', '<span class="btg-hp-sr">Bob\'s helper is typing</span><i></i><i></i><i></i>');
+      var gen = state.gen, ctl = typeof win.AbortController === 'function' ? new win.AbortController() : null;
+      var timer = ctl && win.setTimeout(function () { ctl.abort(); }, 25000); // a hung network ends in the fallback line, not endless dots
       askInput.disabled = true;
-      win.fetch(HELPER_API, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ messages: state.history }) })
+      win.fetch(HELPER_API, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ messages: state.history }), signal: ctl ? ctl.signal : undefined })
         .then(function (r) { return r.json(); })
         .then(function (a) {
           if (!a || typeof a.reply !== 'string') throw new Error('no reply');
@@ -1911,7 +1914,9 @@ window.BTGHelper = (function () {
           return { reply: 'Sorry, I can\'t answer right now. You can still send Bob a request, or call him.', services: [], offer_request: true, summary: '', failed: true };
         })
         .then(function (a) {
-          log.removeChild(typing);
+          if (timer) win.clearTimeout(timer);
+          if (gen !== state.gen) return;
+          if (typing.parentNode) typing.parentNode.removeChild(typing);
           bot('<p>' + esc(a.reply) + '</p>' + (a.failed ? '<p>Call ' + phonesHtml() + '.</p>' : ''));
           // A failed turn leaves the chat ending with the visitor, so the next question is joined to it.
           if (!a.failed) pushTurn(state.history, 'assistant', a.reply);
@@ -1968,19 +1973,22 @@ window.BTGHelper = (function () {
         .then(function (res) {
           if (!res || res.status !== 'mail_sent') throw new Error(res && res.status);
           var wrap = form.parentNode;
-          wrap.parentNode.removeChild(wrap);
+          if (wrap && wrap.parentNode) wrap.parentNode.removeChild(wrap);
           bot(confirmHtml(name, new Date()));
           chips([['Start over', function () { restart(false); }]]);
         })
         .catch(function () {
+          var msg = 'Sorry, that didn\'t go through. Please try again, or call ' + phonesHtml() + '.';
           btn.disabled = false;
           btn.textContent = 'Send to Bob';
-          fail.innerHTML = 'Sorry, that didn\'t go through. Please try again, or call ' + phonesHtml() + '.';
+          fail.innerHTML = msg;
           fail.hidden = false;
+          if (!log.contains(form)) bot('<p>' + msg + '</p>'); // the chat was restarted while it was sending
         });
     }
     function restart(keep) {
       if (!keep) {
+        state.gen++;
         log.innerHTML = '';
         state.history = [];
         state.aiSummary = '';

@@ -10,6 +10,7 @@ const results = [];
 const check = (name, ok, info = '') => { results.push(!!ok); console.log((ok ? 'ok   ' : 'FAIL ') + name + (info ? '  ' + info : '')); };
 const ask = (q) => `(() => { const i = document.querySelector('#btg-hp-q'); i.value = ${JSON.stringify(q)}; i.form.requestSubmit(); return true; })()`;
 const lastBot = `[...document.querySelectorAll('.btg-hp-bot')].pop().innerText`;
+const waitReply = async (b) => { await b.sleep(150); for (let t = 0; t < 80 && await b.evalJs(`!!document.querySelector('.btg-hp-typing')`); t++) await b.sleep(50); await b.sleep(100); };
 
 // Without a Worker address (today's bundle) there is no question box: phase 1 only.
 let server = await serve(PORT);
@@ -32,7 +33,7 @@ for (const [w, h, m] of [[1440, 900, false], [390, 844, true]]) {
 
   const before = (await chats()).length;
   await b.evalJs(`[...document.querySelectorAll('.btg-hp-chips button')][3].click()`); await b.sleep(150); // Wi-Fi chip
-  await b.evalJs(ask('My wifi keeps dropping every evening, call me 804-555-0100')); await b.sleep(900);
+  await b.evalJs(ask('My wifi keeps dropping every evening, call me 804-555-0100')); await waitReply(b);
   const sent = (await chats())[before];
   check(w + ' the chip and the typed question go to the Worker as one alternating chat', sent && JSON.stringify(sent.messages.map((x) => x.role)) === '["user","assistant","user"]' &&
     sent.messages[0].content === 'Wi-Fi trouble' && /keeps dropping/.test(sent.messages[2].content), JSON.stringify(sent && sent.messages));
@@ -44,9 +45,9 @@ for (const [w, h, m] of [[1440, 900, false], [390, 844, true]]) {
   await b.evalJs(`[...document.querySelectorAll('.btg-hp-cards-wrap')].pop().querySelector('.btg-hp-request').click()`); await b.sleep(150);
   check(w + ' request form pre-filled with the AI summary and the chosen service', await b.evalJs(`[...document.querySelectorAll('.btg-hp-form')].pop().elements.summary.value === 'Wi-Fi keeps dropping in the evening. Interested in: Networking.'`));
 
-  await b.evalJs(ask('this will error')); await b.sleep(700);
+  await b.evalJs(ask('this will error')); await waitReply(b);
   check(w + ' Worker error: apology plus both phone numbers, request chips, box usable', await b.evalJs(`(() => { const t = ${lastBot}; return /can't answer right now/.test(t) && /844-TEKGUY-0/.test(t) && /210-5656/.test(t) && !!document.querySelector('.btg-hp-chips') && !document.querySelector('#btg-hp-q').disabled; })()`));
-  await b.evalJs(ask('how much does a tune up cost')); await b.sleep(700);
+  await b.evalJs(ask('how much does a tune up cost')); await waitReply(b);
   const last = (await chats()).pop();
   check(w + ' after an error the next question is joined to the unanswered one (chat stays alternating)', last.messages.every((x, i) => x.role === (i % 2 ? 'assistant' : 'user')) && /this will error\nhow much/.test(last.messages.slice(-1)[0].content));
   check(w + ' price question: the no-price line', await b.evalJs(`${lastBot} === 'Bob gives a price once he has looked at the job.'`));

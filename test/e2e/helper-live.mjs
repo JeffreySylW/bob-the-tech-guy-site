@@ -14,7 +14,7 @@ const files = { 'btg.js': ['application/javascript', readFileSync(path.join(root
 const lastBot = `[...document.querySelectorAll('.btg-hp-bot')].pop().innerText`;
 const waitReply = async (b) => { for (let t = 0; t < 120 && await b.evalJs(`!!document.querySelector('.btg-hp-typing')`); t++) await b.sleep(250); };
 
-for (const [w, h, m] of [[1440, 900, false], [390, 844, true]]) {
+for (const [w, h, m] of [[1440, 900, false], [1024, 768, false], [390, 844, true]]) {
   const b = await launch({ width: w, height: h, mobile: m });
   const swapped = [], posts = [];
   await b.send('Fetch.enable', { patterns: [{ urlPattern: '*cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@*/dist/btg.*' }] });
@@ -28,8 +28,21 @@ for (const [w, h, m] of [[1440, 900, false], [390, 844, true]]) {
   b.on('Network.requestWillBeSent', (p) => { if (p.request.method === 'POST') posts.push(p.request.url); });
   await b.goto('https://bobthetechguy.com/?btg-helper-check=' + Date.now()); await b.sleep(1500);
   check(w + ' the page ran this working copy of btg.js and btg.css', swapped.includes('btg.js') && swapped.includes('btg.css'), swapped.join(','));
+  // Clearance (risk review 2026-10-25): scrolled to the end, no link sits under the launcher, and Avada's back-to-top arrow
+  // (desktop only) stays clear of it.
+  await b.evalJs(`window.scrollTo(0, document.documentElement.scrollHeight)`); await b.sleep(1500);
+  const under = await b.evalJs(`(() => { const L = document.querySelector('.btg-hp-launch'), r = L.getBoundingClientRect(), T = document.querySelector('#toTop');
+    L.style.visibility = 'hidden'; if (T) T.style.visibility = 'hidden';
+    const hit = new Set(); for (let x = r.left; x <= r.right; x += 8) for (let y = r.top; y <= r.bottom; y += 6) { const e = document.elementFromPoint(x, y), a = e && e.closest('a,button,input,textarea,select'); if (a) hit.add((a.innerText || a.getAttribute('aria-label') || a.tagName).trim().slice(0, 40)); }
+    L.style.visibility = ''; if (T) T.style.visibility = ''; return [...hit]; })()`);
+  check(w + ' scrolled to the end: no link or button under the launcher', under.length === 0, JSON.stringify(under));
+  const arrow = await b.evalJs(`(() => { const T = document.querySelector('#toTop'); if (!T || getComputedStyle(T).display === 'none' || !T.offsetWidth) return 'none';
+    const a = T.getBoundingClientRect(), l = document.querySelector('.btg-hp-launch').getBoundingClientRect();
+    return (a.bottom <= l.top || a.top >= l.bottom || a.right <= l.left || a.left >= l.right) ? 'clear' : 'overlaps'; })()`);
+  check(w + ' back-to-top arrow clear of the launcher (or not shown)', arrow !== 'overlaps', arrow);
   await b.evalJs(`document.querySelector('.btg-hp-launch').click()`); await b.sleep(200);
   check(w + ' question box shown (HELPER_API set)', await b.evalJs(`!!document.querySelector('#btg-hp-q')`));
+  check(w + ' back-to-top arrow hidden while the panel is open', await b.evalJs(`(() => { const T = document.querySelector('#toTop'); return !T || getComputedStyle(T).display === 'none'; })()`));
   await b.evalJs(`(() => { const i = document.querySelector('#btg-hp-q'); i.value = 'My laptop is really slow and full of pop-ups'; i.form.requestSubmit(); })()`);
   await waitReply(b);
   const reply = await b.evalJs(lastBot);

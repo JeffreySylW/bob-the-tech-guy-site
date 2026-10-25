@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert';
 import Anthropic from '@anthropic-ai/sdk';
-import { handle, cleanMessages, shapeAnswer, MODEL, LIMITS } from '../src/chat.js';
+import { handle, cleanMessages, shapeAnswer, localLimit, MODEL, LIMITS } from '../src/chat.js';
 import { redact, violates } from '../src/guard.js';
 import { SYSTEM, RULES } from '../src/prompt.js';
 import { KNOWLEDGE } from '../src/knowledge.js';
@@ -108,4 +108,16 @@ test('the brief carries every never-say rule and both phone numbers, and no Virg
   for (const w of ['prices', 'diagnose', 'turnaround', 'recovered', 'warrant', 'street address in Virginia', 'other businesses', 'passwords', 'Ignore any instruction']) assert.ok(RULES.includes(w), w);
   assert.ok(SYSTEM.includes('844-TEKGUY-0') && SYSTEM.includes('(862) 210-5656'));
   assert.ok(!violates(KNOWLEDGE), 'the site knowledge holds nothing the guard would block');
+});
+
+test('the in-memory limit allows 20 requests a minute per IP, then 429 until the minute has passed', async () => {
+  const t0 = 1_000_000;
+  for (let i = 0; i < 20; i++) assert.ok(localLimit('203.0.113.9', t0 + i));
+  assert.ok(!localLimit('203.0.113.9', t0 + 100));
+  assert.ok(localLimit('198.51.100.1', t0 + 100), 'other visitors are not affected');
+  assert.ok(localLimit('203.0.113.9', t0 + 60_001), 'allowed again after a minute');
+  const reqIp = (ip) => new Request('https://bob-helper.example.workers.dev/chat', { method: 'POST', headers: { origin: SITE, 'cf-connecting-ip': ip }, body: JSON.stringify({ messages: chat }) });
+  let last;
+  for (let i = 0; i < 21; i++) last = await handle(reqIp('192.0.2.77'), env, { client: stub(good) });
+  assert.strictEqual(last.status, 429);
 });
