@@ -24,6 +24,8 @@ for (const [w, h, mobile] of [[1440, 900, false], [390, 844, true]]) {
     await b.goto(`http://localhost:4498/${page}/`); await b.sleep(3000);
     const r = JSON.parse(await b.evalJs(`JSON.stringify((() => { const i = document.querySelector('.btg-photo-fig img'); if (!i) return null; const q = i.getBoundingClientRect(); return { file: i.src.split('/').pop(), loaded: i.complete && i.naturalWidth > 0, natural: i.naturalWidth + 'x' + i.naturalHeight, declared: i.width + 'x' + i.height, right: q.right, visible: q.width > 60 && q.height > 60, scrollOk: document.documentElement.scrollWidth <= innerWidth, count: document.querySelectorAll('.btg-photo-fig').length }; })())`) || 'null');
     check(`${w} ${page}: shows ${file}, loaded, once`, !!r && r.file === file && r.loaded && r.count === 1, r ? `${r.natural}` : 'no photo');
+    const noFace = await b.evalJs(`(() => { const h = document.querySelector('.btg-hero'); return !!h && !document.querySelector('.btg-hero-face') && h.getBoundingClientRect().height > 120; })()`);
+    check(`${w} ${page}: the dark hero has no Bob face (and still renders)`, noFace);
     check(`${w} ${page}: photo is visible and the page does not scroll sideways`, !!r && r.visible && r.scrollOk && r.right <= w);
     const p = JSON.parse(await b.evalJs(`JSON.stringify((() => { const f = document.querySelector('.btg-photo-fig'), s = document.querySelector('.btg-split'), c = s && s.querySelector('.btg-include-card'); if (!f) return null; return { parent: f.parentElement.className, wrap: f.classList.contains('btg-photo-fig--wrap'), row: !!document.querySelector('.btg-photo-row'), cardFull: !c || c.getBoundingClientRect().width >= s.getBoundingClientRect().width * 0.95 }; })())`) || 'null');
     const want = PLACEMENT[page];

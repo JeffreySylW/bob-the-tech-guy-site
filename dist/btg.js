@@ -931,12 +931,8 @@ window.BTGBob = (function () {
   var PORTRAIT = 'https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@v1.5.9/dist/brand/bob-portrait.jpg';
   var ALT = 'Bob Dyer, Bob the Tech Guy';
   function faceHtml() { return '<img class="btg-hero-face" src="' + PORTRAIT + '" alt="' + ALT + '" width="88" height="88">'; }
-  function facePaths() {
-    var paths = ['/', '/contact-2/'];
-    window.BTGSearch.PAGES.forEach(function (p) { if (p.type === 'SERVICE') paths.push(p.url.replace('https://bobthetechguy.com', '')); });
-    return paths;
-  }
-  // Home, Contact and the service pages get Bob's face above the hero heading.
+  function facePaths() { return ['/', '/contact-2/']; }
+  // Home and Contact get Bob's face above the hero heading; service pages don't (it repeated on all of them).
   function initHero(doc, win) {
     var path = win.location.pathname || '/';
     if (path.charAt(path.length - 1) !== '/') path += '/';

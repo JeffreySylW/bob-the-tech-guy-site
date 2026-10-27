@@ -28,13 +28,13 @@ function fakeDoc() {
   const hero = { html: '', querySelector(s) { return s === '.btg-hero-face' && this.html ? {} : null; }, insertAdjacentHTML(where, h) { assert.strictEqual(where, 'afterbegin'); this.html += h; } };
   return { hero, doc: { querySelector: (s) => (s === '.btg-hero' ? hero : null) } };
 }
-test('initHero() adds the face on the home page, contact and service pages only', () => {
-  for (const p of ['/', '/contact-2/', '/networking/', '/anti-virus/', '/software-installation-and-configuration/']) {
+test('initHero() adds the face on the home page and Contact only, not on service pages', () => {
+  for (const p of ['/', '/contact-2/']) {
     const f = fakeDoc();
     assert.strictEqual(B.initHero(f.doc, { location: { pathname: p } }), true, p);
     assert.match(f.hero.html, /btg-hero-face/);
   }
-  for (const p of ['/about/', '/gallery/', '/testimonials/', '/search/', '/customer-log-in/', '/pc-repair-service-wyckoff-new-jersey/']) {
+  for (const p of ['/about/', '/gallery/', '/testimonials/', '/search/', '/customer-log-in/', '/pc-repair-service-wyckoff-new-jersey/', '/networking/', '/anti-virus/', '/software-installation-and-configuration/', '/memory-install/']) {
     const f = fakeDoc();
     assert.strictEqual(B.initHero(f.doc, { location: { pathname: p } }), false, p);
     assert.strictEqual(f.hero.html, '');
