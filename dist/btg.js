@@ -1011,7 +1011,7 @@ window.BTGBob = (function () {
       (photo.focus ? ' style="object-position: ' + photo.focus + '"' : '') + '>';
     var text = /(^|\s)btg-split(\s|$)/.test(next.className) && next.querySelector('.btg-split-text');
     if (text) {
-      // Split layouts: the photo floats first in the intro text so the text wraps around it (larger on stacked pages).
+      // Split layouts: the photo goes first in the intro text: above it on two-column pages, floated so the text wraps on stacked ones.
       if (/btg-split--stacked/.test(next.className)) fig.className += ' btg-photo-fig--wrap';
       text.insertBefore(fig, text.firstChild);
       return true;

@@ -23,7 +23,7 @@ const SUBJECT = {
   'screen-replacement': { x: [0, 600], y: [65, 420] }, // the cracked screen (its sides are already cut off in Bob's photo)
   'memory-install': { x: [45, 600], y: [410, 660] }, // the RAM stick
   'operating-system-install': { x: [0, 600], y: [130, 470] }, // the blue error screen
-  'hardware-install': { x: [300, 600], y: [100, 460] }, // the PSU plugs and label
+  'hardware-install': { x: [0, 600], y: [100, 460] }, // the sleeved cables, the PSU plugs and the Corsair name (the label's lower half may crop)
   'computer-tune-up': { x: [195, 545], y: [150, 490] }, // the dusty fan
 };
 
