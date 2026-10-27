@@ -946,18 +946,19 @@ window.BTGBob = (function () {
   // Bob's newer shop photos (2026-10-17) replaced the 2013 ones; the base is the tag where they first shipped.
   // v1.8.18 re-cut the home page's gaming rig (soft edges), so the base moved to that tag (it holds every earlier photo too).
   var PHOTO_BASE = 'https://cdn.jsdelivr.net/gh/JeffreySylW/bob-the-tech-guy-site@v1.8.21/dist/brand/photos/';
+  // The 5th value aims the 3:2 frame at what matters in the photo (object-position; Jeff, 2026-10-27).
   var PHOTOS = {
     '/hardware-repair-upgrades/': ['bob-repairing-pc.jpg', 'Bob Dyer repairing a computer', 476, 635],
-    '/hardware-install/': ['psu-install.jpg', 'Power supply cables inside a computer case during an installation', 600, 800],
-    '/memory-install/': ['memory-ram.jpg', 'A memory (RAM) module ready to be installed', 600, 800],
-    '/operating-system-install/': ['system-error.jpg', 'A desktop computer showing a blue-screen error', 600, 800],
-    '/screen-replacement/': ['broken-screen.jpg', 'A laptop with a cracked screen', 600, 600],
+    '/hardware-install/': ['psu-install.jpg', 'Power supply cables inside a computer case during an installation', 600, 800, '50% 18%'],
+    '/memory-install/': ['memory-ram.jpg', 'A memory (RAM) module ready to be installed', 600, 800, '50% 82%'],
+    '/operating-system-install/': ['system-error.jpg', 'A desktop computer showing a blue-screen error', 600, 800, '50% 25%'],
+    '/screen-replacement/': ['broken-screen.jpg', 'A laptop with a cracked screen', 600, 600, '50% 25%'],
     '/computer-tune-up/': ['laptop-fan.jpg', 'The cooling fan inside a laptop', 800, 600]
   };
   function photoFor(path) {
     if (path.charAt(path.length - 1) !== '/') path += '/';
     var p = PHOTOS[path];
-    return p ? { src: PHOTO_BASE + p[0], alt: p[1], width: p[2], height: p[3] } : null;
+    return p ? { src: PHOTO_BASE + p[0], alt: p[1], width: p[2], height: p[3], focus: p[4] || '' } : null;
   }
   // About page: Bob's Marine photos (2026-10-17) go right after the paragraph about his years in the Corps.
   var MARINE = [
@@ -1006,7 +1007,8 @@ window.BTGBob = (function () {
     if (!photo || !next || doc.querySelector('.btg-photo-fig')) return false;
     var fig = doc.createElement('figure');
     fig.className = 'btg-photo-fig';
-    fig.innerHTML = '<img src="' + photo.src + '" alt="' + photo.alt + '" width="' + photo.width + '" height="' + photo.height + '">';
+    fig.innerHTML = '<img src="' + photo.src + '" alt="' + photo.alt + '" width="' + photo.width + '" height="' + photo.height + '"' +
+      (photo.focus ? ' style="object-position: ' + photo.focus + '"' : '') + '>';
     var text = /(^|\s)btg-split(\s|$)/.test(next.className) && next.querySelector('.btg-split-text');
     if (text) {
       // Split layouts: the photo floats first in the intro text so the text wraps around it (larger on stacked pages).

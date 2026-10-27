@@ -40,9 +40,14 @@ test('split-layout pages get the photo inside the text column, not a third colum
   assert.match(css, /\.btg-photo-fig--wrap \{[^}]*float: right;/);
 });
 
-test('on the two-column pages the photo floats inside the intro text (placed first so the text wraps)', () => {
+// 2026-10-27 (Jeff): the two-column intro is too narrow to wrap beside a wide photo, so it sits first, above the text, up to 400px.
+test('on the two-column pages the photo sits first in the intro text, above it, up to 400px wide', () => {
   assert.match(js, /text\.insertBefore\(fig, text\.firstChild\)/);
-  assert.match(css, /\.btg-split:not\(\.btg-split--stacked\) \.btg-split-text \.btg-photo-fig \{[^}]*float: right;[^}]*width: 160px;/);
+  assert.match(css, /\.btg-split:not\(\.btg-split--stacked\) \.btg-split-text \.btg-photo-fig \{[^}]*max-width: 400px;/);
+});
+test('photoFor() aims the frame at the subject where the photo needs it', () => {
+  assert.strictEqual(B.photoFor('/memory-install/').focus, '50% 82%');
+  assert.strictEqual(B.photoFor('/computer-tune-up/').focus, '');
 });
 
 // initPhoto() on a tiny fake page: hero, then the split block (className as given), with an intro text column.
