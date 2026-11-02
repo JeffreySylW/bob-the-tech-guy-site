@@ -2033,6 +2033,184 @@ window.BTGHelper = (function () {
     summaryFor: summaryFor, validate: validate, buildFields: buildFields, confirmHtml: confirmHtml, pushTurn: pushTurn, HELPER_API: HELPER_API, init: init };
 })();
 
+
+// Bob's monthly offer (2026-11-02, vault "Ad Pop-up"): style A pop-up (centred, see-through, 40% dim under the helper
+// launcher on desktop/tablet; a see-through bottom card on phones) and style D, a "Current offer" strip at the top of the footer.
+// Every offer is 10% off any service, one at a time. New customers first; once seen, the season's offer (if one is running).
+// Seen offers live in localStorage only (no cookies, nothing sent); storage blocked = no pop-up. One pop-up per visit.
+// Windows repeat every year (month, day; inclusive) and must not overlap. Wording beyond Bob's "10%" is sample, for Bob to confirm.
+window.BTGOffer = (function () {
+  'use strict';
+  var SEEN = 'btg-offer-seen', VISIT = 'btg-offer-visit', DELAY = 8000; // Jeff 2026-11-02: "lets do like 8 seconds"
+  var HREF = '/contact-2/#btg-request'; // open question for Bob: 844 number, Contact, a service page or the helper's form
+  var FINE = 'Can’t be combined with other discounts';
+  var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  var OFFERS = [
+    { key: 'new', kicker: 'New customers', title: '10% off your first service', button: 'Book a service',
+      body: 'First time with Bob The Tech Guy? Take 10% off any service. Mention this offer when you call or book.' },
+    { key: 'spring', from: [3, 1], to: [4, 30], kicker: 'Spring cleaning', title: '10% off a spring PC cleanup', button: 'Book a cleanup',
+      body: 'Or put it toward any service of your choice. Mention this offer when you call or book.' },
+    { key: 'fall', from: [9, 15], to: [11, 15], kicker: 'Fall clean-up', title: '10% off a fall clean-up', button: 'Book a clean-up',
+      body: 'Or put it toward any service of your choice. Get running smoothly before winter.' },
+    { key: 'holiday', from: [11, 20], to: [12, 31], kicker: 'Holiday', title: '10% off a new-computer setup', button: 'Book a setup',
+      body: 'Or put it toward any service of your choice. Bob sets it up and gets you connected.' }
+  ];
+  var SVG = function (body, extra) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"' + (extra || '') + '>' + body + '</svg>'; };
+  var FLAKE = '<path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M9 3.5l3 2.5 3-2.5M9 20.5l3-2.5 3 2.5"/>';
+  var ICONS = {
+    new: SVG('<path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/>'),
+    spring: SVG('<circle cx="12" cy="7.5" r="3.5"/><path d="M12 11v10M12 16c-2-1.5-4-1.5-5.5-.5M12 18.5c2-1.5 4-1.5 5.5-.5"/>'),
+    fall: SVG('<path d="M5 19c0-8 5-14 15-15-1 10-7 15-15 15z"/><path d="M5 19l8-8"/>'),
+    holiday: SVG(FLAKE)
+  };
+  // Decorations: [kind, inline position]. They sit only in empty corners and edges, never behind text (e2e checks it).
+  var LEAF = function (c) { return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2c4 3 7 7 6 12-1 4-4 6-6 8-2-2-5-4-6-8-1-5 2-9 6-12z" fill="' + c + '"/><path d="M12 6v16" stroke="rgba(0,0,0,.35)"/></svg>'; };
+  var BLOSSOM = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="#f4a7c0"><circle cx="12" cy="6.5" r="4"/><circle cx="17.2" cy="10.3" r="4"/><circle cx="15.2" cy="16.4" r="4"/><circle cx="8.8" cy="16.4" r="4"/><circle cx="6.8" cy="10.3" r="4"/></g><circle cx="12" cy="12" r="2.6" fill="#f6d36b"/></svg>';
+  var PIECES = {
+    flake: SVG(FLAKE), leafA: LEAF('#d9822b'), leafB: LEAF('#c0532a'), leafC: LEAF('#e0a43a'), sprout: LEAF('#7cc46b'), blossom: BLOSSOM
+  };
+  var ORN = { red: '#d23b3b', gold: '#e2b93b', green: '#3f9b40', blue: '#3a78c9' };
+  var DECOR = {
+    spring: { box: [['blossom', 'left:31%;top:16px;width:30px'], ['sprout', 'left:46%;top:36px;width:16px'], ['blossom', 'left:58%;top:12px;width:26px'], ['sprout', 'left:70%;top:42px;width:14px'],
+                    ['blossom', 'right:62px;bottom:46px;width:22px'], ['blossom', 'right:26px;bottom:22px;width:34px'], ['sprout', 'right:120px;bottom:22px;width:15px']],
+              card: [['blossom', 'right:64px;bottom:20px;width:22px'], ['blossom', 'right:18px;bottom:30px;width:30px'], ['sprout', 'right:100px;bottom:34px;width:14px']],
+              strip: [['blossom', 'left:10%;top:18%;width:26px'], ['sprout', 'left:46%;top:55%;width:16px'], ['blossom', 'left:72%;top:20%;width:22px'], ['sprout', 'left:30%;top:68%;width:14px']],
+              dim: [['sprout', 'left:16%;top:30%;width:20px'], ['sprout', 'left:29%;top:22%;width:16px'], ['sprout', 'left:62%;top:24%;width:18px'], ['sprout', 'left:76%;top:55%;width:16px'], ['sprout', 'left:94%;top:41%;width:18px'], ['sprout', 'left:12%;top:83%;width:12px']] },
+    fall: { box: [['leafA', 'left:34%;top:18px;width:26px;transform:rotate(-30deg)'], ['leafC', 'left:52%;top:38px;width:20px;transform:rotate(40deg)'], ['leafB', 'left:68%;top:14px;width:24px;transform:rotate(15deg)'],
+                  ['leafA', 'right:28px;bottom:24px;width:32px;transform:rotate(20deg)'], ['leafB', 'right:84px;bottom:44px;width:22px;transform:rotate(-40deg)'], ['leafC', 'right:130px;bottom:18px;width:18px;transform:rotate(70deg)']],
+            card: [['leafB', 'right:84px;bottom:36px;width:18px;transform:rotate(-30deg)'], ['leafA', 'right:22px;bottom:18px;width:28px;transform:rotate(25deg)']],
+            strip: [['leafB', 'left:6%;top:24%;width:28px;transform:rotate(-30deg)'], ['leafA', 'left:58%;top:2%;width:34px;transform:rotate(20deg)'], ['leafC', 'left:36%;top:64%;width:22px'], ['leafC', 'left:82%;top:70%;width:20px;transform:rotate(50deg)']],
+            dim: [['leafA', 'left:14%;top:28%;width:22px;transform:rotate(-20deg)'], ['leafC', 'left:80%;top:22%;width:18px;transform:rotate(30deg)'], ['leafB', 'left:88%;top:62%;width:20px;transform:rotate(-50deg)'], ['leafA', 'left:9%;top:78%;width:16px;transform:rotate(60deg)']] },
+    holiday: { box: [['orn-red', 'left:30%;--len:22px'], ['orn-gold', 'left:40%;--len:12px'], ['orn-green', 'left:50%;--len:32px'], ['orn-blue', 'left:60%;--len:16px'], ['orn-red', 'left:70%;--len:24px'],
+                     ['flake', 'right:30px;bottom:30px;width:26px'], ['flake', 'right:110px;bottom:22px;width:18px'], ['flake', 'right:74px;bottom:52px;width:15px']],
+               card: [['orn-red', 'right:96px;top:auto;bottom:40px;--len:14px'], ['orn-gold', 'right:64px;top:auto;bottom:40px;--len:20px'], ['orn-green', 'right:32px;top:auto;bottom:40px;--len:10px'], ['flake', 'right:12px;bottom:62px;width:14px']],
+               strip: [['orn-red', 'left:8%;--len:14px'], ['orn-gold', 'left:30%;--len:6px'], ['orn-green', 'left:52%;--len:18px'], ['orn-blue', 'left:74%;--len:8px'], ['flake', 'left:12%;top:62%;width:16px'], ['flake', 'left:62%;top:58%;width:20px']],
+               dim: [['flake', 'left:6%;top:28%;width:20px'], ['flake', 'left:42%;top:20%;width:22px'], ['flake', 'left:69%;top:25%;width:20px'], ['flake', 'left:82%;top:24%;width:16px'],
+                     ['flake', 'left:94%;top:40%;width:22px'], ['flake', 'left:73%;top:54%;width:18px'], ['flake', 'left:93%;top:56%;width:22px'], ['flake', 'left:14%;top:93%;width:22px'], ['flake', 'left:86%;top:64%;width:18px']] }
+  };
+  var CAP = '<span class="btg-od-cap"></span>';
+  var CLOSE = SVG('<path d="M6 6l12 12M18 6L6 18"/>', ' stroke-width="2"');
+
+  function md(m, d) { return m * 100 + d; }
+  function season(now) {
+    var t = md(now.getMonth() + 1, now.getDate());
+    return OFFERS.filter(function (o) { return o.from && md(o.from[0], o.from[1]) <= t && t <= md(o.to[0], o.to[1]); })[0] || null;
+  }
+  // A season offer's id carries the year, so last year's fall clean-up doesn't hide this year's.
+  function withId(o, now) { return Object.assign({ id: o.from ? o.key + '-' + now.getFullYear() : o.key }, o); }
+  // popup: the first offer this visitor hasn't seen (new customers first), or null. strip: the same, else the latest one running.
+  function choose(now, seen) {
+    var s = season(now), list = [withId(OFFERS[0], now)].concat(s ? [withId(s, now)] : []);
+    var next = list.filter(function (o) { return seen.indexOf(o.id) === -1; })[0] || null;
+    return { popup: next, strip: next || list[list.length - 1] };
+  }
+  function fineText(o) { return (o.to ? 'Ends ' + MONTHS[o.to[0] - 1] + ' ' + o.to[1] : 'First-time customers') + ' · ' + FINE; }
+  function skipPath(path) { return /^\/contact-2\/?$/.test(path || ''); } // Jeff 2026-11-02: "have it skip the contact page"
+  function parseSeen(text) {
+    try { var a = JSON.parse(text); return Array.isArray(a) ? a.filter(function (x) { return typeof x === 'string'; }) : []; } catch (e) { return []; }
+  }
+
+  function decorHtml(key, where) {
+    var d = DECOR[key];
+    if (!d) return '';
+    return (key === 'holiday' && where !== 'dim' ? CAP : '') + (d[where] || []).map(function (p) {
+      if (p[0].indexOf('orn-') === 0) return '<span class="btg-od-orn" style="' + p[1] + '"><i style="background-color:' + ORN[p[0].slice(4)] + '"></i></span>';
+      return '<span class="btg-od-piece" style="' + p[1] + '">' + PIECES[p[0]] + '</span>';
+    }).join('');
+  }
+  function textHtml(o, titleTag, idAttr, kicker) {
+    return '<p class="btg-offer-kicker">' + kicker + '</p>' +
+      '<' + titleTag + ' class="btg-offer-title"' + idAttr + '>' + o.title + '</' + titleTag + '>' +
+      '<p class="btg-offer-body">' + o.body + '</p><p class="btg-offer-fine">' + fineText(o) + '</p>';
+  }
+  function boxHtml(o, phone) {
+    return '<div class="btg-offer-decor" aria-hidden="true">' + decorHtml(o.key, phone ? 'card' : 'box') + '</div>' +
+      '<button type="button" class="btg-offer-x" aria-label="Close offer">' + CLOSE + '</button>' +
+      '<span class="btg-offer-ico" aria-hidden="true">' + ICONS[o.key] + '</span>' +
+      '<div class="btg-offer-text">' + textHtml(o, 'h2', ' id="btg-offer-title"', o.kicker) +
+      '<p class="btg-offer-acts"><a class="btg-offer-go" href="' + HREF + '">' + o.button + '</a>' +
+      (phone ? '' : '<button type="button" class="btg-offer-later">Maybe later</button>') + '</p></div>';
+  }
+  function stripHtml(o) {
+    return '<div class="btg-offer-decor" aria-hidden="true">' + (o.key === 'holiday' ? CAP : '') + '</div>' +
+      '<span class="btg-offer-ico" aria-hidden="true">' + ICONS[o.key] + '</span>' +
+      '<div class="btg-offer-text">' + textHtml(o, 'p', '', 'Current offer · ' + o.kicker) + '</div>' +
+      '<div class="btg-offer-art" aria-hidden="true">' + decorHtml(o.key, 'strip').replace(CAP, '') + '</div>' +
+      '<a class="btg-offer-go" href="' + HREF + '">' + o.button + '</a>';
+  }
+
+  function init(doc, win) {
+    if (!doc.body || doc.querySelector('.btg-offer-strip')) return false;
+    var now = new Date(), store = null, seen = [];
+    try { store = { l: win.localStorage, s: win.sessionStorage }; seen = parseSeen(store.l.getItem(SEEN)); if (store.s.getItem(VISIT)) store = null; } catch (e) { store = null; }
+    var c = choose(now, seen), row = doc.querySelector('.fusion-footer-widget-area > .fusion-row');
+    if (row) {
+      var strip = doc.createElement('aside');
+      strip.className = 'btg-offer-strip btg-offer--' + c.strip.key;
+      strip.setAttribute('aria-label', 'Current offer');
+      strip.innerHTML = stripHtml(c.strip);
+      row.insertBefore(strip, row.firstChild);
+    }
+    if (!store || !c.popup || skipPath(win.location && win.location.pathname)) return true;
+    var start = function () { win.setTimeout(function () { show(doc, win, c.popup, store, seen); }, DELAY); };
+    if (doc.readyState === 'complete') start(); else win.addEventListener('load', start);
+    return true;
+  }
+  function show(doc, win, o, store, seen) {
+    // Not over an open helper panel; it stays unseen, so it can show on the next page instead.
+    if (doc.documentElement.classList.contains('btg-hp-open') || doc.querySelector('.btg-offer')) return;
+    try { store.l.setItem(SEEN, JSON.stringify(seen.concat(o.id))); store.s.setItem(VISIT, '1'); } catch (e) { return; }
+    var phone = !!(win.matchMedia && win.matchMedia('(max-width: 600px)').matches);
+    var box = doc.createElement('section'), dim = null, inerted = [], prev = doc.activeElement;
+    var launch = doc.querySelector('.btg-hp-launch');
+    box.className = 'btg-offer btg-offer--' + o.key + (phone ? ' btg-offer--card' : ' btg-offer--modal');
+    box.setAttribute('aria-labelledby', 'btg-offer-title');
+    box.tabIndex = -1;
+    box.innerHTML = boxHtml(o, phone);
+    function close(restore) {
+      if (!box.parentNode) return;
+      box.parentNode.removeChild(box);
+      if (dim) dim.parentNode.removeChild(dim);
+      inerted.forEach(function (n) { n.removeAttribute('inert'); });
+      doc.removeEventListener('keydown', onKey, true);
+      if (launch) launch.removeEventListener('click', onLaunch, true);
+      if (restore && prev && prev.focus && doc.contains(prev)) prev.focus({ preventScroll: true });
+    }
+    function onKey(e) {
+      if (e.key === 'Escape' && (!phone || box.contains(doc.activeElement))) { e.preventDefault(); close(true); return; }
+      if (phone || e.key !== 'Tab') return;
+      var f = box.querySelectorAll('a[href], button'), first = f[0], last = f[f.length - 1], a = doc.activeElement;
+      if (e.shiftKey && (a === first || a === box)) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && (a === last || !box.contains(a))) { e.preventDefault(); first.focus(); }
+    }
+    // The helper launcher stays clickable above the dim: it closes the offer (already counted as seen) and the helper opens.
+    function onLaunch() { close(false); }
+    box.querySelector('.btg-offer-x').addEventListener('click', function () { close(true); });
+    doc.addEventListener('keydown', onKey, true);
+    if (phone) {
+      box.setAttribute('role', 'region');
+      doc.body.appendChild(box);
+      return;
+    }
+    box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-modal', 'true');
+    box.querySelector('.btg-offer-later').addEventListener('click', function () { close(true); });
+    dim = doc.createElement('div');
+    dim.className = 'btg-offer-dim';
+    dim.innerHTML = decorHtml(o.key, 'dim');
+    dim.addEventListener('click', function () { close(true); });
+    if (launch) launch.addEventListener('click', onLaunch, true);
+    // Everything but the offer and the launcher is inert while the dialog is up.
+    Array.prototype.forEach.call(doc.body.children, function (n) {
+      if (n !== launch && n.tagName !== 'SCRIPT' && !n.hasAttribute('inert')) { n.setAttribute('inert', ''); inerted.push(n); }
+    });
+    doc.body.appendChild(dim);
+    doc.body.appendChild(box);
+    box.focus({ preventScroll: true });
+  }
+  return { OFFERS: OFFERS, DELAY: DELAY, HREF: HREF, season: season, choose: choose, fineText: fineText, skipPath: skipPath, parseSeen: parseSeen, init: init };
+})();
+
 (function () {
   // Guards against the Node test environment's minimal `document` stub,
   // which has no querySelector/readyState/addEventListener — this file is
@@ -2100,6 +2278,7 @@ window.BTGHelper = (function () {
     safely(function () { window.BTGVet.init(document, window); });
     safely(function () { window.BTGCards.init(document, window); });
     safely(function () { window.BTGHelper.init(document, window); });
+    safely(function () { window.BTGOffer.init(document, window); });
     // Reveals the header and page area the loader's inline style kept hidden until now.
     document.documentElement.classList.add('btg-ready');
     // Avada builds its mobile menu clone and the Twitter script adds its iframe after DOMContentLoaded.
