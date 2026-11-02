@@ -1769,7 +1769,9 @@ window.BTGHelper = (function () {
       'Area: ' + AREAS[f.area] + '\n' +
       (f.service ? 'Service: ' + f.service + '\n' : '') + '\n';
     var summary = f.summary.trim().slice(0, MAX_MESSAGE - head.length);
-    return { 'your-name': name.slice(0, 400), 'your-email': email || BOB_EMAIL, 'your-subject': subject.slice(0, 400), 'your-message': head + summary, source: 'AI helper' };
+    // discount / discount-tag: the 10% the visitor chose in the form (BTGOffer; "none" when not chosen), v1.8.30.
+    var discount = window.BTGOffer ? window.BTGOffer.discountFields(f.discount, f.now) : { discount: 'none', 'discount-tag': '' };
+    return Object.assign({ 'your-name': name.slice(0, 400), 'your-email': email || BOB_EMAIL, 'your-subject': subject.slice(0, 400), 'your-message': head + summary, source: 'AI helper' }, discount);
   }
   function hoursLine() {
     return window.BTGHours.footerRows().filter(function (r) { return r[1] !== 'Closed'; }).map(function (r) { return r[0] + ' ' + r[1]; }).join(', ');
@@ -1808,6 +1810,7 @@ window.BTGHelper = (function () {
       '<label for="' + id('summary') + '">What\'s going on? <span class="btg-hp-opt">(edit as you like)</span></label>' +
       '<textarea id="' + id('summary') + '" name="summary" rows="4" maxlength="1500" required aria-describedby="' + id('e-summary') + '">' + esc(summary) + '</textarea>' +
       '<p class="btg-hp-err" data-for="summary" id="' + id('e-summary') + '" hidden></p>' +
+      (window.BTGOffer ? window.BTGOffer.discountHtml('discount', '') : '') +
       '<p class="btg-hp-fine">Please don\'t include passwords or card numbers. Bob gives prices once he has looked at the job.</p>' +
       '<button type="submit" class="btg-hp-send">Send to Bob</button>' +
       '<p class="btg-hp-err btg-hp-fail" role="alert" hidden></p></form>';
@@ -1943,7 +1946,8 @@ window.BTGHelper = (function () {
         e.preventDefault();
         var area = form.querySelector('[name=area]:checked');
         var f = { name: form.elements.name.value, phone: form.elements.phone.value, email: form.elements.email.value,
-          area: area ? area.value : '', summary: form.elements.summary.value, topic: state.topic, service: serviceTitle };
+          area: area ? area.value : '', summary: form.elements.summary.value, topic: state.topic, service: serviceTitle,
+          discount: (form.querySelector('[name=discount]:checked') || {}).value };
         var errs = validate(f), first = null;
         [].forEach.call(form.querySelectorAll('.btg-hp-err[data-for]'), function (p) {
           var k = p.getAttribute('data-for');
@@ -2036,14 +2040,16 @@ window.BTGHelper = (function () {
 
 // Bob's monthly offer (2026-11-02, vault "Ad Pop-up"): style A pop-up (centred, see-through, 40% dim under the helper
 // launcher on desktop/tablet; a see-through bottom card on phones) and style D, a "Current offer" strip at the top of the footer.
-// Every offer is 10% off any service, one at a time. New customers first; once seen, the season's offer (if one is running).
-// Seen offers live in localStorage only (no cookies, nothing sent); storage blocked = no pop-up. One pop-up per visit.
+// Every offer is 10% off any service, never combined. Both show every offer running now in a slider (arrows + dots, no
+// auto-rotate): new customers first, then the season's (Jeff, 2026-11-02: a refresh must not take the new-customer offer away).
+// The pop-up shows when a running offer is unseen and opens on it. Seen offers live in localStorage only (no cookies, nothing
+// sent); storage blocked = no pop-up. One pop-up per visit.
 // Windows repeat every year (month, day; inclusive) and must not overlap. Wording beyond Bob's "10%" is sample, for Bob to confirm.
 window.BTGOffer = (function () {
   'use strict';
   var SEEN = 'btg-offer-seen', VISIT = 'btg-offer-visit', DELAY = 8000; // Jeff 2026-11-02: "lets do like 8 seconds"
-  var HREF = '/contact-2/#btg-request'; // open question for Bob: 844 number, Contact, a service page or the helper's form
   var FINE = 'Can’t be combined with other discounts';
+  var NEW_RULE = 'if you haven’t purchased any services from Bob before', NEW_FINE = 'Only applies ' + NEW_RULE; // Jeff, 2026-11-02
   var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   var OFFERS = [
     { key: 'new', kicker: 'New customers', title: '10% off your first service', button: 'Book a service',
@@ -2089,6 +2095,7 @@ window.BTGOffer = (function () {
                      ['flake', 'left:94%;top:40%;width:22px'], ['flake', 'left:73%;top:54%;width:18px'], ['flake', 'left:93%;top:56%;width:22px'], ['flake', 'left:14%;top:93%;width:22px'], ['flake', 'left:86%;top:64%;width:18px']] }
   };
   var CAP = '<span class="btg-od-cap"></span>';
+  var PREV = SVG('<path d="M15 6l-6 6 6 6"/>', ' stroke-width="2.2"'), NEXT = SVG('<path d="M9 6l6 6-6 6"/>', ' stroke-width="2.2"');
   var CLOSE = SVG('<path d="M6 6l12 12M18 6L6 18"/>', ' stroke-width="2"');
 
   function md(m, d) { return m * 100 + d; }
@@ -2098,13 +2105,13 @@ window.BTGOffer = (function () {
   }
   // A season offer's id carries the year, so last year's fall clean-up doesn't hide this year's.
   function withId(o, now) { return Object.assign({ id: o.from ? o.key + '-' + now.getFullYear() : o.key }, o); }
-  // popup: the first offer this visitor hasn't seen (new customers first), or null. strip: the same, else the latest one running.
+  // offers: every offer running now, new customers first. popup: whether any is unseen. start: the first unseen one (else 0).
   function choose(now, seen) {
-    var s = season(now), list = [withId(OFFERS[0], now)].concat(s ? [withId(s, now)] : []);
-    var next = list.filter(function (o) { return seen.indexOf(o.id) === -1; })[0] || null;
-    return { popup: next, strip: next || list[list.length - 1] };
+    var s = season(now), offers = [withId(OFFERS[0], now)].concat(s ? [withId(s, now)] : []);
+    var i = offers.map(function (o) { return seen.indexOf(o.id) === -1; }).indexOf(true);
+    return { offers: offers, popup: i !== -1, start: Math.max(i, 0) };
   }
-  function fineText(o) { return (o.to ? 'Ends ' + MONTHS[o.to[0] - 1] + ' ' + o.to[1] : 'First-time customers') + ' · ' + FINE; }
+  function fineText(o) { return (o.to ? 'Ends ' + MONTHS[o.to[0] - 1] + ' ' + o.to[1] : NEW_FINE) + ' · ' + FINE; }
   function skipPath(path) { return /^\/contact-2\/?$/.test(path || ''); } // Jeff 2026-11-02: "have it skip the contact page"
   function parseSeen(text) {
     try { var a = JSON.parse(text); return Array.isArray(a) ? a.filter(function (x) { return typeof x === 'string'; }) : []; } catch (e) { return []; }
@@ -2123,20 +2130,42 @@ window.BTGOffer = (function () {
       '<' + titleTag + ' class="btg-offer-title"' + idAttr + '>' + o.title + '</' + titleTag + '>' +
       '<p class="btg-offer-body">' + o.body + '</p><p class="btg-offer-fine">' + fineText(o) + '</p>';
   }
-  function boxHtml(o, phone) {
-    return '<div class="btg-offer-decor" aria-hidden="true">' + decorHtml(o.key, phone ? 'card' : 'box') + '</div>' +
-      '<button type="button" class="btg-offer-x" aria-label="Close offer">' + CLOSE + '</button>' +
-      '<span class="btg-offer-ico" aria-hidden="true">' + ICONS[o.key] + '</span>' +
-      '<div class="btg-offer-text">' + textHtml(o, 'h2', ' id="btg-offer-title"', o.kicker) +
-      '<p class="btg-offer-acts"><a class="btg-offer-go" href="' + HREF + '">' + o.button + '</a>' +
-      (phone ? '' : '<button type="button" class="btg-offer-later">Maybe later</button>') + '</p></div>';
+  // One slide's content. where: 'box' (desktop pop-up), 'card' (phone pop-up) or 'strip' (footer).
+  function slideHtml(o, where) {
+    var ico = '<span class="btg-offer-ico" aria-hidden="true">' + ICONS[o.key] + '</span>', go = '<a class="btg-offer-go" href="' + hrefFor(o) + '">' + o.button + '</a>';
+    if (where === 'strip') {
+      return ico + '<div class="btg-offer-text">' + textHtml(o, 'p', '', 'Current offer · ' + o.kicker) + '</div>' +
+        '<div class="btg-offer-art" aria-hidden="true">' + decorHtml(o.key, 'strip').replace(CAP, '') + '</div>' + go;
+    }
+    return ico + '<div class="btg-offer-text">' + textHtml(o, 'h2', ' id="btg-offer-title"', o.kicker) +
+      '<p class="btg-offer-acts">' + go + (where === 'card' ? '' : '<button type="button" class="btg-offer-later">Maybe later</button>') + '</p></div>';
   }
-  function stripHtml(o) {
-    return '<div class="btg-offer-decor" aria-hidden="true">' + (o.key === 'holiday' ? CAP : '') + '</div>' +
-      '<span class="btg-offer-ico" aria-hidden="true">' + ICONS[o.key] + '</span>' +
-      '<div class="btg-offer-text">' + textHtml(o, 'p', '', 'Current offer · ' + o.kicker) + '</div>' +
-      '<div class="btg-offer-art" aria-hidden="true">' + decorHtml(o.key, 'strip').replace(CAP, '') + '</div>' +
-      '<a class="btg-offer-go" href="' + HREF + '">' + o.button + '</a>';
+  function navHtml(offers) {
+    if (offers.length < 2) return '';
+    return '<div class="btg-offer-nav"><button type="button" class="btg-offer-step" data-step="-1" aria-label="Previous offer">' + PREV + '</button>' +
+      offers.map(function (o, i) { return '<button type="button" class="btg-offer-dot" data-i="' + i + '" aria-label="Offer ' + (i + 1) + ' of ' + offers.length + ': ' + o.kicker + '"></button>'; }).join('') +
+      '<button type="button" class="btg-offer-step" data-step="1" aria-label="Next offer">' + NEXT + '</button><span class="btg-offer-sr" aria-live="polite"></span></div>';
+  }
+  function shellHtml(offers) { return '<div class="btg-offer-decor" aria-hidden="true"></div><div class="btg-offer-slide"></div>' + navHtml(offers); }
+  // Shows offers[i] in el (its theme on el, and on the desktop dim); the arrows wrap around, the dots jump.
+  function slider(el, offers, i, where, dim) {
+    var base = el.className, nav = el.querySelector('.btg-offer-nav');
+    function go(n, said) {
+      i = (n + offers.length) % offers.length;
+      var o = offers[i];
+      el.className = base + ' btg-offer--' + o.key;
+      el.querySelector('.btg-offer-decor').innerHTML = where === 'strip' ? (o.key === 'holiday' ? CAP : '') : decorHtml(o.key, where);
+      el.querySelector('.btg-offer-slide').innerHTML = slideHtml(o, where);
+      if (dim) dim.innerHTML = decorHtml(o.key, 'dim');
+      if (!nav) return;
+      Array.prototype.forEach.call(nav.querySelectorAll('.btg-offer-dot'), function (d, k) { d.setAttribute('aria-current', String(k === i)); });
+      if (said) nav.querySelector('.btg-offer-sr').textContent = 'Offer ' + (i + 1) + ' of ' + offers.length + ': ' + o.title;
+    }
+    if (nav) nav.addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (b) go(b.hasAttribute('data-i') ? Number(b.getAttribute('data-i')) : i + Number(b.getAttribute('data-step')), true);
+    });
+    go(i, false);
   }
 
   function init(doc, win) {
@@ -2146,27 +2175,29 @@ window.BTGOffer = (function () {
     var c = choose(now, seen), row = doc.querySelector('.fusion-footer-widget-area > .fusion-row');
     if (row) {
       var strip = doc.createElement('aside');
-      strip.className = 'btg-offer-strip btg-offer--' + c.strip.key;
-      strip.setAttribute('aria-label', 'Current offer');
-      strip.innerHTML = stripHtml(c.strip);
+      strip.className = 'btg-offer-strip';
+      strip.setAttribute('aria-label', c.offers.length > 1 ? 'Current offers' : 'Current offer');
+      strip.innerHTML = shellHtml(c.offers);
       row.insertBefore(strip, row.firstChild);
+      slider(strip, c.offers, 0, 'strip');
     }
     if (!store || !c.popup || skipPath(win.location && win.location.pathname)) return true;
-    var start = function () { win.setTimeout(function () { show(doc, win, c.popup, store, seen); }, DELAY); };
+    var start = function () { win.setTimeout(function () { show(doc, win, c, store, seen); }, DELAY); };
     if (doc.readyState === 'complete') start(); else win.addEventListener('load', start);
     return true;
   }
-  function show(doc, win, o, store, seen) {
+  function show(doc, win, c, store, seen) {
     // Not over an open helper panel; it stays unseen, so it can show on the next page instead.
     if (doc.documentElement.classList.contains('btg-hp-open') || doc.querySelector('.btg-offer')) return;
-    try { store.l.setItem(SEEN, JSON.stringify(seen.concat(o.id))); store.s.setItem(VISIT, '1'); } catch (e) { return; }
+    var ids = c.offers.map(function (o) { return o.id; }).filter(function (id) { return seen.indexOf(id) === -1; });
+    try { store.l.setItem(SEEN, JSON.stringify(seen.concat(ids))); store.s.setItem(VISIT, '1'); } catch (e) { return; }
     var phone = !!(win.matchMedia && win.matchMedia('(max-width: 600px)').matches);
     var box = doc.createElement('section'), dim = null, inerted = [], prev = doc.activeElement;
     var launch = doc.querySelector('.btg-hp-launch');
-    box.className = 'btg-offer btg-offer--' + o.key + (phone ? ' btg-offer--card' : ' btg-offer--modal');
+    box.className = 'btg-offer ' + (phone ? 'btg-offer--card' : 'btg-offer--modal');
     box.setAttribute('aria-labelledby', 'btg-offer-title');
     box.tabIndex = -1;
-    box.innerHTML = boxHtml(o, phone);
+    box.innerHTML = '<button type="button" class="btg-offer-x" aria-label="Close offer">' + CLOSE + '</button>' + shellHtml(c.offers);
     function close(restore) {
       if (!box.parentNode) return;
       box.parentNode.removeChild(box);
@@ -2189,15 +2220,16 @@ window.BTGOffer = (function () {
     doc.addEventListener('keydown', onKey, true);
     if (phone) {
       box.setAttribute('role', 'region');
+      slider(box, c.offers, c.start, 'card');
       doc.body.appendChild(box);
       return;
     }
     box.setAttribute('role', 'dialog');
     box.setAttribute('aria-modal', 'true');
-    box.querySelector('.btg-offer-later').addEventListener('click', function () { close(true); });
+    box.addEventListener('click', function (e) { if (e.target.closest('.btg-offer-later')) close(true); });
     dim = doc.createElement('div');
     dim.className = 'btg-offer-dim';
-    dim.innerHTML = decorHtml(o.key, 'dim');
+    slider(box, c.offers, c.start, 'box', dim);
     dim.addEventListener('click', function () { close(true); });
     if (launch) launch.addEventListener('click', onLaunch, true);
     // Everything but the offer and the launcher is inert while the dialog is up.
@@ -2208,7 +2240,51 @@ window.BTGOffer = (function () {
     doc.body.appendChild(box);
     box.focus({ preventScroll: true });
   }
-  return { OFFERS: OFFERS, DELAY: DELAY, HREF: HREF, season: season, choose: choose, fineText: fineText, skipPath: skipPath, parseSeen: parseSeen, init: init };
+
+  // The discount choice on the Contact form and in the helper's request form (Jeff, 2026-11-02): "No discount" or one of the
+  // offers running today (one per job). It fills form 16906's hidden fields: discount (the email's "Discount:" line) and
+  // discount-tag (the subject, after "Sent via ..."). Bob still checks it when he prices the job.
+  // An offer's Book button (Jeff picked the Contact page form) pre-selects its discount there.
+  function hrefFor(o) { return '/contact-2/?offer=' + o.key + '#btg-request'; }
+  function running(now, key) { return choose(now, []).offers.filter(function (o) { return o.key === key; })[0] || null; }
+  function label(o) { return '10% ' + o.kicker.toLowerCase(); }
+  function discountFields(key, now) {
+    var o = running(now || new Date(), key);
+    return o ? { discount: label(o), 'discount-tag': ' - ' + label(o) } : { discount: 'none', 'discount-tag': '' };
+  }
+  function discountHtml(name, key, now) {
+    now = now || new Date();
+    var pick = running(now, key) ? key : '';
+    var opt = function (value, text) {
+      return '<label class="btg-disc-opt"><input type="radio" name="' + name + '" value="' + value + '"' + (value === pick ? ' checked' : '') + '> <span>' + text + '</span></label>';
+    };
+    return '<fieldset class="btg-disc"><legend>Use a 10% discount? <span class="btg-disc-note">(one per job, can’t be combined)</span></legend>' + opt('', 'No discount') +
+      choose(now, []).offers.map(function (o) {
+        return opt(o.key, label(o) + ' <span class="btg-disc-note">(' + (o.to ? 'ends ' + MONTHS[o.to[0] - 1] + ' ' + o.to[1] : 'only ' + NEW_RULE) + ')</span>');
+      }).join('') + '</fieldset>';
+  }
+  // Contact page: the choice goes just above the Send button; ?offer=<key> pre-selects it.
+  function initForm(doc, win) {
+    var form = doc.querySelector('.wpcf7 form'), send = form && form.querySelector('[type=submit]');
+    if (!form || form.querySelector('.btg-disc')) return false;
+    var m = /[?&]offer=([a-z]+)/.exec(win.location.search || ''), wrap = doc.createElement('div');
+    wrap.innerHTML = discountHtml('btg-discount', m ? m[1] : '');
+    var box = wrap.firstChild;
+    // The form's own hidden fields once form 16906 has them; created here otherwise (CF7 ignores fields it doesn't know).
+    var fields = ['discount', 'discount-tag'].map(function (n) {
+      var i = form.querySelector('input[name="' + n + '"]');
+      if (!i) { i = doc.createElement('input'); i.type = 'hidden'; i.name = n; form.appendChild(i); }
+      return i;
+    });
+    function sync() { var c = box.querySelector('input:checked'), f = discountFields(c ? c.value : ''); fields[0].value = f.discount; fields[1].value = f['discount-tag']; }
+    box.addEventListener('change', sync);
+    sync();
+    var at = send ? (send.closest('p') || send) : null;
+    if (at && form.contains(at)) at.parentNode.insertBefore(box, at); else form.appendChild(box);
+    return true;
+  }
+  return { OFFERS: OFFERS, DELAY: DELAY, season: season, choose: choose, fineText: fineText, skipPath: skipPath, parseSeen: parseSeen, init: init,
+    hrefFor: hrefFor, discountFields: discountFields, discountHtml: discountHtml, initForm: initForm };
 })();
 
 (function () {
@@ -2279,6 +2355,7 @@ window.BTGOffer = (function () {
     safely(function () { window.BTGCards.init(document, window); });
     safely(function () { window.BTGHelper.init(document, window); });
     safely(function () { window.BTGOffer.init(document, window); });
+    safely(function () { window.BTGOffer.initForm(document, window); });
     // Reveals the header and page area the loader's inline style kept hidden until now.
     document.documentElement.classList.add('btg-ready');
     // Avada builds its mobile menu clone and the Twitter script adds its iframe after DOMContentLoaded.

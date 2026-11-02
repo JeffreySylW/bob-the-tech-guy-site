@@ -41,7 +41,7 @@ test('validate(): name, area and summary required, plus a phone or an email', ()
 
 test('buildFields(): maps to your-name / your-email / your-subject / your-message', () => {
   const f = H.buildFields({ name: ' Jane Sample ', phone: '804-555-0100', email: 'jane@example.com', area: 'nj', summary: 'Computer running slow.', topic: 'slow', service: 'Computer Tune Up' });
-  assert.deepStrictEqual(Object.keys(f), ['your-name', 'your-email', 'your-subject', 'your-message', 'source']);
+  assert.deepStrictEqual(Object.keys(f), ['your-name', 'your-email', 'your-subject', 'your-message', 'source', 'discount', 'discount-tag']); // discount: v1.8.30
   assert.strictEqual(f['your-name'], 'Jane Sample');
   assert.strictEqual(f['your-email'], 'jane@example.com');
   assert.strictEqual(f['your-subject'], 'Helper request: Computer Tune Up (NJ)');
