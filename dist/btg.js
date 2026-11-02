@@ -1755,8 +1755,10 @@ window.BTGHelper = (function () {
     if (!(f.summary || '').trim()) e.summary = 'Please describe the problem in a few words.';
     return e;
   }
-  // The four CF7 fields. your-email is required by the form, so a phone-only request carries Bob's own address
+  // The CF7 fields. your-email is required by the form, so a phone-only request carries Bob's own address
   // there (replying to it reaches Bob, never a stranger) and the subject says to call back.
+  // source fills the form's hidden [source] field (default "fill-out form" on the Contact page); the mail template
+  // puts "Sent via [source]" in front of the subject and as the first body line (v1.8.28).
   function buildFields(f) {
     var name = f.name.trim(), email = (f.email || '').trim(), phone = (f.phone || '').trim();
     var what = f.service || (topic(f.topic) || {}).label || 'General request';
@@ -1765,10 +1767,9 @@ window.BTGHelper = (function () {
       'Phone: ' + (phone || 'not given') + '\n' +
       'Email: ' + (email || 'not given, please call') + '\n' +
       'Area: ' + AREAS[f.area] + '\n' +
-      (f.service ? 'Service: ' + f.service + '\n' : '') +
-      'Sent from Bob\'s helper on the website.\n\n';
+      (f.service ? 'Service: ' + f.service + '\n' : '') + '\n';
     var summary = f.summary.trim().slice(0, MAX_MESSAGE - head.length);
-    return { 'your-name': name.slice(0, 400), 'your-email': email || BOB_EMAIL, 'your-subject': subject.slice(0, 400), 'your-message': head + summary };
+    return { 'your-name': name.slice(0, 400), 'your-email': email || BOB_EMAIL, 'your-subject': subject.slice(0, 400), 'your-message': head + summary, source: 'AI helper' };
   }
   function hoursLine() {
     return window.BTGHours.footerRows().filter(function (r) { return r[1] !== 'Closed'; }).map(function (r) { return r[0] + ' ' + r[1]; }).join(', ');

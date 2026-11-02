@@ -41,12 +41,18 @@ test('validate(): name, area and summary required, plus a phone or an email', ()
 
 test('buildFields(): maps to your-name / your-email / your-subject / your-message', () => {
   const f = H.buildFields({ name: ' Jane Sample ', phone: '804-555-0100', email: 'jane@example.com', area: 'nj', summary: 'Computer running slow.', topic: 'slow', service: 'Computer Tune Up' });
-  assert.deepStrictEqual(Object.keys(f), ['your-name', 'your-email', 'your-subject', 'your-message']);
+  assert.deepStrictEqual(Object.keys(f), ['your-name', 'your-email', 'your-subject', 'your-message', 'source']);
   assert.strictEqual(f['your-name'], 'Jane Sample');
   assert.strictEqual(f['your-email'], 'jane@example.com');
   assert.strictEqual(f['your-subject'], 'Helper request: Computer Tune Up (NJ)');
   assert.match(f['your-message'], /^Name: Jane Sample\nPhone: 804-555-0100\nEmail: jane@example.com\nArea: Northern New Jersey\nService: Computer Tune Up\n/);
   assert.match(f['your-message'], /\n\nComputer running slow\.$/);
+});
+
+test('buildFields(): labels the email "AI helper" through the form\'s hidden source field (v1.8.28)', () => {
+  const f = H.buildFields({ name: 'Al', phone: '8045550100', email: 'a@b.co', area: 'va', summary: 'Help', topic: 'wifi' });
+  assert.strictEqual(f.source, 'AI helper');
+  assert.doesNotMatch(f['your-message'], /Sent from Bob's helper/);
 });
 
 test('buildFields(): a phone-only request uses Bob\'s own address (the form requires an email) and says to call', () => {

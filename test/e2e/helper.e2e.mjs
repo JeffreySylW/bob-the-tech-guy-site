@@ -10,6 +10,9 @@ const server = await serve(PORT);
 const results = [];
 const check = (name, ok, info = '') => { results.push(!!ok); console.log((ok ? 'ok   ' : 'FAIL ') + name + (info ? '  ' + info : '')); };
 const posts = async () => (await fetch(BASE + '/__cf7')).json();
+// Wait for the send to finish instead of a fixed sleep (fixed sleeps were flaky on a busy machine).
+const until = async (b, js, ms = 8000) => { for (let t = 0; t < ms && !(await b.evalJs(js)); t += 100) await b.sleep(100); };
+const sent = `!document.querySelector('.btg-hp-form')`;
 // Pin the page clock: Tuesday 11 AM ET (open) or Monday (closed).
 const pinClock = (iso) => `(() => { const R = Date; window.Date = class extends R { constructor(...a) { super(...(a.length ? a : ['${iso}'])); } static now() { return new R('${iso}').getTime(); } }; })()`;
 const lastForm = `[...document.querySelectorAll('.btg-hp-form')].pop()`;
@@ -52,15 +55,16 @@ for (const [w, h, m] of [[1440, 900, false], [390, 844, true]]) {
     return vis('name') && vis('contact') && vis('area') && !vis('summary') && f.elements.name.getAttribute('aria-invalid') === 'true' && document.activeElement === f.elements.name; })()`) && (await posts()).length === posted);
   await b.evalJs(fill('[name=name]', 'Jane FAIL Sample')); await b.evalJs(fill('[name=phone]', '804 555 0100'));
   await b.evalJs(`${lastForm}.querySelector('[name=area][value=va]').click()`);
-  await b.evalJs(`${lastForm}.querySelector('.btg-hp-send').click()`); await b.sleep(500);
+  await b.evalJs(`${lastForm}.querySelector('.btg-hp-send').click()`); await until(b, `!${lastForm}.querySelector('.btg-hp-fail').hidden`);
   check(w + ' send failure: the form stays, with a retry message and both phone numbers', await b.evalJs(`(() => { const f = ${lastForm}, e = f.querySelector('.btg-hp-fail'); return !e.hidden && /didn't go through/.test(e.innerText) && /844-TEKGUY-0/.test(e.innerText) && /210-5656/.test(e.innerText) && !f.querySelector('.btg-hp-send').disabled; })()`));
   const before = (await posts()).length;
   await b.evalJs(fill('[name=name]', 'Jane Sample')); await b.evalJs(fill('[name=summary]', 'Computer running slow since last week. Interested in: Computer Tune Up.'));
-  await b.evalJs(`${lastForm}.querySelector('.btg-hp-send').click()`); await b.sleep(600);
+  await b.evalJs(`${lastForm}.querySelector('.btg-hp-send').click()`); await until(b, sent);
   const p = (await posts())[before] || {};
   check(w + ' send: posted once to the mocked CF7 16906 with its hidden fields and the four mapped fields', (await posts()).length === before + 1 && p._wpcf7 === '16906' && p._wpcf7_unit_tag === 'wpcf7-f16906-p11802-o1' &&
     p['your-name'] === 'Jane Sample' && p['your-email'] === 'info@bobthetechguy.com' && p['your-subject'] === 'Helper request: Computer Tune Up (VA) - no email, please call' &&
     /Phone: 804 555 0100/.test(p['your-message']) && /Computer running slow since last week/.test(p['your-message']) && p['your-message'].length <= 2000, JSON.stringify(p['your-subject']));
+  check(w + ' send: labelled "AI helper" in the hidden source field (v1.8.28)', p.source === 'AI helper' && !/Sent from Bob's helper/.test(p['your-message']), JSON.stringify(p.source));
   const conf = await b.evalJs(`[...document.querySelectorAll('.btg-hp-bot')].pop().innerText`);
   check(w + ' confirmation: thanks the visitor, form gone', /Thanks, Jane\. Your request is with Bob\./.test(conf) && await b.evalJs(`!document.querySelector('.btg-hp-form')`), conf);
   if (m) check(w + ' confirmation (Monday, closed): says Bob replies during business hours', /replies during business hours \(Eastern Time\): Tue 9:30 AM–7 PM, Wed–Fri 9:30 AM–5 PM, Sat 12–3 PM/.test(conf));
@@ -73,7 +77,7 @@ for (const [w, h, m] of [[1440, 900, false], [390, 844, true]]) {
   await b.evalJs(`[...document.querySelectorAll('.btg-hp-chips button')].pop().click()`); await b.sleep(150);
   check(w + ' "Something else": straight to the form with an empty summary', await b.evalJs(`(() => { const f = ${lastForm}; return !!f && f.elements.summary.value === '' && document.querySelectorAll('.btg-hp-card').length === 0; })()`));
   await b.evalJs(fill('[name=name]', 'Sam')); await b.evalJs(fill('[name=email]', 'sam@example.com')); await b.evalJs(fill('[name=summary]', 'Printer question'));
-  await b.evalJs(`${lastForm}.querySelector('[name=area][value=nj]').click()`); await b.evalJs(`${lastForm}.querySelector('.btg-hp-send').click()`); await b.sleep(600);
+  await b.evalJs(`${lastForm}.querySelector('[name=area][value=nj]').click()`); await b.evalJs(`${lastForm}.querySelector('.btg-hp-send').click()`); await until(b, sent);
   const q = (await posts()).pop();
   check(w + ' email request: real reply-to address, NJ in the subject', q['your-email'] === 'sam@example.com' && q['your-subject'] === 'Helper request: General request (NJ)' && /Area: Northern New Jersey/.test(q['your-message']), q['your-subject']);
   await b.shot(`${out}/helper-${w}-form.png`);
