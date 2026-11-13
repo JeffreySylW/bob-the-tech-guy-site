@@ -28,7 +28,7 @@ async function visit(b, path, seen) {
   await b.evalJs(`(() => { try { sessionStorage.clear(); localStorage.clear(); ${seen ? `localStorage.setItem('btg-offer-seen', ${JSON.stringify(JSON.stringify(seen))});` : ''} } catch (e) {} })()`);
   await b.goto(BASE + path);
 }
-const popup = `(() => { const o = document.querySelector('.btg-offer'); return o ? o.className.match(/btg-offer--(new|spring|fall|holiday)/)[1] : null; })()`;
+const popup = `(() => { const o = document.querySelector('.btg-offer'); return o ? o.className.match(/btg-offer--(new|spring|fall|holiday|veterans)/)[1] : null; })()`;
 const stripKey = `(() => { const s = document.querySelector('.fusion-footer .btg-offer-strip'); return s ? s.className.match(/btg-offer--(\\w+)/)[1] : null; })()`;
 const seenNow = `localStorage.getItem('btg-offer-seen')`;
 // Every decoration's box against every text box (and the icon, x and buttons): none may overlap.
@@ -85,18 +85,26 @@ check('desktop: Esc closes it, the page is no longer inert', await b.evalJs(`!do
 await setup(b, '2026-11-02');
 await visit(b, '/', null); await until(b, popup); await b.sleep(400);
 const slides = `[...document.querySelectorAll('.btg-offer .btg-offer-dot')].map((d) => d.getAttribute('aria-label') + '=' + d.getAttribute('aria-current')).join('|')`;
-check('slider: first visit in fall lists new customers then fall, opens on new customers', (await b.evalJs(slides)) === 'Offer 1 of 2: New customers=true|Offer 2 of 2: Fall clean-up=false');
+check('slider: first visit in fall lists new customers then fall, opens on new customers', (await b.evalJs(slides)) === 'Offer 1 of 3: New customers=true|Offer 2 of 3: Fall clean-up=false|Offer 3 of 3: Veterans=false');
 check('slider: the new-customer disclaimer', (await b.evalJs(`document.querySelector('.btg-offer .btg-offer-fine').textContent`)) === 'Only applies if you haven’t purchased any services from Bob before · Can’t be combined with other discounts');
 check('seen: both running offers recorded when shown, no cookies', (await b.evalJs(seenNow)) === '["new","fall-2026"]' && (await b.evalJs('document.cookie')) === '');
 await b.evalJs(`document.querySelector('.btg-offer [data-step="1"]').focus(); document.querySelector('.btg-offer [data-step="1"]').click()`); await b.sleep(100);
 check('slider: next arrow shows the fall offer, its theme and its dim decorations; focus stays on the arrow; announced', await b.evalJs(`(() => { const o = document.querySelector('.btg-offer');
   return /btg-offer--fall/.test(o.className) && o.querySelector('.btg-offer-title').textContent === '10% off a fall clean-up' && document.querySelectorAll('.btg-offer-dim .btg-od-piece').length > 0 &&
-    document.activeElement === o.querySelector('[data-step="1"]') && o.querySelector('.btg-offer-sr').textContent === 'Offer 2 of 2: 10% off a fall clean-up'; })()`));
+    document.activeElement === o.querySelector('[data-step="1"]') && o.querySelector('.btg-offer-sr').textContent === 'Offer 2 of 3: 10% off a fall clean-up'; })()`));
 check('slider: still one offer on screen at a time (never combined)', await b.evalJs(`document.querySelectorAll('.btg-offer .btg-offer-title').length === 1`));
+await b.evalJs(`document.querySelector('.btg-offer [data-step="1"]').click()`); await b.sleep(100);
+check('veterans: the last slide, plain (no decorations on the box or the dim), honor-system wording', await b.evalJs(`(() => { const o = document.querySelector('.btg-offer');
+  return /btg-offer--veterans/.test(o.className) && o.querySelector('.btg-offer-kicker').textContent === 'Veterans' && o.querySelector('.btg-offer-title').textContent === '10% off for veterans' &&
+    o.querySelector('.btg-offer-body').textContent === 'From one veteran to another, thank you. Tell Bob about your service when you call or book.' &&
+    o.querySelector('.btg-offer-fine').textContent === 'Honor system, no ID needed · Can’t be combined with other discounts' &&
+    !o.querySelector('.btg-od-piece, .btg-od-orn, .btg-od-cap') && !document.querySelector('.btg-offer-dim').children.length &&
+    o.querySelector('.btg-offer-go').getAttribute('href') === '/contact-2/?offer=veterans#btg-request'; })()`));
+await b.shot(`${out}/offer-1440-veterans.png`);
 await b.evalJs(`document.querySelector('.btg-offer [data-step="1"]').click()`);
 check('slider: next on the last offer wraps to the first', (await b.evalJs(popup)) === 'new');
 await b.evalJs(`document.querySelector('.btg-offer [data-i="1"]').click()`);
-check('slider: a dot jumps to its offer', (await b.evalJs(popup)) === 'fall' && (await b.evalJs(slides)).endsWith('Fall clean-up=true'));
+check('slider: a dot jumps to its offer', (await b.evalJs(popup)) === 'fall' && (await b.evalJs(slides)).includes('Fall clean-up=true'));
 await b.evalJs(`document.querySelector('.btg-offer [data-step="-1"]').click()`);
 check('slider: previous goes back', (await b.evalJs(popup)) === 'new');
 check('slider: "Maybe later" still closes after sliding', await b.evalJs(`document.querySelector('.btg-offer-later').click(), !document.querySelector('.btg-offer')`));
@@ -105,17 +113,17 @@ check('slider: "Maybe later" still closes after sliding', await b.evalJs(`docume
 await setup(b, '2026-11-02');
 await b.goto(BASE + '/computer-tune-up/'); await b.sleep(400);
 check('one per visit: no pop-up on the next page of the same visit', (await b.evalJs(popup)) === null);
-check('strip: lists both offers with arrows, starts on new customers', (await b.evalJs(stripKey)) === 'new' && (await b.evalJs(`document.querySelectorAll('.btg-offer-strip .btg-offer-dot').length`)) === 2);
+check('strip: lists all three offers with arrows, starts on new customers', (await b.evalJs(stripKey)) === 'new' && (await b.evalJs(`document.querySelectorAll('.btg-offer-strip .btg-offer-dot').length`)) === 3);
 await b.evalJs(`document.querySelector('.btg-offer-strip [data-step="1"]').click()`);
 check('strip: its arrow shows the fall offer', (await b.evalJs(stripKey)) === 'fall' && (await b.evalJs(`document.querySelector('.btg-offer-strip .btg-offer-kicker').textContent`)) === 'Current offer · Fall clean-up');
 
 // Next visit with both seen: no pop-up.
 await b.evalJs(`sessionStorage.clear()`); await b.goto(BASE + '/'); await b.sleep(400);
-check('both seen: no pop-up on the next visit', (await b.evalJs(popup)) === null);
+check('both seen: no pop-up on the next visit (veterans never opens it on its own)', (await b.evalJs(popup)) === null);
 
 // A returning visitor who saw only the new-customer offer (say in summer): the pop-up opens on the season's offer.
 await visit(b, '/', ['new']);
-check('returning: opens on the unseen fall offer, new customers one arrow away', (await until(b, popup)) === 'fall' && (await b.evalJs(slides)) === 'Offer 1 of 2: New customers=false|Offer 2 of 2: Fall clean-up=true');
+check('returning: opens on the unseen fall offer, new customers one arrow away', (await until(b, popup)) === 'fall' && (await b.evalJs(slides)) === 'Offer 1 of 3: New customers=false|Offer 2 of 3: Fall clean-up=true|Offer 3 of 3: Veterans=false');
 check('no stacking: the fall fine print says it can\'t be combined', /^Ends November 15 · Can’t be combined with other discounts$/.test(await b.evalJs(`document.querySelector('.btg-offer .btg-offer-fine').textContent`)));
 await b.click(40, 450); await b.sleep(100);
 check('desktop: a click on the backdrop closes it', (await b.evalJs(popup)) === null && (await b.evalJs(seenNow)) === '["new","fall-2026"]');
@@ -123,7 +131,8 @@ check('desktop: a click on the backdrop closes it', (await b.evalJs(popup)) === 
 // Only one offer running (June): no arrows or dots.
 await setup(b, '2026-06-01');
 await visit(b, '/', null); await until(b, popup);
-check('one offer: no slider controls in the pop-up or the strip', await b.evalJs(`!document.querySelector('.btg-offer-nav') && document.querySelector('.btg-offer-strip').getAttribute('aria-label') === 'Current offer'`));
+check('no season (June): new customers and veterans, with controls', (await b.evalJs(slides)) === 'Offer 1 of 2: New customers=true|Offer 2 of 2: Veterans=false' && (await b.evalJs(`document.querySelector('.btg-offer-strip').getAttribute('aria-label')`)) === 'Current offers');
+check('veterans: not marked seen (it never opens the pop-up)', (await b.evalJs(seenNow)) === '["new"]');
 await b.key('Escape', 'Escape', 27);
 await setup(b, '2026-11-02');
 
@@ -164,7 +173,7 @@ for (const [day, want] of [['2026-06-01', null], ['2027-03-01', 'spring'], ['202
   await setup(b, day);
   await visit(b, '/', ['new']); await b.sleep(300);
   check(`window ${day}: pop-up ${want || 'none'}`, (await b.evalJs(popup)) === want && (await b.evalJs(stripKey)) === 'new' &&
-    (await b.evalJs(`document.querySelectorAll('.btg-offer-strip .btg-offer-dot').length`)) === (want ? 2 : 0));
+    (await b.evalJs(`document.querySelectorAll('.btg-offer-strip .btg-offer-dot').length`)) === (want ? 3 : 2));
 }
 
 // Each theme: screenshot the pop-up and the strip, decorations clear of the text.
@@ -180,6 +189,14 @@ for (const [key, day, seen] of THEMES) {
   check(`desktop ${key}: strip fits the footer row, no side scroll`, await b.evalJs(`(() => { const s = document.querySelector('.btg-offer-strip').getBoundingClientRect(); return s.width > 900 && s.right <= innerWidth && document.documentElement.scrollWidth <= innerWidth; })()`));
   await b.shot(`${out}/offer-1440-strip-${key}.png`);
 }
+// Veterans in the footer strip (desktop): the last slide, plain.
+await setup(b, '2026-11-02');
+await visit(b, '/computer-tune-up/', ['new', 'fall-2026']); await b.sleep(300);
+await b.evalJs(`document.querySelector('.btg-offer-strip [data-i="2"]').click()`);
+await b.evalJs(`window.scrollTo(0, document.querySelector('.btg-offer-strip').getBoundingClientRect().top + scrollY - 260)`); await b.sleep(300);
+check('veterans: strip slide, plain, fits the row', (await b.evalJs(stripKey)) === 'veterans' && await b.evalJs(`(() => { const s = document.querySelector('.btg-offer-strip'), r = s.getBoundingClientRect();
+  return s.querySelector('.btg-offer-kicker').textContent === 'Current offer · Veterans' && !s.querySelector('.btg-od-piece, .btg-od-orn, .btg-od-cap') && r.right <= innerWidth && document.documentElement.scrollWidth <= innerWidth; })()`));
+await b.shot(`${out}/offer-1440-strip-veterans.png`);
 // Discount on the forms (Jeff, 2026-11-02): No discount or one running offer; fills form 16906's hidden discount fields.
 await setup(b, '2026-11-02');
 await visit(b, '/', ['new', 'fall-2026']);
@@ -191,28 +208,34 @@ const discState = `(() => { const f = document.querySelector('.wpcf7 form'), d =
     aboveSend: !!(d.compareDocumentPosition(send) & Node.DOCUMENT_POSITION_FOLLOWING), legend: d.querySelector('legend').textContent }; })()`;
 await b.goto(BASE + '/contact-2/?offer=fall'); await b.sleep(300);
 let ds = await b.evalJs(discState);
-check('contact: ?offer=fall pre-selects fall; the form posts it in discount and discount-tag; the choice sits above Send', ds && ds.opts === ',new,fall*' && ds.discount === '10% fall clean-up' && ds.tag === ' - 10% fall clean-up' && ds.aboveSend, JSON.stringify(ds));
+check('contact: ?offer=fall pre-selects fall; the form posts it in discount and discount-tag; the choice sits above Send', ds && ds.opts === ',new,fall*,veterans' && ds.discount === '10% fall clean-up' && ds.tag === ' - 10% fall clean-up' && ds.aboveSend, JSON.stringify(ds));
 await b.evalJs(`document.querySelector('.btg-disc input[value=""]').click()`);
 ds = await b.evalJs(discState);
-check('contact: choosing No discount posts none and an empty subject tag', ds.discount === 'none' && ds.tag === '' && ds.opts === '*,new,fall', JSON.stringify(ds));
+check('contact: choosing No discount posts none and an empty subject tag', ds.discount === 'none' && ds.tag === '' && ds.opts === '*,new,fall,veterans', JSON.stringify(ds));
 await b.evalJs(`document.querySelector('.btg-disc input[value="new"]').click()`);
 ds = await b.evalJs(discState);
 check('contact: the new-customer choice says who it is for', ds.discount === '10% new customers' && /only if you haven’t purchased any services from Bob before/.test(await b.evalJs(`document.querySelector('.btg-disc').textContent`)));
 await b.evalJs(`document.querySelector('.btg-disc').scrollIntoView({ block: 'center' })`); await b.sleep(200);
 await b.shot(`${out}/offer-1440-contact-discount.png`);
 await b.goto(BASE + '/contact-2/'); await b.sleep(300);
-check('contact: without ?offer, No discount is selected', (await b.evalJs(discState)).opts === '*,new,fall');
+check('contact: without ?offer, No discount is selected', (await b.evalJs(discState)).opts === '*,new,fall,veterans');
+await b.goto(BASE + '/contact-2/?offer=veterans'); await b.sleep(300);
+ds = await b.evalJs(discState);
+check('veterans: ?offer=veterans pre-selects it; posts 10% veterans; says honor system', ds.opts === ',new,fall,veterans*' && ds.discount === '10% veterans' && ds.tag === ' - 10% veterans' &&
+  /10% veterans \(honor system\)/.test(await b.evalJs(`document.querySelector('.btg-disc').textContent`)), JSON.stringify(ds));
+await b.evalJs(`document.querySelector('.btg-disc').scrollIntoView({ block: 'center' })`); await b.sleep(200);
+await b.shot(`${out}/offer-1440-contact-veterans.png`);
 await setup(b, '2026-06-01');
 await b.goto(BASE + '/contact-2/?offer=fall'); await b.sleep(300);
 ds = await b.evalJs(discState);
-check('contact: an offer that is not running is not offered or pre-selected', ds.opts === '*,new' && ds.discount === 'none', JSON.stringify(ds));
+check('contact: an offer that is not running is not offered or pre-selected', ds.opts === '*,new,veterans' && ds.discount === 'none', JSON.stringify(ds));
 
 // Helper: the same choice in its request form, sent with the request.
 await setup(b, '2026-11-02');
 await visit(b, '/computer-tune-up/', ['new', 'fall-2026']);
 await b.evalJs(`document.querySelector('.btg-hp-launch').click()`); await b.sleep(200);
 await b.evalJs(`[...document.querySelectorAll('.btg-hp-chips button')].pop().click()`); await b.sleep(200);
-check('helper: the request form offers No discount, new customers and fall', (await b.evalJs(`[...document.querySelectorAll('.btg-hp-form .btg-disc input')].map((r) => r.value + (r.checked ? '*' : '')).join(',')`)) === '*,new,fall');
+check('helper: the request form offers No discount, new customers, fall and veterans', (await b.evalJs(`[...document.querySelectorAll('.btg-hp-form .btg-disc input')].map((r) => r.value + (r.checked ? '*' : '')).join(',')`)) === '*,new,fall,veterans');
 await b.evalJs(`(() => { const f = [...document.querySelectorAll('.btg-hp-form')].pop(); f.elements.name.value = 'Disc Tester'; f.elements.phone.value = '804 555 0100'; f.elements.summary.value = 'Slow laptop';
   f.querySelector('[name=area][value=va]').click(); f.querySelector('[name=discount][value=fall]').click(); f.querySelector('.btg-disc').scrollIntoView({ block: 'center' }); })()`);
 await b.sleep(150);
@@ -257,6 +280,17 @@ for (const [w, h] of [[390, 844], [360, 740]]) {
     check(`${w} ${key}: strip stacked inside the screen, no side scroll`, await b.evalJs(`(() => { const s = document.querySelector('.btg-offer-strip').getBoundingClientRect(); return s.left >= 0 && s.right <= innerWidth && document.documentElement.scrollWidth <= innerWidth; })()`));
     if (w === 390) await b.shot(`${out}/offer-${w}-strip-${key}.png`);
   }
+  await setup(b, '2026-11-02');
+  await visit(b, '/', ['new']); await until(b, popup);
+  await b.evalJs(`document.querySelector('.btg-offer [data-i="2"]').click()`); await b.sleep(150);
+  check(`${w} veterans: card slide fits, above the launcher, no side scroll`, (await b.evalJs(popup)) === 'veterans' && await b.evalJs(`(() => { const r = document.querySelector('.btg-offer').getBoundingClientRect(), l = document.querySelector('.btg-hp-launch').getBoundingClientRect();
+    return r.left >= 0 && r.right <= innerWidth && r.bottom <= l.top - 6 && document.documentElement.scrollWidth <= innerWidth; })()`));
+  if (w === 390) await b.shot(`${out}/offer-${w}-veterans.png`);
+  await b.evalJs(`document.querySelector('.btg-offer-x').click()`);
+  await b.evalJs(`document.querySelector('.btg-offer-strip [data-i="2"]').click()`);
+  await b.evalJs(`window.scrollTo(0, document.querySelector('.btg-offer-strip').getBoundingClientRect().top + scrollY - 120)`); await b.sleep(300);
+  check(`${w} veterans: strip slide inside the screen`, (await b.evalJs(stripKey)) === 'veterans' && await b.evalJs(`(() => { const s = document.querySelector('.btg-offer-strip').getBoundingClientRect(); return s.left >= 0 && s.right <= innerWidth && document.documentElement.scrollWidth <= innerWidth; })()`));
+  if (w === 390) await b.shot(`${out}/offer-${w}-strip-veterans.png`);
   await b.close();
 }
 

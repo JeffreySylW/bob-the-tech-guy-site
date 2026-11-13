@@ -26,9 +26,9 @@ test('season windows: spring Mar 1-Apr 30, fall Sep 15-Nov 15, holiday Nov 20-De
 });
 
 test('every offer running now is in the slider, new customers first', () => {
-  assert.strictEqual(keys(O.choose(day(2026, 11, 2), [])), 'new,fall');
-  assert.strictEqual(keys(O.choose(day(2026, 12, 10), [])), 'new,holiday');
-  assert.strictEqual(keys(O.choose(day(2026, 6, 1), [])), 'new');
+  assert.strictEqual(keys(O.choose(day(2026, 11, 2), [])), 'new,fall,veterans');
+  assert.strictEqual(keys(O.choose(day(2026, 12, 10), [])), 'new,holiday,veterans');
+  assert.strictEqual(keys(O.choose(day(2026, 6, 1), [])), 'new,veterans');
 });
 
 test('first visit: the pop-up shows and opens on new customers', () => {
@@ -39,7 +39,7 @@ test('first visit: the pop-up shows and opens on new customers', () => {
 
 test('the new-customer offer stays in the slider after it is seen; the pop-up opens on the unseen season offer', () => {
   const c = O.choose(day(2026, 11, 2), ['new']);
-  assert.strictEqual(keys(c), 'new,fall');
+  assert.strictEqual(keys(c), 'new,fall,veterans');
   assert.strictEqual(c.popup, true);
   assert.strictEqual(c.start, 1);
 });
@@ -47,7 +47,7 @@ test('the new-customer offer stays in the slider after it is seen; the pop-up op
 test('nothing unseen: no pop-up (the strip still lists every offer)', () => {
   const c = O.choose(day(2026, 11, 2), ['new', 'fall-2026']);
   assert.strictEqual(c.popup, false);
-  assert.strictEqual(keys(c), 'new,fall');
+  assert.strictEqual(keys(c), 'new,fall,veterans');
   assert.strictEqual(O.choose(day(2026, 6, 1), ['new']).popup, false);
 });
 
@@ -92,8 +92,8 @@ test('discountFields: a running offer fills both fields; none, unknown or out-of
 test('discountHtml: No discount plus one radio per running offer, one choice only, the chosen one checked', () => {
   const html = O.discountHtml('d1', 'fall', day(2026, 11, 2));
   const radios = html.match(/<input type="radio"[^>]*>/g);
-  assert.strictEqual(radios.length, 3);
-  assert.deepStrictEqual(radios.map((r) => /value="([^"]*)"/.exec(r)[1]), ['', 'new', 'fall']);
+  assert.strictEqual(radios.length, 4);
+  assert.deepStrictEqual(radios.map((r) => /value="([^"]*)"/.exec(r)[1]), ['', 'new', 'fall', 'veterans']);
   assert.ok(radios.every((r) => r.includes('name="d1"')));
   assert.ok(/value="fall" checked/.test(html) && !/value="new" checked/.test(html));
   assert.match(html, /only if you haven’t purchased any services from Bob before/);
@@ -111,4 +111,40 @@ test('helper requests carry the chosen discount; without one they say none', () 
 
 test('the offer buttons pre-select their discount on the Contact form', () => {
   assert.strictEqual(O.hrefFor({ key: 'fall' }), '/contact-2/?offer=fall#btg-request');
+});
+
+// Veterans (Jeff + Bob, 2026-11-13): permanent 10%, veterans only, honor system (no ID), never combined. Always the last slide;
+// it never opens the pop-up on its own (only an unseen new-customer or season offer does).
+test('veterans: last slide all year, in every season and gap', () => {
+  for (const d of [day(2026, 6, 1), day(2027, 3, 15), day(2026, 11, 2), day(2026, 11, 17), day(2026, 12, 10)]) {
+    const c = O.choose(d, []);
+    assert.strictEqual(c.offers[c.offers.length - 1].key, 'veterans', String(d));
+    assert.strictEqual(c.offers[c.offers.length - 1].id, 'veterans');
+  }
+});
+
+test('veterans: never opens the pop-up by itself, and the pop-up never opens on it', () => {
+  assert.strictEqual(O.choose(day(2026, 6, 1), ['new']).popup, false);
+  assert.strictEqual(O.choose(day(2026, 11, 2), ['new', 'fall-2026']).popup, false);
+  assert.strictEqual(O.choose(day(2026, 11, 2), ['new']).start, 1);
+  assert.strictEqual(O.choose(day(2026, 6, 1), []).start, 0);
+});
+
+test('veterans: honor-system wording, 10%, not combinable', () => {
+  const v = O.OFFERS.filter((o) => o.key === 'veterans')[0];
+  assert.strictEqual(v.kicker, 'Veterans');
+  assert.strictEqual(v.title, '10% off for veterans');
+  assert.strictEqual(v.body, 'From one veteran to another, thank you. Tell Bob about your service when you call or book.');
+  assert.strictEqual(O.fineText(v), 'Honor system, no ID needed · Can’t be combined with other discounts');
+  assert.doesNotMatch(v.body + O.fineText(v), /flag/i);
+});
+
+test('veterans: on both forms as one choice, all year, and in the email', () => {
+  assert.deepStrictEqual(O.discountFields('veterans', day(2026, 6, 1)), { discount: '10% veterans', 'discount-tag': ' - 10% veterans' });
+  const html = O.discountHtml('d1', 'veterans', day(2026, 6, 1));
+  assert.ok(/value="veterans" checked/.test(html));
+  assert.match(html, /10% veterans <span class="btg-disc-note">\(honor system\)<\/span>/);
+  assert.strictEqual(O.hrefFor({ key: 'veterans' }), '/contact-2/?offer=veterans#btg-request');
+  const f = { name: 'Jane', phone: '804 555 0100', email: '', area: 'va', summary: 'Slow PC', topic: 'slow' };
+  assert.strictEqual(window.BTGHelper.buildFields(Object.assign({ discount: 'veterans', now: day(2026, 6, 1) }, f)).discount, '10% veterans');
 });

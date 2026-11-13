@@ -2059,7 +2059,11 @@ window.BTGOffer = (function () {
     { key: 'fall', from: [9, 15], to: [11, 15], kicker: 'Fall clean-up', title: '10% off a fall clean-up', button: 'Book a clean-up',
       body: 'Or put it toward any service of your choice. Get running smoothly before winter.' },
     { key: 'holiday', from: [11, 20], to: [12, 31], kicker: 'Holiday', title: '10% off a new-computer setup', button: 'Book a setup',
-      body: 'Or put it toward any service of your choice. Bob sets it up and gets you connected.' }
+      body: 'Or put it toward any service of your choice. Bob sets it up and gets you connected.' },
+    // Veterans (Jeff + Bob, 2026-11-13): all year, veterans only, honor system ("this would serve as an honor policy"), never combined.
+    // quiet: always the last slide, but it never opens the pop-up on its own.
+    { key: 'veterans', quiet: true, kicker: 'Veterans', title: '10% off for veterans', button: 'Book a service', fine: 'Honor system, no ID needed', note: 'honor system',
+      body: 'From one veteran to another, thank you. Tell Bob about your service when you call or book.' }
   ];
   var SVG = function (body, extra) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"' + (extra || '') + '>' + body + '</svg>'; };
   var FLAKE = '<path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M9 3.5l3 2.5 3-2.5M9 20.5l3-2.5 3 2.5"/>';
@@ -2067,7 +2071,8 @@ window.BTGOffer = (function () {
     new: SVG('<path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/>'),
     spring: SVG('<circle cx="12" cy="7.5" r="3.5"/><path d="M12 11v10M12 16c-2-1.5-4-1.5-5.5-.5M12 18.5c2-1.5 4-1.5 5.5-.5"/>'),
     fall: SVG('<path d="M5 19c0-8 5-14 15-15-1 10-7 15-15 15z"/><path d="M5 19l8-8"/>'),
-    holiday: SVG(FLAKE)
+    holiday: SVG(FLAKE),
+    veterans: SVG('<path d="M8 2l4 7 4-7"/><circle cx="12" cy="15" r="6"/><path d="M12 12l.9 1.8 2 .3-1.45 1.4.35 2-1.8-.95-1.8.95.35-2-1.45-1.4 2-.3z"/>')
   };
   // Decorations: [kind, inline position]. They sit only in empty corners and edges, never behind text (e2e checks it).
   var LEAF = function (c) { return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2c4 3 7 7 6 12-1 4-4 6-6 8-2-2-5-4-6-8-1-5 2-9 6-12z" fill="' + c + '"/><path d="M12 6v16" stroke="rgba(0,0,0,.35)"/></svg>'; };
@@ -2079,7 +2084,7 @@ window.BTGOffer = (function () {
   var DECOR = {
     spring: { box: [['blossom', 'left:31%;top:16px;width:30px'], ['sprout', 'left:46%;top:36px;width:16px'], ['blossom', 'left:58%;top:12px;width:26px'], ['sprout', 'left:70%;top:42px;width:14px'],
                     ['blossom', 'right:62px;bottom:46px;width:22px'], ['blossom', 'right:26px;bottom:22px;width:34px'], ['sprout', 'right:120px;bottom:22px;width:15px']],
-              card: [['blossom', 'right:64px;bottom:20px;width:22px'], ['blossom', 'right:18px;bottom:30px;width:30px'], ['sprout', 'right:100px;bottom:34px;width:14px']],
+              card: [['blossom', 'right:64px;bottom:20px;width:22px'], ['blossom', 'right:18px;bottom:30px;width:30px'], ['sprout', 'right:50px;bottom:64px;width:14px']],
               strip: [['blossom', 'left:10%;top:18%;width:26px'], ['sprout', 'left:46%;top:55%;width:16px'], ['blossom', 'left:72%;top:20%;width:22px'], ['sprout', 'left:30%;top:68%;width:14px']],
               dim: [['sprout', 'left:16%;top:30%;width:20px'], ['sprout', 'left:29%;top:22%;width:16px'], ['sprout', 'left:62%;top:24%;width:18px'], ['sprout', 'left:76%;top:55%;width:16px'], ['sprout', 'left:94%;top:41%;width:18px'], ['sprout', 'left:12%;top:83%;width:12px']] },
     fall: { box: [['leafA', 'left:34%;top:18px;width:26px;transform:rotate(-30deg)'], ['leafC', 'left:52%;top:38px;width:20px;transform:rotate(40deg)'], ['leafB', 'left:68%;top:14px;width:24px;transform:rotate(15deg)'],
@@ -2107,11 +2112,11 @@ window.BTGOffer = (function () {
   function withId(o, now) { return Object.assign({ id: o.from ? o.key + '-' + now.getFullYear() : o.key }, o); }
   // offers: every offer running now, new customers first. popup: whether any is unseen. start: the first unseen one (else 0).
   function choose(now, seen) {
-    var s = season(now), offers = [withId(OFFERS[0], now)].concat(s ? [withId(s, now)] : []);
-    var i = offers.map(function (o) { return seen.indexOf(o.id) === -1; }).indexOf(true);
+    var s = season(now), offers = [withId(OFFERS[0], now)].concat(s ? [withId(s, now)] : [], OFFERS.filter(function (o) { return o.quiet; }).map(function (o) { return withId(o, now); }));
+    var i = offers.map(function (o) { return !o.quiet && seen.indexOf(o.id) === -1; }).indexOf(true);
     return { offers: offers, popup: i !== -1, start: Math.max(i, 0) };
   }
-  function fineText(o) { return (o.to ? 'Ends ' + MONTHS[o.to[0] - 1] + ' ' + o.to[1] : NEW_FINE) + ' · ' + FINE; }
+  function fineText(o) { return (o.fine || (o.to ? 'Ends ' + MONTHS[o.to[0] - 1] + ' ' + o.to[1] : NEW_FINE)) + ' · ' + FINE; }
   function skipPath(path) { return /^\/contact-2\/?$/.test(path || ''); } // Jeff 2026-11-02: "have it skip the contact page"
   function parseSeen(text) {
     try { var a = JSON.parse(text); return Array.isArray(a) ? a.filter(function (x) { return typeof x === 'string'; }) : []; } catch (e) { return []; }
@@ -2189,7 +2194,7 @@ window.BTGOffer = (function () {
   function show(doc, win, c, store, seen) {
     // Not over an open helper panel; it stays unseen, so it can show on the next page instead.
     if (doc.documentElement.classList.contains('btg-hp-open') || doc.querySelector('.btg-offer')) return;
-    var ids = c.offers.map(function (o) { return o.id; }).filter(function (id) { return seen.indexOf(id) === -1; });
+    var ids = c.offers.filter(function (o) { return !o.quiet; }).map(function (o) { return o.id; }).filter(function (id) { return seen.indexOf(id) === -1; });
     try { store.l.setItem(SEEN, JSON.stringify(seen.concat(ids))); store.s.setItem(VISIT, '1'); } catch (e) { return; }
     var phone = !!(win.matchMedia && win.matchMedia('(max-width: 600px)').matches);
     var box = doc.createElement('section'), dim = null, inerted = [], prev = doc.activeElement;
@@ -2260,7 +2265,7 @@ window.BTGOffer = (function () {
     };
     return '<fieldset class="btg-disc"><legend>Use a 10% discount? <span class="btg-disc-note">(one per job, can’t be combined)</span></legend>' + opt('', 'No discount') +
       choose(now, []).offers.map(function (o) {
-        return opt(o.key, label(o) + ' <span class="btg-disc-note">(' + (o.to ? 'ends ' + MONTHS[o.to[0] - 1] + ' ' + o.to[1] : 'only ' + NEW_RULE) + ')</span>');
+        return opt(o.key, label(o) + ' <span class="btg-disc-note">(' + (o.note || (o.to ? 'ends ' + MONTHS[o.to[0] - 1] + ' ' + o.to[1] : 'only ' + NEW_RULE)) + ')</span>');
       }).join('') + '</fieldset>';
   }
   // Contact page: the choice goes just above the Send button; ?offer=<key> pre-selects it.
